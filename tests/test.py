@@ -6,6 +6,17 @@ import objwatch
 from objwatch.core import ObjWatch
 
 
+golden_log = """DEBUG:objwatch:run <module>
+DEBUG:objwatch:| run TestClass
+DEBUG:objwatch:| end TestClass
+DEBUG:objwatch:| run main
+DEBUG:objwatch:| | run TestClass.method
+DEBUG:objwatch:| | | upd TestClass.attr
+DEBUG:objwatch:| | end TestClass.method
+DEBUG:objwatch:| end main
+DEBUG:objwatch:end <module>"""
+
+
 class TestTracer(unittest.TestCase):
     def setUp(self):
         self.test_script = 'tests/test_script.py'
@@ -42,11 +53,8 @@ if __name__ == '__main__':
 
         obj_watch.stop()
 
-        self.assertIn('run <module>', log.output[0])
-        self.assertIn('run TestClass', log.output[1])
-        self.assertIn('run main', log.output[2])
-        self.assertIn('run TestClass.method', log.output[3])
-        self.assertIn('upd TestClass.attr', log.output[4])
+        test_log = '\n'.join(log.output)
+        self.assertIn(golden_log, test_log)
 
 
 class TestWatch(unittest.TestCase):
@@ -84,11 +92,8 @@ if __name__ == '__main__':
 
         obj_watch.stop()
 
-        self.assertIn('run <module>', log.output[0])
-        self.assertIn('run TestClass', log.output[1])
-        self.assertIn('run main', log.output[2])
-        self.assertIn('run TestClass.method', log.output[3])
-        self.assertIn('upd TestClass.attr', log.output[4])
+        test_log = '\n'.join(log.output)
+        self.assertIn(golden_log, test_log)
 
 
 if __name__ == '__main__':
