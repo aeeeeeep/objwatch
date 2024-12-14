@@ -1,56 +1,71 @@
 # ObjWatch
 
+![PyPI](https://img.shields.io/pypi/v/objwatch)
+![License](https://img.shields.io/github/license/aeeeeeep/objwatch)
+![Python Versions](https://img.shields.io/pypi/pyversions/objwatch)
 
 ## Overview
 
-ObjWatch is a powerful Python library designed to simplify the understanding and debugging of large-scale projects. By providing real-time tracing of object attributes and method calls, ObjWatch helps developers gain deeper insights into their codebase, making it easier to identify issues, optimize performance, and enhance code quality.
+ObjWatch is a robust Python library designed to streamline the debugging and monitoring of complex projects. By offering real-time tracing of object attributes and method calls, ObjWatch empowers developers to gain deeper insights into their codebases, facilitating issue identification, performance optimization, and overall code quality enhancement.
+
+**⚠️ Performance Warning**
+
+ObjWatch may impact your application's performance. It is recommended to use it solely in debugging environments.
 
 ## Features
 
-- **Comprehensive Tracing**: Monitor method calls and attribute changes across specified files or modules.
-- **Flexible Integration**: Easily integrate ObjWatch into your projects using simple interfaces or command-line tools.
-- **Enhanced Logging**: Utilize Python's built-in `logging` module for structured and customizable log outputs.
-- **Minimal Overhead**: Designed to have minimal impact on your application's performance.
-- **Extensible Architecture**: Modular design allows for easy extension and contribution from the open-source community.
+- **Nested Structure Tracing**: Visualize and monitor nested function calls and object interactions with clear, hierarchical logging.
+- **Enhanced Logging Support**: Leverage Python's built-in `logging` module for structured, customizable log outputs, including support for simple and detailed formats.
+- **Multi-GPU Support**: Seamlessly trace distributed PyTorch applications running across multiple GPUs, ensuring comprehensive monitoring in high-performance environments.
+- **Custom Wrapper Extensions**: Extend ObjWatch's functionality with custom wrappers, allowing tailored tracing and logging to fit specific project needs.
+- **Context Manager & API Integration**: Integrate ObjWatch effortlessly into your projects using context managers or API functions without relying on command-line interfaces.
 
 ## Installation
 
+ObjWatch is available on [PyPI](https://pypi.org/project/objwatch). Install it using `pip`:
+
 ```bash
-pip install .
+pip install objwatch
 ```
 
 ## Getting Started
 
 ### Basic Usage
 
-ObjWatch can be used both as a context manager within your Python scripts and as a command-line tool. Below are examples demonstrating both methods.
+ObjWatch can be utilized as a context manager or through its API within your Python scripts.
 
-#### 1. Using ObjWatch as a Context Manager
-
-This method is ideal for integrating ObjWatch directly into your Python code, allowing you to start and stop tracing around specific code blocks.
+#### Using as a Context Manager
 
 ```python
-# Using ObjWatch as a context manager
-with objwatch.ObjWatch(['example.py']):
-    main()
+import objwatch
 
-# Using the watch function
-obj_watch = objwatch.watch(['example.py'])
-main()
-obj_watch.stop()
+def main():
+    # Your application code
+    pass
+
+if __name__ == '__main__':
+    with objwatch.ObjWatch(['your_module.py']):
+        main()
 ```
 
-#### 2. Using ObjWatch via Command-Line Interface
+#### Using the API
 
-ObjWatch also provides a CLI for tracing scripts executed directly or through shell commands, making it versatile for various workflows.
+```python
+import objwatch
 
-```bash
-python3 -m objwatch -t "example.py" -s "python your_script.py"
+def main():
+    # Your application code
+    pass
+
+if __name__ == '__main__':
+    obj_watch = objwatch.watch(['your_module.py'])
+    main()
+    obj_watch.stop()
 ```
 
 ### Example Usage
 
-Here's a comprehensive example demonstrating how to use ObjWatch within a Python script:
+Below is a comprehensive example demonstrating how to integrate ObjWatch into a Python script:
 
 ```python
 import objwatch
@@ -76,11 +91,11 @@ def main():
         obj.decrement()
 
 if __name__ == '__main__':
-    # First usage: Context manager
+    # Using as a Context Manager with Detailed Logging
     with objwatch.ObjWatch(['examples/example_usage.py']):
         main()
 
-    # Second usage: watch function
+    # Using the API with Simple Logging
     obj_watch = objwatch.watch(['examples/example_usage.py'])
     main()
     obj_watch.stop()
@@ -93,117 +108,173 @@ When running the above script, ObjWatch will generate logs similar to the follow
 <summary>Expected Log Output</summary>
 
 ```
-[2024-12-12 20:34:09] [DEBUG] objwatch: Processed targets: {'examples/example_usage.py'}
-[2024-12-12 20:34:09] [INFO] objwatch: Starting ObjWatch tracing.
-[2024-12-12 20:34:09] [INFO] objwatch: Starting tracing.         
-[2024-12-12 20:34:09] [DEBUG] objwatch: run main                                                        
-[2024-12-12 20:34:09] [DEBUG] objwatch: run SampleClass.__init__ 
-[2024-12-12 20:34:09] [DEBUG] objwatch: run SampleClass.increment
-[2024-12-12 20:34:09] [DEBUG] objwatch: upd SampleClass.value    
-[2024-12-12 20:34:09] [DEBUG] objwatch: upd SampleClass.value
-[2024-12-12 20:34:09] [DEBUG] objwatch: run SampleClass.increment
-[2024-12-12 20:34:09] [DEBUG] objwatch: upd SampleClass.value
-[2024-12-12 20:34:09] [DEBUG] objwatch: run SampleClass.increment
-[2024-12-12 20:34:09] [DEBUG] objwatch: upd SampleClass.value
-[2024-12-12 20:34:09] [DEBUG] objwatch: run SampleClass.increment
-[2024-12-12 20:34:09] [DEBUG] objwatch: upd SampleClass.value
-[2024-12-12 20:34:09] [DEBUG] objwatch: run SampleClass.increment
-[2024-12-12 20:34:09] [DEBUG] objwatch: upd SampleClass.value
-[2024-12-12 20:34:10] [DEBUG] objwatch: run SampleClass.decrement
-[2024-12-12 20:34:10] [DEBUG] objwatch: upd SampleClass.value
-[2024-12-12 20:34:10] [DEBUG] objwatch: run SampleClass.decrement
-[2024-12-12 20:34:10] [DEBUG] objwatch: upd SampleClass.value
-[2024-12-12 20:34:10] [DEBUG] objwatch: run SampleClass.decrement
-[2024-12-12 20:34:10] [DEBUG] objwatch: upd SampleClass.value
-[2024-12-12 20:34:10] [INFO] objwatch: Stopping ObjWatch tracing.
-[2024-12-12 20:34:10] [INFO] objwatch: Stopping tracing.
-[2024-12-12 20:34:10] [DEBUG] objwatch: Processed targets: {'examples/example_usage.py'}
-[2024-12-12 20:34:10] [INFO] objwatch: Starting ObjWatch tracing.
-[2024-12-12 20:34:10] [INFO] objwatch: Starting tracing.
-[2024-12-12 20:34:10] [DEBUG] objwatch: run main
-[2024-12-12 20:34:10] [DEBUG] objwatch: run SampleClass.__init__
-[2024-12-12 20:34:10] [DEBUG] objwatch: run SampleClass.increment
-[2024-12-12 20:34:10] [DEBUG] objwatch: upd SampleClass.value
-[2024-12-12 20:34:10] [DEBUG] objwatch: upd SampleClass.value
-[2024-12-12 20:34:10] [DEBUG] objwatch: run SampleClass.increment
-[2024-12-12 20:34:10] [DEBUG] objwatch: upd SampleClass.value
-[2024-12-12 20:34:10] [DEBUG] objwatch: run SampleClass.increment
-[2024-12-12 20:34:10] [DEBUG] objwatch: upd SampleClass.value
-[2024-12-12 20:34:10] [DEBUG] objwatch: run SampleClass.increment
-[2024-12-12 20:34:10] [DEBUG] objwatch: upd SampleClass.value
-[2024-12-12 20:34:10] [DEBUG] objwatch: run SampleClass.increment
-[2024-12-12 20:34:10] [DEBUG] objwatch: upd SampleClass.value
-[2024-12-12 20:34:10] [DEBUG] objwatch: run SampleClass.decrement
-[2024-12-12 20:34:10] [DEBUG] objwatch: upd SampleClass.value
-[2024-12-12 20:34:10] [DEBUG] objwatch: run SampleClass.decrement
-[2024-12-12 20:34:10] [DEBUG] objwatch: upd SampleClass.value
-[2024-12-12 20:34:11] [DEBUG] objwatch: run SampleClass.decrement
-[2024-12-12 20:34:11] [DEBUG] objwatch: upd SampleClass.value
-[2024-12-12 20:34:11] [INFO] objwatch: Stopping ObjWatch tracing.
-[2024-12-12 20:34:11] [INFO] objwatch: Stopping tracing.
-```
-
-</details>
-
-## Advanced Usage
-
-### Tracking Multiple Classes and Modules
-
-ObjWatch's flexible architecture allows you to track multiple classes, functions, and modules simultaneously. Here's an example:
-
-```python
-import objwatch
-import time
-
-class Alpha:
-    def action(self):
-        self.status = 'active'
-        self.status = 'inactive'
-
-class Beta:
-    def action(self):
-        self.status = 'running'
-        self.status = 'stopped'
-
-def main():
-    objects = [Alpha(), Beta()]
-    for obj in objects:
-        obj.action()
-
-if __name__ == '__main__':
-    with objwatch.ObjWatch(['examples/advanced_usage.py']):
-        main()
-```
-
-<details>
-
-<summary>Expected Log Output</summary>
-
-```
-[2024-12-12 20:41:19] [DEBUG] objwatch: Processed targets: {'examples/advanced_usage.py'}
-[2024-12-12 20:41:19] [INFO] objwatch: Starting ObjWatch tracing.
-[2024-12-12 20:41:19] [INFO] objwatch: Starting tracing.
-[2024-12-12 20:41:19] [DEBUG] objwatch: run main
-[2024-12-12 20:41:19] [DEBUG] objwatch: run Alpha.action
-[2024-12-12 20:41:19] [DEBUG] objwatch: upd Alpha.status
-[2024-12-12 20:41:19] [DEBUG] objwatch: run Beta.action
-[2024-12-12 20:41:19] [DEBUG] objwatch: upd Beta.status
-[2024-12-12 20:41:19] [INFO] objwatch: Stopping ObjWatch tracing.
-[2024-12-12 20:41:19] [INFO] objwatch: Stopping tracing.
+[2024-12-14 20:40:56] [DEBUG] objwatch: Processed targets: {'examples/example_usage.py'}
+[2024-12-14 20:40:56] [INFO] objwatch: Starting ObjWatch tracing.
+[2024-12-14 20:40:56] [INFO] objwatch: Starting tracing.
+[2024-12-14 20:40:56] [DEBUG] objwatch: run main
+[2024-12-14 20:40:56] [DEBUG] objwatch: | run SampleClass.__init__
+[2024-12-14 20:40:56] [DEBUG] objwatch: | end SampleClass.__init__
+[2024-12-14 20:40:56] [DEBUG] objwatch: | run SampleClass.increment
+[2024-12-14 20:40:56] [DEBUG] objwatch: | | upd SampleClass.value
+[2024-12-14 20:40:56] [DEBUG] objwatch: | | upd SampleClass.value
+[2024-12-14 20:40:56] [DEBUG] objwatch: | end SampleClass.increment
+[2024-12-14 20:40:56] [DEBUG] objwatch: | run SampleClass.increment
+[2024-12-14 20:40:56] [DEBUG] objwatch: | | upd SampleClass.value
+[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.increment
+[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.increment
+[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
+[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.increment
+[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.increment
+[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
+[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.increment
+[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.increment
+[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
+[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.increment
+[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.decrement
+[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
+[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.decrement
+[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.decrement
+[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
+[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.decrement
+[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.decrement
+[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
+[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.decrement
+[2024-12-14 20:40:57] [DEBUG] objwatch: end main
+[2024-12-14 20:40:57] [INFO] objwatch: Stopping ObjWatch tracing.
+[2024-12-14 20:40:57] [INFO] objwatch: Stopping tracing.
+[2024-12-14 20:40:57] [DEBUG] objwatch: Processed targets: {'examples/example_usage.py'}
+[2024-12-14 20:40:57] [INFO] objwatch: Starting ObjWatch tracing.
+[2024-12-14 20:40:57] [INFO] objwatch: Starting tracing.
+[2024-12-14 20:40:57] [DEBUG] objwatch: run main
+[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.__init__
+[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.__init__
+[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.increment
+[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
+[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
+[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.increment
+[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.increment
+[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
+[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.increment
+[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.increment
+[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
+[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.increment
+[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.increment
+[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
+[2024-12-14 20:40:58] [DEBUG] objwatch: | end SampleClass.increment
+[2024-12-14 20:40:58] [DEBUG] objwatch: | run SampleClass.increment
+[2024-12-14 20:40:58] [DEBUG] objwatch: | | upd SampleClass.value
+[2024-12-14 20:40:58] [DEBUG] objwatch: | end SampleClass.increment
+[2024-12-14 20:40:58] [DEBUG] objwatch: | run SampleClass.decrement
+[2024-12-14 20:40:58] [DEBUG] objwatch: | | upd SampleClass.value
+[2024-12-14 20:40:58] [DEBUG] objwatch: | end SampleClass.decrement
+[2024-12-14 20:40:58] [DEBUG] objwatch: | run SampleClass.decrement
+[2024-12-14 20:40:58] [DEBUG] objwatch: | | upd SampleClass.value
+[2024-12-14 20:40:58] [DEBUG] objwatch: | end SampleClass.decrement
+[2024-12-14 20:40:58] [DEBUG] objwatch: | run SampleClass.decrement
+[2024-12-14 20:40:58] [DEBUG] objwatch: | | upd SampleClass.value
+[2024-12-14 20:40:58] [DEBUG] objwatch: | end SampleClass.decrement
+[2024-12-14 20:40:58] [DEBUG] objwatch: end main
+[2024-12-14 20:40:58] [INFO] objwatch: Stopping ObjWatch tracing.
+[2024-12-14 20:40:58] [INFO] objwatch: Stopping tracing.
 ```
 
 </details>
 
 ## Configuration
 
-ObjWatch leverages Python's `logging` module, allowing you to customize log levels and outputs according to your needs.
+ObjWatch offers customizable logging formats and tracing options to suit various project requirements. Utilize the `simple` parameter to toggle between detailed and simplified logging outputs.
 
-### Setting Log Level and Output File
+### Parameters
 
-You can configure the log level and specify an output file using command-line arguments:
+- `targets` (list): Files or modules to monitor.
+- `ranks` (list, optional): GPU ranks to track when using `torch.distributed`.
+- `output` (str, optional): Path to a file for writing logs.
+- `level` (str, optional): Logging level (e.g., `DEBUG`, `INFO`).
+- `simple` (bool, optional): Enable simple logging mode with the format `"DEBUG: {msg}"`.
+- `wrapper` (FunctionWrapper, optional): Custom wrapper instance to extend tracing and logging functionality.
 
-```bash
-python3 -m objwatch -t "example.py" -s "python your_script.py" --log-level DEBUG --output objwatch.log
+## Advanced Usage
+
+### Multi-GPU Support
+
+ObjWatch seamlessly integrates with distributed PyTorch applications, allowing you to monitor and trace operations across multiple GPUs. Specify the ranks you wish to track using the `ranks` parameter.
+
+```python
+import objwatch
+
+def main():
+    # Your distributed application code
+    pass
+
+if __name__ == '__main__':
+    obj_watch = objwatch.watch(['distributed_module.py'], ranks=[0, 1, 2, 3], output='./dist.log, simple=False)
+    main()
+    obj_watch.stop()
+```
+
+### Custom Wrapper Extensions
+
+ObjWatch provides the `FunctionWrapper` abstract base class, enabling users to create custom wrappers that extend and customize the library's tracing and logging capabilities. By subclassing `FunctionWrapper`, developers can implement tailored behaviors that execute during function calls and returns, offering deeper insights and specialized monitoring suited to their project's specific needs.
+
+#### FunctionWrapper Class
+
+The `FunctionWrapper` class defines two essential methods that must be implemented:
+
+- **`wrap_call(self, func_name: str, frame: FrameType) -> str`**:
+  
+  This method is invoked at the beginning of a function call. It receives the function name and the current frame object, which contains the execution context, including local variables and the call stack. Implement this method to extract, log, or modify information before the function executes.
+
+- **`wrap_return(self, func_name: str, result: Any) -> str`**:
+  
+  This method is called upon a function's return. It receives the function name and the result returned by the function. Use this method to log, analyze, or alter information after the function has completed execution.
+
+For more details on frame objects, refer to the [official Python documentation](https://docs.python.org/3/library/types.html#types.FrameType).
+
+#### TensorShapeLogger
+
+As an example of a custom wrapper, ObjWatch includes the `TensorShapeLogger` class within the `objwatch.wrappers` module. This wrapper automatically logs the shapes of tensors involved in function calls, which is particularly beneficial in machine learning and deep learning workflows where tensor dimensions are critical for model performance and debugging.
+
+#### Creating and Integrating Custom Wrappers
+
+To create a custom wrapper:
+
+1. **Subclass `FunctionWrapper`**: Define a new class that inherits from `FunctionWrapper` and implement the `wrap_call` and `wrap_return` methods to define your custom behavior.
+
+2. **Initialize ObjWatch with the Custom Wrapper**: When initializing `ObjWatch`, pass an instance of your custom wrapper via the `wrapper` parameter. This integrates your custom tracing logic into the ObjWatch tracing process.
+
+By leveraging custom wrappers, you can enhance ObjWatch to capture additional context, perform specialized logging, or integrate with other monitoring tools, thereby providing a more comprehensive and tailored tracing solution for your Python projects.
+
+#### Example Use Cases
+
+For example, the `TensorShapeLogger` can be integrated as follows:
+
+```python
+from objwatch.wrappers import TensorShapeLogger
+
+# Initialize ObjWatch with the custom TensorShapeLogger
+obj_watch = objwatch.ObjWatch(['your_module.py'], simple=False, wrapper=TensorShapeLogger))
+with obj_watch:
+    main()
+```
+
+#### Example of Using a Custom Wrapper
+
+Extend ObjWatch's functionality by creating custom wrappers. This allows you to tailor the tracing and logging mechanisms to fit specific needs within your projects.
+
+```python
+from objwatch.wrappers import FunctionWrapper
+
+class CustomWrapper(FunctionWrapper):
+    def wrap_call(self, func_name, frame):
+        return f" - Called {func_name} with args: {frame.f_locals}"
+
+    def wrap_return(self, func_name, result):
+        return f" - {func_name} returned {result}"
+
+# Integrate the custom wrapper
+obj_watch = objwatch.watch(['your_module.py'], simple=False, wrapper=CustomWrapper)
+main()
+obj_watch.stop()
 ```
 
 ## Contributing
@@ -220,10 +291,9 @@ Please ensure your code follows the project's coding standards and includes appr
 
 ## Support
 
-If you encounter any issues or have questions, feel free to open an issue on the [objwatch](https://github.com/aeeeeeep/objwatch) or reach out via email at [aeeeeeep@proton.me](mailto:aeeeeeep@proton.me).
+If you encounter any issues or have questions, feel free to open an issue on the [ObjWatch GitHub repository](https://github.com/aeeeeeep/objwatch) or reach out via email at [aeeeeeep@proton.me](mailto:aeeeeeep@proton.me).
 
 ## Acknowledgements
 
 - Inspired by the need for better debugging and understanding tools in large Python projects.
 - Powered by Python's robust tracing and logging capabilities.
-
