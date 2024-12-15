@@ -16,6 +16,15 @@ ObjWatch may impact your application's performance. It is recommended to use it 
 
 - **Nested Structure Tracing**: Visualize and monitor nested function calls and object interactions with clear, hierarchical logging.
 - **Enhanced Logging Support**: Leverage Python's built-in `logging` module for structured, customizable log outputs, including support for simple and detailed formats.
+- **Logging Message Types**: ObjWatch categorizes log messages into various types to provide detailed insights into code execution. The primary types include:
+  
+  - **`run`**: Indicates the start of a function or class method execution.
+  - **`end`**: Signifies the end of a function or class method execution.
+  - **`upd`**: Represents the creation of a new variable.
+  - **`apd`**: Denotes the addition of elements to data structures like lists, sets, or dictionaries.
+  - **`pop`**: Marks the removal of elements from data structures like lists, sets, or dictionaries.
+  
+  These classifications help developers efficiently trace and debug their code by understanding the flow and state changes within their applications.
 - **Multi-GPU Support**: Seamlessly trace distributed PyTorch applications running across multiple GPUs, ensuring comprehensive monitoring in high-performance environments.
 - **Custom Wrapper Extensions**: Extend ObjWatch's functionality with custom wrappers, allowing tailored tracing and logging to fit specific project needs.
 - **Context Manager & API Integration**: Integrate ObjWatch effortlessly into your projects using context managers or API functions without relying on command-line interfaces.
@@ -191,7 +200,7 @@ ObjWatch offers customizable logging formats and tracing options to suit various
 - `output` (str, optional): Path to a file for writing logs.
 - `level` (str, optional): Logging level (e.g., `DEBUG`, `INFO`).
 - `simple` (bool, optional): Enable simple logging mode with the format `"DEBUG: {msg}"`.
-- `wrapper` (FunctionWrapper, optional): Custom wrapper instance to extend tracing and logging functionality.
+- `wrapper` (FunctionWrapper, optional): Custom wrapper to extend tracing and logging functionality.
 
 ## Advanced Usage
 
@@ -240,7 +249,7 @@ To create a custom wrapper:
 
 1. **Subclass `FunctionWrapper`**: Define a new class that inherits from `FunctionWrapper` and implement the `wrap_call` and `wrap_return` methods to define your custom behavior.
 
-2. **Initialize ObjWatch with the Custom Wrapper**: When initializing `ObjWatch`, pass an instance of your custom wrapper via the `wrapper` parameter. This integrates your custom tracing logic into the ObjWatch tracing process.
+2. **Initialize ObjWatch with the Custom Wrapper**: When initializing `ObjWatch`, pass your custom wrapper via the `wrapper` parameter. This integrates your custom tracing logic into the ObjWatch tracing process.
 
 By leveraging custom wrappers, you can enhance ObjWatch to capture additional context, perform specialized logging, or integrate with other monitoring tools, thereby providing a more comprehensive and tailored tracing solution for your Python projects.
 
