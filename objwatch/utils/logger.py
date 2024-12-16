@@ -25,6 +25,6 @@ def create_logger(name='objwatch', output=None, level=logging.DEBUG, simple=Fals
     return logger
 
 
-def get_logger(name):
+def get_logger(name='objwatch'):
     logger = logging.getLogger(name)
     return logger

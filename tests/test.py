@@ -40,7 +40,7 @@ if __name__ == '__main__':
     def tearDown(self):
         os.remove(self.test_script)
 
-    @patch('objwatch.logger.get_logger')
+    @patch('objwatch.utils.logger.get_logger')
     def test_tracer(self, mock_logger):
         mock_logger.return_value = unittest.mock.Mock()
         obj_watch = ObjWatch([self.test_script])
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     def tearDown(self):
         os.remove(self.test_script)
 
-    @patch('objwatch.logger.get_logger')
+    @patch('objwatch.utils.logger.get_logger')
     def test_tracer(self, mock_logger):
         mock_logger.return_value = unittest.mock.Mock()
         obj_watch = objwatch.watch([self.test_script])
