@@ -52,7 +52,9 @@ class TensorShapeLogger(FunctionWrapper):
                 elif isinstance(arg[0], torch.Tensor):
                     num_tensors = len(arg)
                     display_tensors = arg[:3] if num_tensors > 3 else arg
-                    tensor_shapes = ', '.join([f"tensor_{j}:{tensor.shape}" for j, tensor in enumerate(display_tensors)])
+                    tensor_shapes = ', '.join(
+                        [f"tensor_{j}:{tensor.shape}" for j, tensor in enumerate(display_tensors)]
+                    )
                     if num_tensors > 3:
                         tensor_shapes += f"...({num_tensors - 3} more tensors)"
                     call_msg += f"'{i}':[{tensor_shapes}], "
@@ -75,7 +77,9 @@ class TensorShapeLogger(FunctionWrapper):
                 elif isinstance(v[0], torch.Tensor):
                     num_tensors = len(v)
                     display_tensors = v[:3] if num_tensors > 3 else v
-                    tensor_shapes = ', '.join([f"tensor_{j}:{tensor.shape}" for j, tensor in enumerate(display_tensors)])
+                    tensor_shapes = ', '.join(
+                        [f"tensor_{j}:{tensor.shape}" for j, tensor in enumerate(display_tensors)]
+                    )
                     if num_tensors > 3:
                         tensor_shapes += f"...({num_tensors - 3} more tensors)"
                     call_msg += f"'{k}':[{tensor_shapes}], "

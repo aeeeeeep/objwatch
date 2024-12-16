@@ -1,7 +1,7 @@
 import sys
 import logging
 import importlib
-from weakref import WeakKeyDictionary
+from .utils.weak import WeakTensorKeyDictionary
 from .wrappers import FunctionWrapper
 
 try:
@@ -17,7 +17,7 @@ logger = logging.getLogger('objwatch')
 class Tracer:
     def __init__(self, targets, ranks=None, wrapper=None):
         self.targets = self._process_targets(targets)
-        self.tracked_objects = WeakKeyDictionary()
+        self.tracked_objects = WeakTensorKeyDictionary()
         self.torch_available = torch_available
         if self.torch_available:
             self.current_rank = None
@@ -159,7 +159,16 @@ class Tracer:
 
                         for key, current_value in current_attrs.items():
                             old_value = old_attrs.get(key, None)
-                            if old_value != current_value:
+                            if (
+                                self.torch_available
+                                and isinstance(old_value, torch.Tensor)
+                                and isinstance(current_value, torch.Tensor)
+                            ):
+                                eq = torch.allclose(old_value, current_value)
+                            else:
+                                eq = old_value is current_value
+                            if not eq:
+                                # if old_value != current_value:
                                 change_type = self._determine_change_type(old_value, current_value)
                                 if change_type != "upd":
                                     diff_msg = f" {len(old_value)} -> {len(current_value)}"
