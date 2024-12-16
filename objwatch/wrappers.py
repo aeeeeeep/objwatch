@@ -34,43 +34,51 @@ class TensorShapeLogger(FunctionWrapper):
         else:
             kwargs = {}
 
-        tensor_args = [
-            arg
-            for arg in args
-            if isinstance(arg, torch.Tensor)
-            or (isinstance(arg, list) and all(isinstance(item, torch.Tensor) for item in arg))
-        ]
-        tensor_kwargs = {
-            k: v
-            for k, v in kwargs.items()
-            if isinstance(v, torch.Tensor)
-            or (isinstance(v, list) and all(isinstance(item, torch.Tensor) for item in v))
-        }
-
-        if len(tensor_args) == 0 and len(tensor_kwargs) == 0:
-            return ""
-
-        for i, arg in enumerate(tensor_args):
-            if isinstance(arg, torch.Tensor):
+        for i, arg in enumerate(args):
+            if isinstance(arg, (bool, int, float)):
+                call_msg += f"'{i}':{arg}, "
+            elif isinstance(arg, torch.Tensor):
                 call_msg += f"'{i}':{arg.shape}, "
             elif isinstance(arg, list):
-                num_tensors = len(arg)
-                display_tensors = arg[:3] if num_tensors > 3 else arg
-                tensor_shapes = ', '.join([f"tensor_{j}:{tensor.shape}" for j, tensor in enumerate(display_tensors)])
-                if num_tensors > 3:
-                    tensor_shapes += f"...({num_tensors - 3} more tensors)"
-                call_msg += f"'{i}':[{tensor_shapes}], "
+                if len(arg) == 0:
+                    call_msg += f"'{i}':[]"
+                elif isinstance(arg[0], (bool, int, float)):
+                    numel = len(arg)
+                    display_elm = arg[:3] if numel > 3 else arg
+                    elm_values = ', '.join([f"value_{j}:{element}" for j, element in enumerate(display_elm)])
+                    if numel > 3:
+                        elm_values += f"...({numel - 3} more elements)"
+                    call_msg += f"'{i}':[{elm_values}]"
+                elif isinstance(arg[0], torch.Tensor):
+                    num_tensors = len(arg)
+                    display_tensors = arg[:3] if num_tensors > 3 else arg
+                    tensor_shapes = ', '.join([f"tensor_{j}:{tensor.shape}" for j, tensor in enumerate(display_tensors)])
+                    if num_tensors > 3:
+                        tensor_shapes += f"...({num_tensors - 3} more tensors)"
+                    call_msg += f"'{i}':[{tensor_shapes}], "
 
-        for k, v in tensor_kwargs.items():
-            if isinstance(v, torch.Tensor):
+        for k, v in kwargs.items():
+            if isinstance(v, (bool, int, float)):
+                call_msg += f"'{k}':{v}, "
+            elif isinstance(v, torch.Tensor):
                 call_msg += f"'{k}':{v.shape}, "
             elif isinstance(v, list):
-                num_tensors = len(v)
-                display_tensors = v[:3] if num_tensors > 3 else v
-                tensor_shapes = ', '.join([f"tensor_{j}:{tensor.shape}" for j, tensor in enumerate(display_tensors)])
-                if num_tensors > 3:
-                    tensor_shapes += f"...({num_tensors - 3} more tensors)"
-                call_msg += f"'{k}':[{tensor_shapes}], "
+                if len(v) == 0:
+                    call_msg += f"'{k}':[]"
+                elif isinstance(v[0], (bool, int, float)):
+                    numel = len(v)
+                    display_elm = v[:3] if numel > 3 else v
+                    elm_values = ', '.join([f"value_{j}:{element}" for j, element in enumerate(display_elm)])
+                    if numel > 3:
+                        elm_values += f"...({numel - 3} more elements)"
+                    call_msg += f"'{k}':[{elm_values}]"
+                elif isinstance(v[0], torch.Tensor):
+                    num_tensors = len(v)
+                    display_tensors = v[:3] if num_tensors > 3 else v
+                    tensor_shapes = ', '.join([f"tensor_{j}:{tensor.shape}" for j, tensor in enumerate(display_tensors)])
+                    if num_tensors > 3:
+                        tensor_shapes += f"...({num_tensors - 3} more tensors)"
+                    call_msg += f"'{k}':[{tensor_shapes}], "
 
         call_msg = call_msg.rstrip(', ')
         return call_msg
