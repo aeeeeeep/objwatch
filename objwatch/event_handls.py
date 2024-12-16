@@ -1,7 +1,7 @@
 from typing import Any, Dict
-import logging
+from .utils.logger import get_logger
 
-logger = logging.getLogger('objwatch')
+logger = get_logger()
 
 
 class EventHandls:

@@ -1,9 +1,9 @@
 import sys
-import logging
 import importlib
-from .utils.weak import WeakTensorKeyDictionary
 from .wrappers import FunctionWrapper
 from .event_handls import EventHandls
+from .utils.logger import get_logger
+from .utils.weak import WeakTensorKeyDictionary
 
 try:
     import torch
@@ -12,7 +12,7 @@ try:
 except ImportError:
     torch_available = False
 
-logger = logging.getLogger('objwatch')
+logger = get_logger()
 
 
 class Tracer:

@@ -1,6 +1,6 @@
 import logging
 from .tracer import Tracer
-from .logger import create_logger
+from .utils.logger import create_logger
 
 
 class ObjWatch:
