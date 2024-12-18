@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------------
 # This file is based on PyTorch's torch/utils/weak.py with modifications.
-# Modifications include removing certain parts of the code.
+# Modifications include removing certain parts of the code and other adjustments.
 # Modified by: aeeeeeep
 # Modification Date: 2024-12-16
 # ---------------------------------------------------------------------------
@@ -8,80 +8,22 @@
 # mypy: allow-untyped-defs
 from __future__ import annotations
 
-import weakref
 from weakref import ref
 from _weakrefset import _IterationGuard  # type: ignore[attr-defined]
 from collections.abc import MutableMapping, Mapping
 import collections.abc as _collections_abc
 
 
-WeakRef = ref
-
-# This file defines a variant of WeakKeyDictionary that overrides the hashing
-# behavior of the key to use object identity, rather than the builtin
-# __eq__/__hash__ functions.  This is useful for Tensor weak keys, as their
-# __eq__ implementation return a Tensor (elementwise equality), which means
-# you can't use them directly with the WeakKeyDictionary in standard library.
-#
-# Our implementation strategy is to create a wrapper weak key object, which we
-# use as a key in a stock Python dictionary.  This is similar to how weakref
-# implements WeakKeyDictionary, but instead of using weakref.ref as the
-# wrapper, we use a custom wrapper that has different __eq__ and __hash__
-# behavior.  Note that we subsequently store this weak key directly in an
-# ORDINARY dictionary, since the newly constructed WeakIdKey's only use would
-# be a dictionary so it would have no strong references.  Ensuring that
-# only live WeakIdKeys are in the map is handled by putting finalizers on the
-# original key object.
-
-
-# It is simpler to implement this with composition, but if we want to
-# directly reuse the callback mechanism on weakref, we need the weakref
-# and the key to be exactly the same object.  Reusing the callback mechanism
-# minimizes the divergence between our implementation and Lib/weakref.py
-#
-# NB: Prefer using this when working with weakrefs of Tensors; e.g., do
-# WeakIdRef(tensor) rather than weakref.ref(tensor); it handles a number of
-# easy to get wrong cases transparently for you.
-class WeakIdRef(weakref.ref):
-    __slots__ = ['_id']
-
+class WeakIdRef(ref):
     def __init__(self, key, callback=None):
-        # Unlike stock weakref, which preserves hash semantics of the
-        # original object but lazily defers hash calls until the first
-        # time the user attempts to hash the weakref, we can eagerly
-        # cache the id of the key as we know this is definitely the hash
-        # method
-        self._id = id(ref(key))
-        super().__init__(key, callback)  # type: ignore[call-arg]
-
-    def __call__(self):
-        r = super().__call__()
-        # Special logic for Tensor PyObject resurrection
-        if hasattr(r, '_fix_weakref'):
-            r._fix_weakref()  # type: ignore[union-attr]
-        return r
+        self._ref = ref(key)
+        super().__init__(key, callback)
 
     def __hash__(self):
-        return self._id
+        return id(self._ref)
 
     def __eq__(self, other):
-        # An attractive but wrong alternate implementation is to only test if
-        # the stored _ids match.  This can lead to an ABA problem if you have:
-        #
-        #   a1 = A()
-        #   w1 = WeakIdRef(a1)
-        #   del a1
-        #   a2 = A()  # suppose it gets the same ID as a1
-        #   w2 = WeakIdRef(a2)
-        #   print(w1 == w2)
-        #
-        # This should be False, as a1 and a2 are unrelated (and a1 is
-        # dead anyway)
-        a = self()
-        b = other()
-        if a is not None and b is not None:
-            return a is b
-        return self is other
+        return self._ref is other._ref
 
 
 # This is directly adapted from cpython/Lib/weakref.py
