@@ -30,7 +30,6 @@ class FunctionWrapper(ABC):
         call_msg += ', '.join(filter(None, formatted_args + formatted_kwargs))
         return call_msg
 
-    @abstractmethod
     def _format_value(self, key, value):
         pass
 
