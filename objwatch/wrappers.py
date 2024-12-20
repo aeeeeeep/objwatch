@@ -120,7 +120,6 @@ class TensorShapeLogger(FunctionWrapper):
                 tensor_shapes += f"...({num_tensors - 3} more tensors)"
             return f"'{key}':[{tensor_shapes}]"
         elif isinstance(lst[0], (bool, int, float)):
-            # 复用 BaseLogger 的列表格式化
             base_logger = BaseLogger()
             return base_logger._format_list(key, lst)
         return ''

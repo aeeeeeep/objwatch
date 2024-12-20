@@ -1,0 +1,52 @@
+DEBUG:objwatch:run train
+DEBUG:objwatch:| run SimpleNet.__init__
+DEBUG:objwatch:| | upd SimpleNet.training
+DEBUG:objwatch:| | upd SimpleNet._parameters
+DEBUG:objwatch:| | upd SimpleNet._buffers
+DEBUG:objwatch:| | upd SimpleNet._non_persistent_buffers_set
+DEBUG:objwatch:| | upd SimpleNet._backward_pre_hooks
+DEBUG:objwatch:| | upd SimpleNet._backward_hooks
+DEBUG:objwatch:| | upd SimpleNet._forward_hooks
+DEBUG:objwatch:| | upd SimpleNet._forward_hooks_with_kwargs
+DEBUG:objwatch:| | upd SimpleNet._forward_hooks_always_called
+DEBUG:objwatch:| | upd SimpleNet._forward_pre_hooks
+DEBUG:objwatch:| | upd SimpleNet._forward_pre_hooks_with_kwargs
+DEBUG:objwatch:| | upd SimpleNet._state_dict_hooks
+DEBUG:objwatch:| | upd SimpleNet._state_dict_pre_hooks
+DEBUG:objwatch:| | upd SimpleNet._load_state_dict_pre_hooks
+DEBUG:objwatch:| | upd SimpleNet._load_state_dict_post_hooks
+DEBUG:objwatch:| | upd SimpleNet._modules
+DEBUG:objwatch:| end SimpleNet.__init__
+DEBUG:objwatch:| run SimpleNet.forward
+DEBUG:objwatch:| end SimpleNet.forward
+DEBUG:objwatch:| run SimpleNet.forward
+DEBUG:objwatch:| end SimpleNet.forward
+DEBUG:objwatch:| run SimpleNet.forward
+DEBUG:objwatch:| end SimpleNet.forward
+DEBUG:objwatch:| run SimpleNet.forward
+DEBUG:objwatch:| end SimpleNet.forward
+DEBUG:objwatch:| run SimpleNet.forward
+DEBUG:objwatch:| end SimpleNet.forward
+DEBUG:objwatch:| run SimpleNet.forward
+DEBUG:objwatch:| end SimpleNet.forward
+DEBUG:objwatch:| run SimpleNet.forward
+DEBUG:objwatch:| end SimpleNet.forward
+DEBUG:objwatch:| run SimpleNet.forward
+DEBUG:objwatch:| end SimpleNet.forward
+DEBUG:objwatch:| run SimpleNet.forward
+DEBUG:objwatch:| end SimpleNet.forward
+DEBUG:objwatch:| run SimpleNet.forward
+DEBUG:objwatch:| end SimpleNet.forward
+DEBUG:objwatch:| run SimpleNet.forward
+DEBUG:objwatch:| end SimpleNet.forward
+DEBUG:objwatch:| run SimpleNet.forward
+DEBUG:objwatch:| end SimpleNet.forward
+DEBUG:objwatch:| run SimpleNet.forward
+DEBUG:objwatch:| end SimpleNet.forward
+DEBUG:objwatch:| run SimpleNet.forward
+DEBUG:objwatch:| end SimpleNet.forward
+DEBUG:objwatch:| run SimpleNet.forward
+DEBUG:objwatch:| end SimpleNet.forward
+DEBUG:objwatch:| run SimpleNet.forward
+DEBUG:objwatch:| end SimpleNet.forward
+DEBUG:objwatch:end train
