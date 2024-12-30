@@ -19,7 +19,7 @@ ObjWatch may impact your application's performance. It is recommended to use it 
 ## Features
 
 - **Nested Structure Tracing**: Visualize and monitor nested function calls and object interactions with clear, hierarchical logging.
-- **Enhanced Logging Support**: Leverage Python's built-in `logging` module for structured, customizable log outputs, including support for simple and detailed formats.
+- **Enhanced Logging Support**: Leverage Python's built-in `logging` module for structured, customizable log outputs, including support for simple and detailed formats. Additionally, to ensure logs are captured even if the logger is disabled or removed by external libraries, you can set `level="force"`. When `level` is set to `"force"`, ObjWatch bypasses the standard logging handlers and uses `print()` to output log messages directly to the console, ensuring that critical debugging information is not lost.
 - **Logging Message Types**: ObjWatch categorizes log messages into various types to provide detailed insights into code execution. The primary types include:
   
   - **`run`**: Indicates the start of a function or class method execution.
