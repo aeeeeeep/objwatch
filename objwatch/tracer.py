@@ -1,8 +1,9 @@
 import sys
+import pkgutil
 import importlib
 from .wrappers import FunctionWrapper
 from .event_handls import EventHandls
-from .utils.logger import get_logger
+from .utils.logger import log_info, log_debug, log_warn
 from .utils.weak import WeakTensorKeyDictionary
 
 try:
@@ -11,8 +12,6 @@ try:
     torch_available = True
 except ImportError:
     torch_available = False
-
-logger = get_logger()
 
 
 class Tracer:
@@ -44,16 +43,32 @@ class Tracer:
                     module = importlib.import_module(target)
                     if hasattr(module, '__file__') and module.__file__:
                         processed.add(module.__file__)
+                        if hasattr(module, '__path__'):
+                            for importer, modname, ispkg in pkgutil.walk_packages(
+                                module.__path__, module.__name__ + '.'
+                            ):
+                                try:
+                                    submodule = importlib.import_module(modname)
+                                    if hasattr(submodule, '__file__') and submodule.__file__:
+                                        processed.add(submodule.__file__)
+                                except ImportError:
+                                    log_warn(f"Submodule {modname} could not be imported.")
                     else:
-                        logger.warning(f"Module {target} does not have a __file__ attribute.")
+                        log_warn(f"Module {target} does not have a __file__ attribute.")
                 except ImportError:
-                    logger.warning(f"Module {target} could not be imported.")
-        logger.debug(f"Processed targets: {processed}")
+                    log_warn(f"Module {target} could not be imported.")
+
+        log_debug(f"Processed targets:")
+        log_debug(">" * 10)
+        for target in processed:
+            log_debug(target)
+        log_debug("<" * 10)
+
         return processed
 
     def load_wrapper(self, wrapper):
         if wrapper and issubclass(wrapper, FunctionWrapper):
-            logger.warning(f"wrapper '{wrapper.__name__}' loaded")
+            log_warn(f"wrapper '{wrapper.__name__}' loaded")
             return wrapper()
 
     def _get_function_info(self, frame, event):
@@ -71,7 +86,7 @@ class Tracer:
                 func_info['is_method'] = True
                 func_info['class_name'] = class_name
 
-            if obj not in self.tracked_objects:
+            if obj not in self.tracked_objects and hasattr(obj, '__dict__'):
                 attrs = {k: v for k, v in obj.__dict__.items() if not callable(v)}
                 self.tracked_objects[obj] = attrs
         else:
@@ -127,9 +142,9 @@ class Tracer:
                                 and isinstance(old_value, torch.Tensor)
                                 and isinstance(current_value, torch.Tensor)
                             ):
-                                eq = torch.allclose(old_value, current_value)
+                                eq = id(old_value) == id(current_value)
                             else:
-                                eq = old_value is current_value
+                                eq = old_value == current_value
                             if not eq:
                                 change_type = EventHandls.determine_change_type(old_value, current_value)
                                 if change_type != "upd":
@@ -150,11 +165,11 @@ class Tracer:
         return trace_func
 
     def start(self):
-        logger.info("Starting tracing.")
+        log_info("Starting tracing.")
         sys.settrace(self.trace_func_factory())
         if self.torch_available and torch.distributed and torch.distributed.is_initialized():
             torch.distributed.barrier()
 
     def stop(self):
-        logger.info("Stopping tracing.")
+        log_info("Stopping tracing.")
         sys.settrace(None)

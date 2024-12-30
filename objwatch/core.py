@@ -1,19 +1,19 @@
 import logging
 from .tracer import Tracer
-from .utils.logger import create_logger
+from .utils.logger import create_logger, log_info
 
 
 class ObjWatch:
     def __init__(self, targets, ranks=None, output=None, level=logging.DEBUG, simple=False, wrapper=None):
-        self.logger = create_logger(output=output, level=level, simple=simple)
+        create_logger(output=output, level=level, simple=simple)
         self.tracer = Tracer(targets, ranks=ranks, wrapper=wrapper)
 
     def start(self):
-        self.logger.info("Starting ObjWatch tracing.")
+        log_info("Starting ObjWatch tracing.")
         self.tracer.start()
 
     def stop(self):
-        self.logger.info("Stopping ObjWatch tracing.")
+        log_info("Stopping ObjWatch tracing.")
         self.tracer.stop()
 
     def load_wrapper(self, wrapper):

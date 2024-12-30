@@ -1,5 +1,6 @@
 import os
 import runpy
+import importlib
 import unittest
 from unittest.mock import MagicMock, patch
 import logging
@@ -7,6 +8,7 @@ from io import StringIO
 import objwatch
 from objwatch.wrappers import BaseLogger, TensorShapeLogger, FunctionWrapper
 from objwatch.core import ObjWatch
+from objwatch.tracer import Tracer
 
 try:
     import torch
@@ -218,6 +220,115 @@ class TestCustomWrapper(unittest.TestCase):
         for handler in handlers:
             handler.close()
             self.logger.removeHandler(handler)
+
+
+class TestTracerProcessTargets(unittest.TestCase):
+    def test_process_targets_with_submodules(self):
+        tracer = Tracer(targets=['importlib'])
+        processed = tracer._process_targets(['importlib'])
+
+        main_module_file = importlib.__file__
+        self.assertIn(main_module_file, processed, "Main module file was not processed.")
+
+        submodules = [
+            'importlib/metadata/_adapters.py',
+            'importlib/util.py',
+            'importlib/metadata/_meta.py',
+            'importlib/_abc.py',
+            'importlib/metadata/_functools.py',
+            'importlib/metadata/__init__.py',
+            'importlib/machinery.py',
+            'importlib/resources.py',
+            'importlib/_common.py',
+            'importlib/metadata/_text.py',
+            'importlib/metadata/_collections.py',
+            'importlib/_bootstrap.py',
+            'importlib/__init__.py',
+            'importlib/readers.py',
+            'importlib/_bootstrap_external.py',
+            'importlib/metadata/_itertools.py',
+            'importlib/_adapters.py',
+            'importlib/abc.py',
+        ]
+
+        for submodule_path in submodules:
+            full_path = None
+            try:
+                submodule = importlib.import_module(submodule_path.replace('/', '.').rstrip('.py'))
+                if hasattr(submodule, '__file__') and submodule.__file__:
+                    full_path = submodule.__file__
+                    self.assertIn(full_path, processed, f"Submodule {submodule_path} was not processed.")
+            except ImportError:
+                pass
+
+
+class TestLoggerForce(unittest.TestCase):
+    def setUp(self):
+        import objwatch.utils.logger
+
+        objwatch.utils.logger.FORCE = False
+
+    def tearDown(self):
+        import objwatch.utils.logger
+
+        objwatch.utils.logger.FORCE = False
+
+    @patch('builtins.print')
+    def test_log_info_force_true(self, mock_print):
+        import objwatch.utils.logger
+
+        objwatch.utils.logger.create_logger(level='force')
+
+        msg = "Forced log message"
+        objwatch.utils.logger.log_info(msg)
+
+        mock_print.assert_called_with(msg, flush=True)
+
+    @patch('builtins.print')
+    def test_log_debug_force_true(self, mock_print):
+        import objwatch.utils.logger
+
+        objwatch.utils.logger.create_logger(level='force')
+
+        msg = "Forced debug message"
+        objwatch.utils.logger.log_debug(msg)
+
+        mock_print.assert_called_with(msg, flush=True)
+
+    @patch('builtins.print')
+    def test_log_warn_force_true(self, mock_print):
+        import objwatch.utils.logger
+
+        objwatch.utils.logger.create_logger(level='force')
+
+        msg = "Forced warning message"
+        objwatch.utils.logger.log_warn(msg)
+
+        mock_print.assert_called_with(msg, flush=True)
+
+    @patch('objwatch.utils.logger.logger.info')
+    @patch('objwatch.utils.logger.logger.debug')
+    @patch('objwatch.utils.logger.logger.warning')
+    @patch('builtins.print')
+    def test_log_functions_force_false(self, mock_print, mock_warning, mock_debug, mock_info):
+        import objwatch.utils.logger
+
+        objwatch.utils.logger.create_logger(level=logging.DEBUG)
+
+        info_msg = "Normal log message"
+        objwatch.utils.logger.log_info(info_msg)
+        mock_info.assert_called_with(info_msg)
+        mock_print.assert_not_called()
+
+        debug_msg = "Normal debug message"
+        objwatch.utils.logger.log_debug(debug_msg)
+        mock_debug.assert_called_with(debug_msg)
+        mock_print.assert_not_called()
+
+        warn_msg = "Normal warning message"
+        objwatch.utils.logger.log_warn(warn_msg)
+        mock_warning.assert_called_with(warn_msg)
+        mock_print.assert_not_called()
 
 
 if __name__ == '__main__':

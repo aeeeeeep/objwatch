@@ -65,7 +65,7 @@ class BaseLogger(FunctionWrapper):
     def _format_list(self, key, lst):
         if len(lst) == 0:
             return f"'{key}':[]"
-        elif isinstance(lst[0], (bool, int, float)):
+        elif all(isinstance(x, (bool, int, float)) for x in lst[:3]):
             numel = len(lst)
             display_elm = lst[:3] if numel > 3 else lst
             elm_values = ', '.join([f"value_{j}:{element}" for j, element in enumerate(display_elm)])
@@ -112,14 +112,14 @@ class TensorShapeLogger(FunctionWrapper):
     def _format_list(self, key, lst):
         if len(lst) == 0:
             return f"'{key}':[]"
-        elif isinstance(lst[0], torch.Tensor):
+        elif all(isinstance(x, torch.Tensor) for x in lst[:3]):
             num_tensors = len(lst)
             display_tensors = lst[:3] if num_tensors > 3 else lst
             tensor_shapes = ', '.join([f"tensor_{j}:{tensor.shape}" for j, tensor in enumerate(display_tensors)])
             if num_tensors > 3:
                 tensor_shapes += f"...({num_tensors - 3} more tensors)"
             return f"'{key}':[{tensor_shapes}]"
-        elif isinstance(lst[0], (bool, int, float)):
+        elif all(isinstance(x, (bool, int, float)) for x in lst[:3]):
             base_logger = BaseLogger()
             return base_logger._format_list(key, lst)
         return ''
