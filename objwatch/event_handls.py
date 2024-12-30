@@ -1,7 +1,5 @@
 from typing import Any, Dict
-from .utils.logger import get_logger
-
-logger = get_logger()
+from .utils.logger import log_debug
 
 
 class EventHandls:
@@ -22,7 +20,7 @@ class EventHandls:
             logger_msg += call_msg
 
         prefix = "| " * call_depth
-        logger.debug(f"{rank_info}{prefix}{logger_msg}")
+        log_debug(f"{rank_info}{prefix}{logger_msg}")
 
     @staticmethod
     def handle_end(func_info: Dict[str, Any], function_wrapper: Any, call_depth: int, rank_info: str, result: Any):
@@ -41,7 +39,7 @@ class EventHandls:
             logger_msg += return_msg
 
         prefix = "| " * call_depth
-        logger.debug(f"{rank_info}{prefix}{logger_msg}")
+        log_debug(f"{rank_info}{prefix}{logger_msg}")
 
     @staticmethod
     def handle_upd(class_name: str, key: str, diff_msg: str, call_depth: int, rank_info: str):
@@ -50,7 +48,7 @@ class EventHandls:
         """
         logger_msg = f"upd {class_name}.{key}{diff_msg}"
         prefix = "| " * call_depth
-        logger.debug(f"{rank_info}{prefix}{logger_msg}")
+        log_debug(f"{rank_info}{prefix}{logger_msg}")
 
     @staticmethod
     def handle_apd(class_name: str, key: str, diff_msg: str, call_depth: int, rank_info: str):
@@ -59,7 +57,7 @@ class EventHandls:
         """
         logger_msg = f"apd {class_name}.{key}{diff_msg}"
         prefix = "| " * call_depth
-        logger.debug(f"{rank_info}{prefix}{logger_msg}")
+        log_debug(f"{rank_info}{prefix}{logger_msg}")
 
     @staticmethod
     def handle_pop(class_name: str, key: str, diff_msg: str, call_depth: int, rank_info: str):
@@ -68,7 +66,7 @@ class EventHandls:
         """
         logger_msg = f"pop {class_name}.{key}{diff_msg}"
         prefix = "| " * call_depth
-        logger.debug(f"{rank_info}{prefix}{logger_msg}")
+        log_debug(f"{rank_info}{prefix}{logger_msg}")
 
     @staticmethod
     def determine_change_type(old_value: Any, current_value: Any) -> str:
