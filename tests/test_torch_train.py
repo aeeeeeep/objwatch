@@ -26,7 +26,7 @@ class SimpleNet(nn.Module):
 def train():
     input_size = 28 * 28
     num_classes = 10
-    num_samples = 1000
+    num_samples = 128
     batch_size = 64
 
     X = torch.randn(num_samples, input_size)

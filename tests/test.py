@@ -21,7 +21,7 @@ DEBUG:objwatch:| run TestClass
 DEBUG:objwatch:| end TestClass
 DEBUG:objwatch:| run main
 DEBUG:objwatch:| | run TestClass.method
-DEBUG:objwatch:| | | upd TestClass.attr
+DEBUG:objwatch:| | | upd TestClass.attr None -> 1
 DEBUG:objwatch:| | end TestClass.method
 DEBUG:objwatch:| end main
 DEBUG:objwatch:end <module>"""
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     @patch('objwatch.utils.logger.get_logger')
     def test_tracer(self, mock_logger):
         mock_logger.return_value = unittest.mock.Mock()
-        obj_watch = objwatch.watch([self.test_script])
+        obj_watch = objwatch.watch([self.test_script], simple=True)
 
         with self.assertLogs('objwatch', level='DEBUG') as log:
             runpy.run_path(self.test_script, run_name="__main__")

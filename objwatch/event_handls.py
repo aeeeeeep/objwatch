@@ -1,5 +1,15 @@
+from types import NoneType, FunctionType
 from typing import Any, Dict
 from .utils.logger import log_debug
+
+
+log_types = (
+    bool,
+    int,
+    float,
+    NoneType,
+    FunctionType,
+)
 
 
 class EventHandls:
@@ -42,28 +52,39 @@ class EventHandls:
         log_debug(f"{rank_info}{prefix}{logger_msg}")
 
     @staticmethod
-    def handle_upd(class_name: str, key: str, diff_msg: str, call_depth: int, rank_info: str):
+    def handle_upd(class_name: str, key: str, old_value: Any, current_value: Any, call_depth: int, rank_info: str):
         """
         Handles the 'upd' event representing the creation of a new variable.
         """
+        if isinstance(old_value, log_types):
+            old_msg = old_value
+        else:
+            old_msg = getattr(old_value, '__class__')
+        if isinstance(current_value, log_types):
+            current_msg = current_value
+        else:
+            current_msg = getattr(current_value, '__class__')
+        diff_msg = f" {old_msg} -> {current_msg}"
         logger_msg = f"upd {class_name}.{key}{diff_msg}"
         prefix = "| " * call_depth
         log_debug(f"{rank_info}{prefix}{logger_msg}")
 
     @staticmethod
-    def handle_apd(class_name: str, key: str, diff_msg: str, call_depth: int, rank_info: str):
+    def handle_apd(class_name: str, key: str, old_value: Any, current_value: Any, call_depth: int, rank_info: str):
         """
         Handles the 'apd' event denoting the addition of elements to data structures.
         """
+        diff_msg = f" {len(old_value)} -> {len(current_value)}"
         logger_msg = f"apd {class_name}.{key}{diff_msg}"
         prefix = "| " * call_depth
         log_debug(f"{rank_info}{prefix}{logger_msg}")
 
     @staticmethod
-    def handle_pop(class_name: str, key: str, diff_msg: str, call_depth: int, rank_info: str):
+    def handle_pop(class_name: str, key: str, old_value: Any, current_value: Any, call_depth: int, rank_info: str):
         """
         Handles the 'pop' event marking the removal of elements from data structures.
         """
+        diff_msg = f" {len(old_value)} -> {len(current_value)}"
         logger_msg = f"pop {class_name}.{key}{diff_msg}"
         prefix = "| " * call_depth
         log_debug(f"{rank_info}{prefix}{logger_msg}")

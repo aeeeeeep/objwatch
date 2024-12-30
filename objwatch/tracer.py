@@ -137,26 +137,23 @@ class Tracer:
 
                         for key, current_value in current_attrs.items():
                             old_value = old_attrs.get(key, None)
-                            if (
-                                self.torch_available
-                                and isinstance(old_value, torch.Tensor)
-                                and isinstance(current_value, torch.Tensor)
-                            ):
-                                eq = id(old_value) == id(current_value)
-                            else:
-                                eq = old_value == current_value
-                            if not eq:
-                                change_type = EventHandls.determine_change_type(old_value, current_value)
+                            eq = id(old_value) == id(current_value)
+                            change_type = EventHandls.determine_change_type(old_value, current_value)
+                            if eq:
                                 if change_type != "upd":
-                                    diff_msg = f" {len(old_value)} -> {len(current_value)}"
-                                else:
-                                    diff_msg = ""
+                                    if change_type == "apd":
+                                        EventHandls.handle_apd(
+                                            class_name, key, old_value, current_value, self.call_depth, rank_info
+                                        )
+                                    elif change_type == "pop":
+                                        EventHandls.handle_pop(
+                                            class_name, key, old_value, current_value, self.call_depth, rank_info
+                                        )
+                            else:
                                 if change_type == "upd":
-                                    EventHandls.handle_upd(class_name, key, diff_msg, self.call_depth, rank_info)
-                                elif change_type == "apd":
-                                    EventHandls.handle_apd(class_name, key, diff_msg, self.call_depth, rank_info)
-                                elif change_type == "pop":
-                                    EventHandls.handle_pop(class_name, key, diff_msg, self.call_depth, rank_info)
+                                    EventHandls.handle_upd(
+                                        class_name, key, old_value, current_value, self.call_depth, rank_info
+                                    )
                                 old_attrs[key] = current_value
                 return trace_func
 
