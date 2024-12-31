@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from typing import List
+from .event_handls import log_element_types, log_sequence_types, EventHandls
 
 
 class FunctionWrapper(ABC):
@@ -30,7 +32,7 @@ class FunctionWrapper(ABC):
         call_msg += ', '.join(filter(None, formatted_args + formatted_kwargs))
         return call_msg
 
-    def _format_value(self, key, value):
+    def _format_value(self, key, value, is_return=False):
         pass
 
     def _format_return(self, result):
@@ -49,30 +51,22 @@ class BaseLogger(FunctionWrapper):
         return return_msg
 
     def _format_value(self, key, value, is_return=False):
-        if isinstance(value, (bool, int, float)):
+        if isinstance(value, log_element_types):
             formatted = f"'{key}':{value}"
-        elif isinstance(value, list):
-            formatted = self._format_list(key, value)
+        elif isinstance(value, log_sequence_types):
+            formatted_sequence = EventHandls.format_sequence(value)
+            if formatted_sequence:
+                formatted = f"'{key}':{formatted_sequence}"
+            else:
+                formatted = ''
         else:
             formatted = ''
 
         if is_return:
-            if isinstance(value, list):
+            if isinstance(value, log_sequence_types) and formatted:
                 return f"[{formatted}]"
             return f"{formatted}"
         return formatted
-
-    def _format_list(self, key, lst):
-        if len(lst) == 0:
-            return f"'{key}':[]"
-        elif all(isinstance(x, (bool, int, float)) for x in lst[:3]):
-            numel = len(lst)
-            display_elm = lst[:3] if numel > 3 else lst
-            elm_values = ', '.join([f"value_{j}:{element}" for j, element in enumerate(display_elm)])
-            if numel > 3:
-                elm_values += f"...({numel - 3} more elements)"
-            return f"'{key}':[{elm_values}]"
-        return ''
 
 
 try:
@@ -82,6 +76,11 @@ except ImportError:
 
 
 class TensorShapeLogger(FunctionWrapper):
+    @staticmethod
+    def _process_tensor_item(seq):
+        if all(isinstance(x, torch.Tensor) for x in seq):
+            return [x.shape for x in seq]
+
     def wrap_call(self, func_name, frame):
         args, kwargs = self._extract_args_kwargs(frame)
         call_msg = self._format_args_kwargs(args, kwargs)
@@ -94,32 +93,21 @@ class TensorShapeLogger(FunctionWrapper):
     def _format_value(self, key, value, is_return=False):
         if isinstance(value, torch.Tensor):
             formatted = f"'{key}':{value.shape}"
-        elif isinstance(value, (bool, int, float)):
+        elif isinstance(value, log_element_types):
             formatted = f"'{key}':{value}"
-        elif isinstance(value, list):
-            formatted = self._format_list(key, value)
+        elif isinstance(value, log_sequence_types):
+            formatted_sequence = EventHandls.format_sequence(value, func=TensorShapeLogger._process_tensor_item)
+            if formatted_sequence:
+                formatted = f"'{key}':{formatted_sequence}"
+            else:
+                formatted = ''
         else:
             formatted = ''
 
         if is_return:
             if isinstance(value, torch.Tensor):
                 return f"{value.shape}"
-            elif isinstance(value, list):
+            elif isinstance(value, log_sequence_types) and formatted:
                 return f"[{formatted}]"
             return f"{formatted}"
         return formatted
-
-    def _format_list(self, key, lst):
-        if len(lst) == 0:
-            return f"'{key}':[]"
-        elif all(isinstance(x, torch.Tensor) for x in lst[:3]):
-            num_tensors = len(lst)
-            display_tensors = lst[:3] if num_tensors > 3 else lst
-            tensor_shapes = ', '.join([f"tensor_{j}:{tensor.shape}" for j, tensor in enumerate(display_tensors)])
-            if num_tensors > 3:
-                tensor_shapes += f"...({num_tensors - 3} more tensors)"
-            return f"'{key}':[{tensor_shapes}]"
-        elif all(isinstance(x, (bool, int, float)) for x in lst[:3]):
-            base_logger = BaseLogger()
-            return base_logger._format_list(key, lst)
-        return ''

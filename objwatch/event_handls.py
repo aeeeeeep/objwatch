@@ -3,13 +3,15 @@ from typing import Any, Dict
 from .utils.logger import log_debug
 
 
-log_types = (
+log_element_types = (
     bool,
     int,
     float,
+    str,
     NoneType,
     FunctionType,
 )
+log_sequence_types = (list, set, dict)
 
 
 class EventHandls:
@@ -54,16 +56,22 @@ class EventHandls:
     @staticmethod
     def handle_upd(class_name: str, key: str, old_value: Any, current_value: Any, call_depth: int, rank_info: str):
         """
-        Handles the 'upd' event representing the creation of a new variable.
+        Handles the 'upd' event representing the creation of a new variable or updating an existing one.
         """
-        if isinstance(old_value, log_types):
+        if isinstance(old_value, log_element_types):
             old_msg = old_value
+        elif isinstance(old_value, log_sequence_types):
+            old_msg = EventHandls.format_sequence(old_value)
         else:
-            old_msg = getattr(old_value, '__class__')
-        if isinstance(current_value, log_types):
+            old_msg = old_value.__class__.__name__
+
+        if isinstance(current_value, log_element_types):
             current_msg = current_value
+        elif isinstance(current_value, log_sequence_types):
+            current_msg = EventHandls.format_sequence(current_value)
         else:
-            current_msg = getattr(current_value, '__class__')
+            current_msg = current_value.__class__.__name__
+
         diff_msg = f" {old_msg} -> {current_msg}"
         logger_msg = f"upd {class_name}.{key}{diff_msg}"
         prefix = "| " * call_depth
@@ -94,10 +102,45 @@ class EventHandls:
         """
         Determines the type of change between old and current values.
         """
-        if isinstance(old_value, (list, set, dict)) and isinstance(current_value, type(old_value)):
+        if isinstance(old_value, log_sequence_types) and isinstance(current_value, type(old_value)):
             diff = len(current_value) - len(old_value)
             if diff > 0:
                 return "apd"
             elif diff < 0:
                 return "pop"
         return "upd"
+
+    @staticmethod
+    def format_sequence(seq: Any, max_elements: int = 3, func: FunctionType = None) -> str:
+        """
+        Formats a sequence to display at most max_elements elements. Extra elements are represented by '...'.
+        """
+        display = None
+        if isinstance(seq, list):
+            if all(isinstance(x, log_element_types) for x in seq[:max_elements]):
+                display = seq[:max_elements]
+            elif func is not None:
+                display = func(seq[:max_elements])
+        elif isinstance(seq, set):
+            if all(isinstance(x, log_element_types) for x in list(seq)[:max_elements]):
+                display = list(seq)[:max_elements]
+            elif func is not None:
+                display = func(list(seq)[:max_elements])
+        elif isinstance(seq, dict):
+            if all(isinstance(x, log_element_types) for x in list(seq.keys())[:max_elements]) and all(
+                isinstance(x, log_element_types) for x in list(seq.values())[:max_elements]
+            ):
+                display = list(seq.items())[:max_elements]
+            elif func is not None:
+                display_values = func(list(seq.values())[:max_elements])
+                display = []
+                for k, v in zip(list(seq.keys())[:max_elements], display_values):
+                    display.append((k, v))
+
+        if display is not None:
+            if len(seq) > max_elements:
+                remaining = len(seq) - max_elements
+                display.append(f"... ({remaining} more elements)")
+            return f'({type(seq).__name__})' + str(display)
+        else:
+            return f"({type(seq).__name__})[{len(seq)} elements]"
