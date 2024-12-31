@@ -1,5 +1,5 @@
-DEBUG:objwatch:run __main__.train
-DEBUG:objwatch:| run __main__.__init__
+DEBUG:objwatch:run train
+DEBUG:objwatch:| run SimpleNet.__init__
 DEBUG:objwatch:| | upd SimpleNet.training None -> True
 DEBUG:objwatch:| | upd SimpleNet._parameters None -> (OrderedDict)[]
 DEBUG:objwatch:| | upd SimpleNet._buffers None -> (OrderedDict)[]
@@ -16,9 +16,9 @@ DEBUG:objwatch:| | upd SimpleNet._state_dict_pre_hooks None -> (OrderedDict)[]
 DEBUG:objwatch:| | upd SimpleNet._load_state_dict_pre_hooks None -> (OrderedDict)[]
 DEBUG:objwatch:| | upd SimpleNet._load_state_dict_post_hooks None -> (OrderedDict)[]
 DEBUG:objwatch:| | upd SimpleNet._modules None -> (OrderedDict)[]
-DEBUG:objwatch:| end __main__.__init__
-DEBUG:objwatch:| run __main__.forward
-DEBUG:objwatch:| end __main__.forward
-DEBUG:objwatch:| run __main__.forward
-DEBUG:objwatch:| end __main__.forward
-DEBUG:objwatch:end __main__.train
+DEBUG:objwatch:| end SimpleNet.__init__
+DEBUG:objwatch:| run SimpleNet.forward
+DEBUG:objwatch:| end SimpleNet.forward
+DEBUG:objwatch:| run SimpleNet.forward
+DEBUG:objwatch:| end SimpleNet.forward
+DEBUG:objwatch:end train

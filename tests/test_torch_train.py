@@ -66,7 +66,6 @@ class TestPytorchTraining(unittest.TestCase):
             level=logging.DEBUG,
             simple=True,
             wrapper=None,
-            with_module_path=True,
         )
         obj_watch.start()
 
