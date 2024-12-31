@@ -15,11 +15,13 @@ except ImportError:
 
 
 class Tracer:
-    def __init__(self, targets, ranks=None, wrapper=None, with_locals=False):
-        self.targets = self._process_targets(targets)
+    def __init__(self, targets, ranks=None, wrapper=None, with_locals=False, with_module_path=False):
         self.with_locals = with_locals
         if self.with_locals:
             self.tracked_locals = {}
+        self.with_module_path = with_module_path
+
+        self.targets = self._process_targets(targets)
         self.tracked_objects = WeakTensorKeyDictionary()
         self.torch_available = torch_available
         if self.torch_available:
@@ -77,6 +79,12 @@ class Tracer:
     def _get_function_info(self, frame, event):
         func_info = {}
         func_name = frame.f_code.co_name
+
+        if self.with_module_path:
+            module_name = frame.f_globals.get('__name__', '')
+            if module_name:
+                func_name = f"{module_name}.{func_name}"
+
         func_info['func_name'] = func_name
         func_info['frame'] = frame
 

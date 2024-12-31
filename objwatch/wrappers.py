@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import List
 from .event_handls import log_element_types, log_sequence_types, EventHandls
 
 
