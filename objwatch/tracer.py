@@ -15,7 +15,7 @@ except ImportError:
 
 
 class Tracer:
-    def __init__(self, targets, ranks=None, wrapper=None, with_locals=False, with_module_path=False):
+    def __init__(self, targets, ranks=None, wrapper=None, output_xml=None, with_locals=False, with_module_path=False):
         self.with_locals = with_locals
         if self.with_locals:
             self.tracked_locals = {}
@@ -23,6 +23,7 @@ class Tracer:
 
         self.targets = self._process_targets(targets)
         self.tracked_objects = WeakTensorKeyDictionary()
+        self.event_handlers = EventHandls(output_xml=output_xml)
         self.torch_available = torch_available
         if self.torch_available:
             self.current_rank = None
@@ -127,7 +128,7 @@ class Tracer:
 
             if event == "call":
                 func_info = self._get_function_info(frame, event)
-                EventHandls.handle_run(func_info, self.function_wrapper, self.call_depth, rank_info)
+                self.event_handlers.handle_run(func_info, self.function_wrapper, self.call_depth, rank_info)
                 self.call_depth += 1
 
                 if self.with_locals:
@@ -139,7 +140,7 @@ class Tracer:
             elif event == "return":
                 self.call_depth -= 1
                 func_info = self._get_function_info(frame, event)
-                EventHandls.handle_end(func_info, self.function_wrapper, self.call_depth, rank_info, arg)
+                self.event_handlers.handle_end(func_info, self.function_wrapper, self.call_depth, rank_info, arg)
 
                 if self.with_locals and frame in self.tracked_locals:
                     del self.tracked_locals[frame]
@@ -157,20 +158,20 @@ class Tracer:
 
                         for key, current_value in current_attrs.items():
                             old_value = old_attrs.get(key, None)
-                            change_type = EventHandls.determine_change_type(old_value, current_value)
+                            change_type = self.event_handlers.determine_change_type(old_value, current_value)
                             if id(old_value) == id(current_value):
                                 if change_type != "upd":
                                     if change_type == "apd":
-                                        EventHandls.handle_apd(
+                                        self.event_handlers.handle_apd(
                                             class_name, key, old_value, current_value, self.call_depth, rank_info
                                         )
                                     elif change_type == "pop":
-                                        EventHandls.handle_pop(
+                                        self.event_handlers.handle_pop(
                                             class_name, key, old_value, current_value, self.call_depth, rank_info
                                         )
                             else:
                                 if change_type == "upd":
-                                    EventHandls.handle_upd(
+                                    self.event_handlers.handle_upd(
                                         class_name, key, old_value, current_value, self.call_depth, rank_info
                                     )
                                 old_attrs[key] = current_value
@@ -181,7 +182,7 @@ class Tracer:
 
                     added_vars = set(current_locals.keys()) - set(old_locals.keys())
                     for var in added_vars:
-                        EventHandls.handle_upd(
+                        self.event_handlers.handle_upd(
                             class_name="_",
                             key=var,
                             old_value=None,
@@ -194,20 +195,22 @@ class Tracer:
                     for var in common_vars:
                         old_value = old_locals[var]
                         current_value = current_locals[var]
-                        change_type = EventHandls.determine_change_type(old_value, current_value)
+                        change_type = self.event_handlers.determine_change_type(old_value, current_value)
                         if id(old_value) == id(current_value):
                             if change_type != "upd":
                                 if change_type == "apd":
-                                    EventHandls.handle_apd(
+                                    self.event_handlers.handle_apd(
                                         "_", var, old_value, current_value, self.call_depth, rank_info
                                     )
                                 elif change_type == "pop":
-                                    EventHandls.handle_pop(
+                                    self.event_handlers.handle_pop(
                                         "_", var, old_value, current_value, self.call_depth, rank_info
                                     )
                         else:
                             if change_type == "upd":
-                                EventHandls.handle_upd("_", var, old_value, current_value, self.call_depth, rank_info)
+                                self.event_handlers.handle_upd(
+                                    "_", var, old_value, current_value, self.call_depth, rank_info
+                                )
 
                     self.tracked_locals[frame] = current_locals
 
@@ -226,3 +229,4 @@ class Tracer:
     def stop(self):
         log_info("Stopping tracing.")
         sys.settrace(None)
+        self.event_handlers.save_xml()

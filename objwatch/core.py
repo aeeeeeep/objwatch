@@ -9,6 +9,7 @@ class ObjWatch:
         targets,
         ranks=None,
         output=None,
+        output_xml=None,
         level=logging.DEBUG,
         simple=False,
         wrapper=None,
@@ -17,7 +18,12 @@ class ObjWatch:
     ):
         create_logger(output=output, level=level, simple=simple)
         self.tracer = Tracer(
-            targets, ranks=ranks, wrapper=wrapper, with_locals=with_locals, with_module_path=with_module_path
+            targets,
+            ranks=ranks,
+            wrapper=wrapper,
+            output_xml=output_xml,
+            with_locals=with_locals,
+            with_module_path=with_module_path,
         )
 
     def start(self):
@@ -43,6 +49,7 @@ def watch(
     targets,
     ranks=None,
     output=None,
+    output_xml=None,
     level=logging.DEBUG,
     simple=False,
     wrapper=None,
@@ -53,6 +60,7 @@ def watch(
         targets,
         ranks=ranks,
         output=output,
+        output_xml=output_xml,
         level=level,
         simple=simple,
         wrapper=wrapper,

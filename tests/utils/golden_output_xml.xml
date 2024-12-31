@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ObjWatch><Function name="__main__.outer_function"><upd name="TestClass.a None -&gt; 10" /><upd name="TestClass.b None -&gt; (list)[1, 2, 3]" /><upd name="TestClass.a 10 -&gt; 20" /><Function name="__main__.inner_function"><upd name="TestClass.lst None -&gt; (list)[1, 2, 3, '... (1 more elements)']" /></Function></Function></ObjWatch>
