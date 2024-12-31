@@ -205,6 +205,7 @@ ObjWatch offers customizable logging formats and tracing options to suit various
 - `level` (str, optional): Logging level (e.g., `DEBUG`, `INFO`).
 - `simple` (bool, optional): Enable simple logging mode with the format `"DEBUG: {msg}"`.
 - `wrapper` (FunctionWrapper, optional): Custom wrapper to extend tracing and logging functionality.
+- `with_locals` (bool, optional): Enable tracing and logging of local variables within functions during their execution.
 
 ## Advanced Usage
 

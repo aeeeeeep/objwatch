@@ -61,7 +61,11 @@ class TestPytorchTraining(unittest.TestCase):
         mock_logger.return_value = unittest.mock.Mock()
 
         obj_watch = ObjWatch(
-            targets=['tests/test_torch_train.py'], output=None, level=logging.DEBUG, simple=True, wrapper=None
+            targets=['tests/test_torch_train.py'],
+            output=None,
+            level=logging.DEBUG,
+            simple=True,
+            wrapper=None,
         )
         obj_watch.start()
 
