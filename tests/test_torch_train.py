@@ -78,7 +78,7 @@ class TestPytorchTraining(unittest.TestCase):
         golden_log_path = 'tests/utils/golden_torch_train_log.txt'
         with open(golden_log_path, 'r') as f:
             golden_log = f.read()
-        print(generated_log)
+
         self.assertEqual(
             generated_log,
             golden_log,
