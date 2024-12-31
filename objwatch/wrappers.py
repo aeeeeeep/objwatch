@@ -80,6 +80,8 @@ class TensorShapeLogger(FunctionWrapper):
     def _process_tensor_item(seq):
         if all(isinstance(x, torch.Tensor) for x in seq):
             return [x.shape for x in seq]
+        else:
+            return None
 
     def wrap_call(self, func_name, frame):
         args, kwargs = self._extract_args_kwargs(frame)

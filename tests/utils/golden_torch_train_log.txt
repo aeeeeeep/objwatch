@@ -1,21 +1,21 @@
 DEBUG:objwatch:run train
 DEBUG:objwatch:| run SimpleNet.__init__
 DEBUG:objwatch:| | upd SimpleNet.training None -> True
-DEBUG:objwatch:| | upd SimpleNet._parameters None -> collections.OrderedDict
-DEBUG:objwatch:| | upd SimpleNet._buffers None -> collections.OrderedDict
+DEBUG:objwatch:| | upd SimpleNet._parameters None -> (OrderedDict)[]
+DEBUG:objwatch:| | upd SimpleNet._buffers None -> (OrderedDict)[]
 DEBUG:objwatch:| | upd SimpleNet._non_persistent_buffers_set None -> set
-DEBUG:objwatch:| | upd SimpleNet._backward_pre_hooks None -> collections.OrderedDict
-DEBUG:objwatch:| | upd SimpleNet._backward_hooks None -> collections.OrderedDict
-DEBUG:objwatch:| | upd SimpleNet._forward_hooks None -> collections.OrderedDict
-DEBUG:objwatch:| | upd SimpleNet._forward_hooks_with_kwargs None -> collections.OrderedDict
-DEBUG:objwatch:| | upd SimpleNet._forward_hooks_always_called None -> collections.OrderedDict
-DEBUG:objwatch:| | upd SimpleNet._forward_pre_hooks None -> collections.OrderedDict
-DEBUG:objwatch:| | upd SimpleNet._forward_pre_hooks_with_kwargs None -> collections.OrderedDict
-DEBUG:objwatch:| | upd SimpleNet._state_dict_hooks None -> collections.OrderedDict
-DEBUG:objwatch:| | upd SimpleNet._state_dict_pre_hooks None -> collections.OrderedDict
-DEBUG:objwatch:| | upd SimpleNet._load_state_dict_pre_hooks None -> collections.OrderedDict
-DEBUG:objwatch:| | upd SimpleNet._load_state_dict_post_hooks None -> collections.OrderedDict
-DEBUG:objwatch:| | upd SimpleNet._modules None -> collections.OrderedDict
+DEBUG:objwatch:| | upd SimpleNet._backward_pre_hooks None -> (OrderedDict)[]
+DEBUG:objwatch:| | upd SimpleNet._backward_hooks None -> (OrderedDict)[]
+DEBUG:objwatch:| | upd SimpleNet._forward_hooks None -> (OrderedDict)[]
+DEBUG:objwatch:| | upd SimpleNet._forward_hooks_with_kwargs None -> (OrderedDict)[]
+DEBUG:objwatch:| | upd SimpleNet._forward_hooks_always_called None -> (OrderedDict)[]
+DEBUG:objwatch:| | upd SimpleNet._forward_pre_hooks None -> (OrderedDict)[]
+DEBUG:objwatch:| | upd SimpleNet._forward_pre_hooks_with_kwargs None -> (OrderedDict)[]
+DEBUG:objwatch:| | upd SimpleNet._state_dict_hooks None -> (OrderedDict)[]
+DEBUG:objwatch:| | upd SimpleNet._state_dict_pre_hooks None -> (OrderedDict)[]
+DEBUG:objwatch:| | upd SimpleNet._load_state_dict_pre_hooks None -> (OrderedDict)[]
+DEBUG:objwatch:| | upd SimpleNet._load_state_dict_post_hooks None -> (OrderedDict)[]
+DEBUG:objwatch:| | upd SimpleNet._modules None -> (OrderedDict)[]
 DEBUG:objwatch:| end SimpleNet.__init__
 DEBUG:objwatch:| run SimpleNet.forward
 DEBUG:objwatch:| end SimpleNet.forward

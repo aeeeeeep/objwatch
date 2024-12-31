@@ -115,6 +115,9 @@ class EventHandls:
         """
         Formats a sequence to display at most max_elements elements. Extra elements are represented by '...'.
         """
+        len_seq = len(seq)
+        if len_seq == 0:
+            return f'({type(seq).__name__})[]'
         display = None
         if isinstance(seq, list):
             if all(isinstance(x, log_element_types) for x in seq[:max_elements]):
@@ -122,24 +125,28 @@ class EventHandls:
             elif func is not None:
                 display = func(seq[:max_elements])
         elif isinstance(seq, set):
-            if all(isinstance(x, log_element_types) for x in list(seq)[:max_elements]):
-                display = list(seq)[:max_elements]
+            seq_list = list(seq)[:max_elements]
+            if all(isinstance(x, log_element_types) for x in seq_list):
+                display = seq_list
             elif func is not None:
-                display = func(list(seq)[:max_elements])
+                display = func(seq_list)
         elif isinstance(seq, dict):
-            if all(isinstance(x, log_element_types) for x in list(seq.keys())[:max_elements]) and all(
-                isinstance(x, log_element_types) for x in list(seq.values())[:max_elements]
+            seq_keys = list(seq.keys())[:max_elements]
+            seq_values = list(seq.values())[:max_elements]
+            if all(isinstance(x, log_element_types) for x in seq_keys) and all(
+                isinstance(x, log_element_types) for x in seq_values
             ):
                 display = list(seq.items())[:max_elements]
             elif func is not None:
-                display_values = func(list(seq.values())[:max_elements])
-                display = []
-                for k, v in zip(list(seq.keys())[:max_elements], display_values):
-                    display.append((k, v))
+                display_values = func(seq_values)
+                if display_values:
+                    display = []
+                    for k, v in zip(seq_keys, display_values):
+                        display.append((k, v))
 
         if display is not None:
-            if len(seq) > max_elements:
-                remaining = len(seq) - max_elements
+            if len_seq > max_elements:
+                remaining = len_seq - max_elements
                 display.append(f"... ({remaining} more elements)")
             return f'({type(seq).__name__})' + str(display)
         else:
