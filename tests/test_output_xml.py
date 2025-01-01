@@ -10,7 +10,9 @@ class TestOutputXML(unittest.TestCase):
         self.test_output = "test_trace.xml"
         self.golden_output = "tests/utils/golden_output_xml.xml"
 
-        self.tracer = Tracer(targets="tests/test_output_xml.py", output_xml=self.test_output, with_module_path=True, with_locals=True)
+        self.tracer = Tracer(
+            targets="tests/test_output_xml.py", output_xml=self.test_output, with_module_path=True, with_locals=True
+        )
 
     def tearDown(self):
         self.tracer.stop()
