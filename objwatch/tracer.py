@@ -2,7 +2,7 @@ import sys
 import pkgutil
 import importlib
 from .wrappers import FunctionWrapper
-from .event_handls import EventHandls
+from .event_handls import EventHandls, log_sequence_types
 from .utils.logger import log_info, log_debug, log_warn
 from .utils.weak import WeakTensorKeyDictionary
 
@@ -19,10 +19,12 @@ class Tracer:
         self.with_locals = with_locals
         if self.with_locals:
             self.tracked_locals = {}
+            self.tracked_locals_lens = {}
         self.with_module_path = with_module_path
 
         self.targets = self._process_targets(targets)
         self.tracked_objects = WeakTensorKeyDictionary()
+        self.tracked_objects_lens = WeakTensorKeyDictionary()
         self.event_handlers = EventHandls(output_xml=output_xml)
         self.torch_available = torch_available
         if self.torch_available:
@@ -98,9 +100,15 @@ class Tracer:
                 func_info['is_method'] = True
                 func_info['class_name'] = class_name
 
-            if obj not in self.tracked_objects and hasattr(obj, '__dict__'):
+            if hasattr(obj, '__dict__'):
                 attrs = {k: v for k, v in obj.__dict__.items() if not callable(v)}
-                self.tracked_objects[obj] = attrs
+                if obj not in self.tracked_objects:
+                    self.tracked_objects[obj] = attrs
+                if obj not in self.tracked_objects_lens:
+                    self.tracked_objects_lens[obj] = {}
+                for k, v in attrs.items():
+                    if isinstance(v, log_sequence_types):
+                        self.tracked_objects_lens[obj][k] = len(v)
         else:
             func_info['is_method'] = False
 
@@ -134,6 +142,10 @@ class Tracer:
                 if self.with_locals:
                     local_vars = {k: v for k, v in frame.f_locals.items() if k != 'self' and not callable(v)}
                     self.tracked_locals[frame] = local_vars
+                    self.tracked_locals_lens[frame] = {}
+                    for var, value in local_vars.items():
+                        if isinstance(value, log_sequence_types):
+                            self.tracked_locals_lens[frame][var] = len(value)
 
                 return trace_func
 
@@ -144,6 +156,7 @@ class Tracer:
 
                 if self.with_locals and frame in self.tracked_locals:
                     del self.tracked_locals[frame]
+                    del self.tracked_locals_lens[frame]
 
                 return trace_func
 
@@ -154,63 +167,76 @@ class Tracer:
 
                     if obj in self.tracked_objects:
                         old_attrs = self.tracked_objects[obj]
+                        old_attrs_lens = self.tracked_objects_lens[obj]
                         current_attrs = {k: v for k, v in obj.__dict__.items() if not callable(v)}
 
                         for key, current_value in current_attrs.items():
                             old_value = old_attrs.get(key, None)
-                            change_type = self.event_handlers.determine_change_type(old_value, current_value)
-                            if id(old_value) == id(current_value):
-                                if change_type != "upd":
-                                    if change_type == "apd":
-                                        self.event_handlers.handle_apd(
-                                            class_name, key, old_value, current_value, self.call_depth, rank_info
-                                        )
-                                    elif change_type == "pop":
-                                        self.event_handlers.handle_pop(
-                                            class_name, key, old_value, current_value, self.call_depth, rank_info
-                                        )
+                            old_value_len = old_attrs_lens.get(key, None)
+                            if old_value_len is not None:
+                                current_value_len = len(current_value)
+                                change_type = self.event_handlers.determine_change_type(old_value_len, current_value_len)
                             else:
-                                if change_type == "upd":
+                                change_type = "upd"
+                            if id(old_value) == id(current_value) and change_type == "apd":
+                                    self.event_handlers.handle_apd(
+                                        class_name, key, type(current_value), old_value_len, current_value_len, self.call_depth, rank_info
+                                    )
+                            elif id(old_value) == id(current_value) and change_type == "pop":
+                                self.event_handlers.handle_pop(
+                                    class_name, key, type(current_value), old_value_len, current_value_len, self.call_depth, rank_info
+                                )
+                            elif id(old_value) != id(current_value) and change_type == "upd":
                                     self.event_handlers.handle_upd(
                                         class_name, key, old_value, current_value, self.call_depth, rank_info
                                     )
-                                old_attrs[key] = current_value
+                            old_attrs[key] = current_value
+                            if isinstance(current_value, log_sequence_types):
+                                self.tracked_objects_lens[obj][key] = len(current_value)
 
                 if self.with_locals and frame in self.tracked_locals:
                     old_locals = self.tracked_locals[frame]
                     current_locals = {k: v for k, v in frame.f_locals.items() if k != 'self' and not callable(v)}
+                    old_locals_lens = self.tracked_locals_lens[frame]
 
                     added_vars = set(current_locals.keys()) - set(old_locals.keys())
                     for var in added_vars:
+                        current_local = current_locals[var]
                         self.event_handlers.handle_upd(
                             class_name="_",
                             key=var,
                             old_value=None,
-                            current_value=current_locals[var],
+                            current_value=current_local,
                             call_depth=self.call_depth,
                             rank_info=rank_info,
                         )
+                        if isinstance(current_local, log_sequence_types):
+                            self.tracked_locals_lens[frame][var] = len(current_local)
 
                     common_vars = set(old_locals.keys()) & set(current_locals.keys())
                     for var in common_vars:
-                        old_value = old_locals[var]
-                        current_value = current_locals[var]
-                        change_type = self.event_handlers.determine_change_type(old_value, current_value)
-                        if id(old_value) == id(current_value):
-                            if change_type != "upd":
-                                if change_type == "apd":
-                                    self.event_handlers.handle_apd(
-                                        "_", var, old_value, current_value, self.call_depth, rank_info
-                                    )
-                                elif change_type == "pop":
-                                    self.event_handlers.handle_pop(
-                                        "_", var, old_value, current_value, self.call_depth, rank_info
-                                    )
+                        old_local = old_locals[var]
+                        old_local_len = old_locals_lens.get(var, None)
+                        current_local = current_locals[var]
+                        if old_local_len is not None:
+                            current_local_len = len(current_local)
+                            change_type = self.event_handlers.determine_change_type(old_local_len, current_local_len)
                         else:
-                            if change_type == "upd":
-                                self.event_handlers.handle_upd(
-                                    "_", var, old_value, current_value, self.call_depth, rank_info
-                                )
+                            change_type = "upd"
+                        if id(old_local) == id(current_local) and change_type == "apd":
+                            self.event_handlers.handle_apd(
+                                "_", var, type(current_local), old_local_len, current_local_len, self.call_depth, rank_info
+                            )
+                        elif id(old_local) == id(current_local) and change_type == "pop":
+                            self.event_handlers.handle_pop(
+                                "_", var, type(current_local), old_local_len, current_local_len, self.call_depth, rank_info
+                            )
+                        elif id(old_local) != id(current_local) and change_type == "upd":
+                            self.event_handlers.handle_upd(
+                                "_", var, old_local, current_local, self.call_depth, rank_info
+                            )
+                        if isinstance(current_local, log_sequence_types):
+                            self.tracked_locals_lens[frame][var] = len(current_local)
 
                     self.tracked_locals[frame] = current_locals
 

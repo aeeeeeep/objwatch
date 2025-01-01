@@ -10,7 +10,7 @@ class TestOutputXML(unittest.TestCase):
         self.test_output = "test_trace.xml"
         self.golden_output = "tests/utils/golden_output_xml.xml"
 
-        self.tracer = Tracer(targets="tests/test_output_xml.py", with_module_path=True, output_xml=self.test_output)
+        self.tracer = Tracer(targets="tests/test_output_xml.py", output_xml=self.test_output, with_module_path=True, with_locals=True)
 
     def tearDown(self):
         self.tracer.stop()
@@ -27,8 +27,12 @@ class TestOutputXML(unittest.TestCase):
                 self.a = self.inner_function(self.b)
 
             def inner_function(self, lst):
+                a = 10
+                b = [1, 2, 3]
                 self.lst = lst
+                a = 20
                 self.lst.append(5)
+                b.append(4)
                 self.lst[0] = 100
                 return self.lst
 

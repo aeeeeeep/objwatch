@@ -98,12 +98,12 @@ class EventHandls:
             self.current_node[-1].append(upd_element)
 
     def handle_apd(
-        self, class_name: str, key: str, old_value: Any, current_value: Any, call_depth: int, rank_info: str
+        self, class_name: str, key: str, value_type: type, old_value_len: int, current_value_len: int, call_depth: int, rank_info: str
     ):
         """
         Handles the 'apd' event denoting the addition of elements to data structures.
         """
-        diff_msg = f" {len(old_value)} -> {len(current_value)}"
+        diff_msg = f" ({value_type.__name__})(len){old_value_len} -> {current_value_len}"
         logger_msg = f"{class_name}.{key}{diff_msg}"
         prefix = "| " * call_depth
         log_debug(f"{rank_info}{prefix}apd {logger_msg}")
@@ -113,12 +113,12 @@ class EventHandls:
             self.current_node[-1].append(apd_element)
 
     def handle_pop(
-        self, class_name: str, key: str, old_value: Any, current_value: Any, call_depth: int, rank_info: str
+        self, class_name: str, key: str, value_type: type, old_value_len: int, current_value_len: int, call_depth: int, rank_info: str
     ):
         """
         Handles the 'pop' event marking the removal of elements from data structures.
         """
-        diff_msg = f" {len(old_value)} -> {len(current_value)}"
+        diff_msg = f" ({value_type.__name__})(len){old_value_len} -> {current_value_len}"
         logger_msg = f"{class_name}.{key}{diff_msg}"
         prefix = "| " * call_depth
         log_debug(f"{rank_info}{prefix}pop {logger_msg}")
@@ -127,17 +127,15 @@ class EventHandls:
             pop_element = ET.Element('pop', attrib={'name': logger_msg})
             self.current_node[-1].append(pop_element)
 
-    def determine_change_type(self, old_value: Any, current_value: Any) -> str:
+    def determine_change_type(self, old_value_len: int, current_value_len: int) -> str:
         """
         Determines the type of change between old and current values.
         """
-        if isinstance(old_value, log_sequence_types) and isinstance(current_value, type(old_value)):
-            diff = len(current_value) - len(old_value)
-            if diff > 0:
-                return "apd"
-            elif diff < 0:
-                return "pop"
-        return "upd"
+        diff = current_value_len - old_value_len
+        if diff > 0:
+            return "apd"
+        elif diff < 0:
+            return "pop"
 
     @staticmethod
     def format_sequence(seq: Any, max_elements: int = 3, func: FunctionType = None) -> str:
