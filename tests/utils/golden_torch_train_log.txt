@@ -16,6 +16,8 @@ DEBUG:objwatch:| | upd SimpleNet._state_dict_pre_hooks None -> (OrderedDict)[]
 DEBUG:objwatch:| | upd SimpleNet._load_state_dict_pre_hooks None -> (OrderedDict)[]
 DEBUG:objwatch:| | upd SimpleNet._load_state_dict_post_hooks None -> (OrderedDict)[]
 DEBUG:objwatch:| | upd SimpleNet._modules None -> (OrderedDict)[]
+DEBUG:objwatch:| | apd SimpleNet._modules (OrderedDict)(len)0 -> 1
+DEBUG:objwatch:| | apd SimpleNet._modules (OrderedDict)(len)1 -> 2
 DEBUG:objwatch:| end SimpleNet.__init__
 DEBUG:objwatch:| run SimpleNet.forward
 DEBUG:objwatch:| end SimpleNet.forward

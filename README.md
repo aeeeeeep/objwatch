@@ -202,6 +202,7 @@ ObjWatch offers customizable logging formats and tracing options to suit various
 - `targets` (list): Files or modules to monitor.
 - `ranks` (list, optional): GPU ranks to track when using `torch.distributed`.
 - `output` (str, optional): Path to a file for writing logs.
+- `output_xml` (str, optional): Path to the XML file for writing structured logs. If specified, tracing information will be saved in a nested XML format for easy browsing and analysis.
 - `level` (str, optional): Logging level (e.g., `DEBUG`, `INFO`).
 - `simple` (bool, optional): Enable simple logging mode with the format `"DEBUG: {msg}"`.
 - `wrapper` (FunctionWrapper, optional): Custom wrapper to extend tracing and logging functionality.
