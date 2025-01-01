@@ -2,6 +2,7 @@ import sys
 import pkgutil
 import importlib
 from .wrappers import FunctionWrapper
+from .events import EventType
 from .event_handls import EventHandls, log_sequence_types
 from .utils.logger import log_info, log_debug, log_warn
 from .utils.weak import WeakTensorKeyDictionary
@@ -175,21 +176,36 @@ class Tracer:
                             old_value_len = old_attrs_lens.get(key, None)
                             if old_value_len is not None:
                                 current_value_len = len(current_value)
-                                change_type = self.event_handlers.determine_change_type(old_value_len, current_value_len)
-                            else:
-                                change_type = "upd"
-                            if id(old_value) == id(current_value) and change_type == "apd":
-                                    self.event_handlers.handle_apd(
-                                        class_name, key, type(current_value), old_value_len, current_value_len, self.call_depth, rank_info
-                                    )
-                            elif id(old_value) == id(current_value) and change_type == "pop":
-                                self.event_handlers.handle_pop(
-                                    class_name, key, type(current_value), old_value_len, current_value_len, self.call_depth, rank_info
+                                change_type = self.event_handlers.determine_change_type(
+                                    old_value_len, current_value_len
                                 )
-                            elif id(old_value) != id(current_value) and change_type == "upd":
-                                    self.event_handlers.handle_upd(
-                                        class_name, key, old_value, current_value, self.call_depth, rank_info
-                                    )
+                            else:
+                                change_type = EventType.UPD
+
+                            if id(old_value) == id(current_value) and change_type == EventType.APD:
+                                self.event_handlers.handle_apd(
+                                    class_name,
+                                    key,
+                                    type(current_value),
+                                    old_value_len,
+                                    current_value_len,
+                                    self.call_depth,
+                                    rank_info,
+                                )
+                            elif id(old_value) == id(current_value) and change_type == EventType.POP:
+                                self.event_handlers.handle_pop(
+                                    class_name,
+                                    key,
+                                    type(current_value),
+                                    old_value_len,
+                                    current_value_len,
+                                    self.call_depth,
+                                    rank_info,
+                                )
+                            elif id(old_value) != id(current_value) and change_type == EventType.UPD:
+                                self.event_handlers.handle_upd(
+                                    class_name, key, old_value, current_value, self.call_depth, rank_info
+                                )
                             old_attrs[key] = current_value
                             if isinstance(current_value, log_sequence_types):
                                 self.tracked_objects_lens[obj][key] = len(current_value)
@@ -222,16 +238,29 @@ class Tracer:
                             current_local_len = len(current_local)
                             change_type = self.event_handlers.determine_change_type(old_local_len, current_local_len)
                         else:
-                            change_type = "upd"
-                        if id(old_local) == id(current_local) and change_type == "apd":
+                            change_type = EventType.UPD
+
+                        if id(old_local) == id(current_local) and change_type == EventType.APD:
                             self.event_handlers.handle_apd(
-                                "_", var, type(current_local), old_local_len, current_local_len, self.call_depth, rank_info
+                                "_",
+                                var,
+                                type(current_local),
+                                old_local_len,
+                                current_local_len,
+                                self.call_depth,
+                                rank_info,
                             )
-                        elif id(old_local) == id(current_local) and change_type == "pop":
+                        elif id(old_local) == id(current_local) and change_type == EventType.POP:
                             self.event_handlers.handle_pop(
-                                "_", var, type(current_local), old_local_len, current_local_len, self.call_depth, rank_info
+                                "_",
+                                var,
+                                type(current_local),
+                                old_local_len,
+                                current_local_len,
+                                self.call_depth,
+                                rank_info,
                             )
-                        elif id(old_local) != id(current_local) and change_type == "upd":
+                        elif id(old_local) != id(current_local) and change_type == EventType.UPD:
                             self.event_handlers.handle_upd(
                                 "_", var, old_local, current_local, self.call_depth, rank_info
                             )
@@ -255,3 +284,4 @@ class Tracer:
     def stop(self):
         log_info("Stopping tracing.")
         sys.settrace(None)
+        self.event_handlers.save_xml()

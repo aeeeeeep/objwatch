@@ -1,9 +1,9 @@
 import atexit
+import xml.etree.ElementTree as ET
 from types import NoneType, FunctionType
 from typing import Any, Dict
-import xml.etree.ElementTree as ET
 from .utils.logger import log_debug
-
+from .events import EventType
 
 log_element_types = (
     bool,
@@ -20,6 +20,7 @@ class EventHandls:
     def __init__(self, output_xml: str = None):
         self.output_xml = output_xml
         if self.output_xml:
+            self.is_xml_saved = False
             self.stack_root = ET.Element('ObjWatch')
             self.current_node = [self.stack_root]
             atexit.register(self.save_xml)
@@ -40,7 +41,7 @@ class EventHandls:
             logger_msg += call_msg
 
         prefix = "| " * call_depth
-        log_debug(f"{rank_info}{prefix}run {logger_msg}")
+        log_debug(f"{rank_info}{prefix}{EventType.RUN.value} {logger_msg}")
 
         if self.output_xml:
             function_element = ET.Element('Function', attrib={'name': logger_msg})
@@ -65,7 +66,7 @@ class EventHandls:
             logger_msg += return_msg
 
         prefix = "| " * call_depth
-        log_debug(f"{rank_info}{prefix}end {logger_msg}")
+        log_debug(f"{rank_info}{prefix}{EventType.END.value} {logger_msg}")
 
         if self.output_xml and len(self.current_node) > 1:
             self.current_node.pop()
@@ -93,14 +94,21 @@ class EventHandls:
         diff_msg = f" {old_msg} -> {current_msg}"
         logger_msg = f"{class_name}.{key}{diff_msg}"
         prefix = "| " * call_depth
-        log_debug(f"{rank_info}{prefix}upd {logger_msg}")
+        log_debug(f"{rank_info}{prefix}{EventType.UPD.value} {logger_msg}")
 
         if self.output_xml:
-            upd_element = ET.Element('upd', attrib={'name': logger_msg})
+            upd_element = ET.Element(EventType.UPD.value, attrib={'name': logger_msg})
             self.current_node[-1].append(upd_element)
 
     def handle_apd(
-        self, class_name: str, key: str, value_type: type, old_value_len: int, current_value_len: int, call_depth: int, rank_info: str
+        self,
+        class_name: str,
+        key: str,
+        value_type: type,
+        old_value_len: int,
+        current_value_len: int,
+        call_depth: int,
+        rank_info: str,
     ):
         """
         Handles the 'apd' event denoting the addition of elements to data structures.
@@ -108,14 +116,21 @@ class EventHandls:
         diff_msg = f" ({value_type.__name__})(len){old_value_len} -> {current_value_len}"
         logger_msg = f"{class_name}.{key}{diff_msg}"
         prefix = "| " * call_depth
-        log_debug(f"{rank_info}{prefix}apd {logger_msg}")
+        log_debug(f"{rank_info}{prefix}{EventType.APD.value} {logger_msg}")
 
         if self.output_xml:
-            apd_element = ET.Element('apd', attrib={'name': logger_msg})
+            apd_element = ET.Element(EventType.APD.value, attrib={'name': logger_msg})
             self.current_node[-1].append(apd_element)
 
     def handle_pop(
-        self, class_name: str, key: str, value_type: type, old_value_len: int, current_value_len: int, call_depth: int, rank_info: str
+        self,
+        class_name: str,
+        key: str,
+        value_type: type,
+        old_value_len: int,
+        current_value_len: int,
+        call_depth: int,
+        rank_info: str,
     ):
         """
         Handles the 'pop' event marking the removal of elements from data structures.
@@ -123,21 +138,21 @@ class EventHandls:
         diff_msg = f" ({value_type.__name__})(len){old_value_len} -> {current_value_len}"
         logger_msg = f"{class_name}.{key}{diff_msg}"
         prefix = "| " * call_depth
-        log_debug(f"{rank_info}{prefix}pop {logger_msg}")
+        log_debug(f"{rank_info}{prefix}{EventType.POP.value} {logger_msg}")
 
         if self.output_xml:
-            pop_element = ET.Element('pop', attrib={'name': logger_msg})
+            pop_element = ET.Element(EventType.POP.value, attrib={'name': logger_msg})
             self.current_node[-1].append(pop_element)
 
-    def determine_change_type(self, old_value_len: int, current_value_len: int) -> str:
+    def determine_change_type(self, old_value_len: int, current_value_len: int) -> EventType:
         """
         Determines the type of change between old and current values.
         """
         diff = current_value_len - old_value_len
         if diff > 0:
-            return "apd"
+            return EventType.APD
         elif diff < 0:
-            return "pop"
+            return EventType.POP
 
     @staticmethod
     def format_sequence(seq: Any, max_elements: int = 3, func: FunctionType = None) -> str:
@@ -182,6 +197,7 @@ class EventHandls:
             return f"({type(seq).__name__})[{len(seq)} elements]"
 
     def save_xml(self):
-        if self.output_xml:
+        if self.output_xml and not self.is_xml_saved:
             tree = ET.ElementTree(self.stack_root)
             tree.write(self.output_xml, encoding='utf-8', xml_declaration=True)
+            self.is_xml_saved = True
