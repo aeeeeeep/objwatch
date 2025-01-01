@@ -1,3 +1,4 @@
+import atexit
 from types import NoneType, FunctionType
 from typing import Any, Dict
 import xml.etree.ElementTree as ET
@@ -21,6 +22,7 @@ class EventHandls:
         if self.output_xml:
             self.stack_root = ET.Element('ObjWatch')
             self.current_node = [self.stack_root]
+            atexit.register(self.save_xml)
 
     def handle_run(self, func_info: Dict[str, Any], function_wrapper: Any, call_depth: int, rank_info: str):
         """

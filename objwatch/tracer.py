@@ -255,4 +255,3 @@ class Tracer:
     def stop(self):
         log_info("Stopping tracing.")
         sys.settrace(None)
-        self.event_handlers.save_xml()
