@@ -199,5 +199,6 @@ class EventHandls:
     def save_xml(self):
         if self.output_xml and not self.is_xml_saved:
             tree = ET.ElementTree(self.stack_root)
+            ET.indent(tree)
             tree.write(self.output_xml, encoding='utf-8', xml_declaration=True)
             self.is_xml_saved = True
