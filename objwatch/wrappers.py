@@ -25,17 +25,16 @@ class FunctionWrapper(ABC):
         return args, kwargs
 
     def _format_args_kwargs(self, args, kwargs):
-        call_msg = ' <- '
         formatted_args = [self._format_value(i, arg) for i, arg in enumerate(args)]
         formatted_kwargs = [self._format_value(k, v) for k, v in kwargs.items()]
-        call_msg += ', '.join(filter(None, formatted_args + formatted_kwargs))
+        call_msg = ', '.join(filter(None, formatted_args + formatted_kwargs))
         return call_msg
 
     def _format_value(self, key, value, is_return=False):
         pass
 
     def _format_return(self, result):
-        return_msg = ' -> ' + self._format_value('result', result, is_return=True)
+        return_msg = self._format_value('result', result, is_return=True)
         return return_msg
 
 

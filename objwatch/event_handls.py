@@ -35,16 +35,18 @@ class EventHandls:
             logger_msg = f"{class_name}.{func_name}"
         else:
             logger_msg = f"{func_name}"
+        attrib = {'name': logger_msg}
 
         if function_wrapper:
             call_msg = function_wrapper.wrap_call(func_name, func_info['frame'])
-            logger_msg += call_msg
+            attrib['call_msg'] = call_msg
+            logger_msg += ' <- ' + call_msg
 
         prefix = "| " * call_depth
         log_debug(f"{rank_info}{prefix}{EventType.RUN.value} {logger_msg}")
 
         if self.output_xml:
-            function_element = ET.Element('Function', attrib={'name': logger_msg})
+            function_element = ET.Element('Function', attrib=attrib)
             self.current_node[-1].append(function_element)
             self.current_node.append(function_element)
 
@@ -61,14 +63,16 @@ class EventHandls:
         else:
             logger_msg = f"{func_name}"
 
+        return_msg = ""
         if function_wrapper:
             return_msg = function_wrapper.wrap_return(func_name, result)
-            logger_msg += return_msg
+            logger_msg += ' -> ' + return_msg
 
         prefix = "| " * call_depth
         log_debug(f"{rank_info}{prefix}{EventType.END.value} {logger_msg}")
 
         if self.output_xml and len(self.current_node) > 1:
+            self.current_node[-1].set('return_msg', return_msg)
             self.current_node.pop()
 
     def handle_upd(
@@ -97,7 +101,10 @@ class EventHandls:
         log_debug(f"{rank_info}{prefix}{EventType.UPD.value} {logger_msg}")
 
         if self.output_xml:
-            upd_element = ET.Element(EventType.UPD.value, attrib={'name': logger_msg})
+            upd_element = ET.Element(
+                EventType.UPD.value,
+                attrib={'name': f"{class_name}.{key}", 'old': f"{old_msg}", 'new': f"{current_msg}"},
+            )
             self.current_node[-1].append(upd_element)
 
     def handle_apd(
@@ -119,7 +126,14 @@ class EventHandls:
         log_debug(f"{rank_info}{prefix}{EventType.APD.value} {logger_msg}")
 
         if self.output_xml:
-            apd_element = ET.Element(EventType.APD.value, attrib={'name': logger_msg})
+            apd_element = ET.Element(
+                EventType.APD.value,
+                attrib={
+                    'name': f"{class_name}.{key}",
+                    'old': f"({value_type.__name__})(len){old_value_len}",
+                    'new': f"({value_type.__name__})(len){current_value_len}",
+                },
+            )
             self.current_node[-1].append(apd_element)
 
     def handle_pop(
@@ -141,7 +155,14 @@ class EventHandls:
         log_debug(f"{rank_info}{prefix}{EventType.POP.value} {logger_msg}")
 
         if self.output_xml:
-            pop_element = ET.Element(EventType.POP.value, attrib={'name': logger_msg})
+            pop_element = ET.Element(
+                EventType.POP.value,
+                attrib={
+                    'name': f"{class_name}.{key}",
+                    'old': f"({value_type.__name__})(len){old_value_len}",
+                    'new': f"({value_type.__name__})(len){current_value_len}",
+                },
+            )
             self.current_node[-1].append(pop_element)
 
     def determine_change_type(self, old_value_len: int, current_value_len: int) -> EventType:

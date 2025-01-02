@@ -111,13 +111,13 @@ class TestBaseLogger(unittest.TestCase):
         mock_frame.f_code.co_varnames = ('arg1', 'arg2')
         mock_frame.f_code.co_argcount = 2
         mock_frame.f_locals = {'arg1': 10, 'arg2': [1, 2, 3, 4, 5]}
-        expected_call_msg = " <- '0':10, '1':(list)[1, 2, 3, '... (2 more elements)']"
+        expected_call_msg = "'0':10, '1':(list)[1, 2, 3, '... (2 more elements)']"
         actual_call_msg = self.base_logger.wrap_call('test_func', mock_frame)
         self.assertEqual(actual_call_msg, expected_call_msg)
 
     def test_wrap_return_with_simple_return(self):
         result = 20
-        expected_return_msg = " -> 'result':20"
+        expected_return_msg = "'result':20"
         actual_return_msg = self.base_logger.wrap_return('test_func', result)
         self.assertEqual(actual_return_msg, expected_return_msg)
 
@@ -126,13 +126,13 @@ class TestBaseLogger(unittest.TestCase):
         mock_frame.f_code.co_varnames = ()
         mock_frame.f_code.co_argcount = 0
         mock_frame.f_locals = {}
-        expected_call_msg = " <- "
+        expected_call_msg = ""
         actual_call_msg = self.base_logger.wrap_call('test_func', mock_frame)
         self.assertEqual(actual_call_msg, expected_call_msg)
 
     def test_wrap_return_with_list(self):
         result = [True, False, True, False]
-        expected_return_msg = " -> ['result':(list)[True, False, True, '... (1 more elements)']]"
+        expected_return_msg = "['result':(list)[True, False, True, '... (1 more elements)']]"
         actual_return_msg = self.base_logger.wrap_return('test_func', result)
         self.assertEqual(actual_return_msg, expected_return_msg)
 
@@ -141,7 +141,7 @@ class TestBaseLogger(unittest.TestCase):
         mock_frame.f_code.co_varnames = ('arg1',)
         mock_frame.f_code.co_argcount = 1
         mock_frame.f_locals = {'arg1': {'a': 1, 'b': 2}}
-        expected_call_msg = " <- '0':(dict)[('a', 1), ('b', 2)]"
+        expected_call_msg = "'0':(dict)[('a', 1), ('b', 2)]"
         actual_call_msg = self.base_logger.wrap_call('test_func', mock_frame)
         self.assertEqual(actual_call_msg, expected_call_msg)
 
@@ -150,7 +150,7 @@ class TestBaseLogger(unittest.TestCase):
         mock_frame.f_code.co_varnames = ('arg1',)
         mock_frame.f_code.co_argcount = 1
         mock_frame.f_locals = {'arg1': {'a': 1, 'b': 2, 'c': 3, 'd': 4}}
-        expected_call_msg = " <- '0':(dict)[('a', 1), ('b', 2), ('c', 3), '... (1 more elements)']"
+        expected_call_msg = "'0':(dict)[('a', 1), ('b', 2), ('c', 3), '... (1 more elements)']"
         actual_call_msg = self.base_logger.wrap_call('test_func', mock_frame)
         self.assertEqual(actual_call_msg, expected_call_msg)
 
@@ -160,7 +160,7 @@ class TestBaseLogger(unittest.TestCase):
         mock_frame.f_code.co_argcount = 1
         mock_frame.f_locals = {'arg1': {1, 2}}
         actual_call_msg = self.base_logger.wrap_call('test_func', mock_frame)
-        self.assertTrue(actual_call_msg.startswith(" <- '0':(set)["))
+        self.assertTrue(actual_call_msg.startswith("'0':(set)["))
         self.assertIn("1", actual_call_msg)
         self.assertIn("2", actual_call_msg)
         self.assertFalse("..." in actual_call_msg, "Should not contain '...' for set under limit")
@@ -171,7 +171,7 @@ class TestBaseLogger(unittest.TestCase):
         mock_frame.f_code.co_argcount = 1
         mock_frame.f_locals = {'arg1': {1, 2, 3, 4, 5}}
         actual_call_msg = self.base_logger.wrap_call('test_func', mock_frame)
-        self.assertTrue(actual_call_msg.startswith(" <- '0':(set)["))
+        self.assertTrue(actual_call_msg.startswith("'0':(set)["))
         self.assertIn("... (2 more elements)", actual_call_msg)
 
     def test_wrap_call_with_empty_list(self):
@@ -179,7 +179,7 @@ class TestBaseLogger(unittest.TestCase):
         mock_frame.f_code.co_varnames = ('arg1',)
         mock_frame.f_code.co_argcount = 1
         mock_frame.f_locals = {'arg1': []}
-        expected_call_msg = " <- '0':(list)[]"
+        expected_call_msg = "'0':(list)[]"
         actual_call_msg = self.base_logger.wrap_call('test_func', mock_frame)
         self.assertEqual(actual_call_msg, expected_call_msg)
 
@@ -188,7 +188,7 @@ class TestBaseLogger(unittest.TestCase):
         mock_frame.f_code.co_varnames = ('arg1',)
         mock_frame.f_code.co_argcount = 1
         mock_frame.f_locals = {'arg1': set()}
-        expected_call_msg = " <- '0':(set)[]"
+        expected_call_msg = "'0':(set)[]"
         actual_call_msg = self.base_logger.wrap_call('test_func', mock_frame)
         self.assertEqual(actual_call_msg, expected_call_msg)
 
@@ -197,7 +197,7 @@ class TestBaseLogger(unittest.TestCase):
         mock_frame.f_code.co_varnames = ('arg1',)
         mock_frame.f_code.co_argcount = 1
         mock_frame.f_locals = {'arg1': {}}
-        expected_call_msg = " <- '0':(dict)[]"
+        expected_call_msg = "'0':(dict)[]"
         actual_call_msg = self.base_logger.wrap_call('test_func', mock_frame)
         self.assertEqual(actual_call_msg, expected_call_msg)
 
@@ -212,7 +212,7 @@ class TestBaseLogger(unittest.TestCase):
         test_dict = {CustomObj(): 123, 'a': 456}
         mock_frame.f_locals = {'arg1': test_dict}
 
-        expected_call_msg = " <- '0':(dict)[2 elements]"
+        expected_call_msg = "'0':(dict)[2 elements]"
         actual_call_msg = self.base_logger.wrap_call('test_func', mock_frame)
         self.assertEqual(actual_call_msg, expected_call_msg)
 
@@ -228,13 +228,13 @@ class TestTensorShapeLogger(unittest.TestCase):
         mock_frame.f_code.co_argcount = 1
         mock_frame.f_locals = {'tensor_arg': torch.randn(3, 4)}
         tensor_shape = mock_frame.f_locals['tensor_arg'].shape
-        expected_call_msg = f" <- '0':{tensor_shape}"
+        expected_call_msg = f"'0':{tensor_shape}"
         actual_call_msg = self.tensor_shape_logger.wrap_call('test_tensor_func', mock_frame)
         self.assertEqual(actual_call_msg, expected_call_msg)
 
     def test_wrap_return_with_tensor(self):
         tensor = torch.randn(5, 6)
-        expected_return_msg = f" -> {tensor.shape}"
+        expected_return_msg = f"{tensor.shape}"
         actual_return_msg = self.tensor_shape_logger.wrap_return('test_tensor_func', tensor)
         self.assertEqual(actual_return_msg, expected_return_msg)
 
@@ -244,7 +244,7 @@ class TestTensorShapeLogger(unittest.TestCase):
         mock_frame.f_code.co_argcount = 2
         mock_frame.f_locals = {'tensor_arg': torch.randn(2, 2), 'value': 42}
         tensor_shape = mock_frame.f_locals['tensor_arg'].shape
-        expected_call_msg = f" <- '0':{tensor_shape}, '1':42"
+        expected_call_msg = f"'0':{tensor_shape}, '1':42"
         actual_call_msg = self.tensor_shape_logger.wrap_call('test_mixed_func', mock_frame)
         self.assertEqual(actual_call_msg, expected_call_msg)
 
@@ -254,7 +254,7 @@ class TestTensorShapeLogger(unittest.TestCase):
         mock_frame.f_code.co_argcount = 1
         mock_frame.f_locals = {'arg_tensors': [torch.randn(2, 2) for _ in range(5)]}
         expected_call_msg = (
-            " <- '0':(list)[torch.Size([2, 2]), torch.Size([2, 2]), torch.Size([2, 2]), '... (2 more elements)']"
+            "'0':(list)[torch.Size([2, 2]), torch.Size([2, 2]), torch.Size([2, 2]), '... (2 more elements)']"
         )
         actual_call_msg = self.tensor_shape_logger.wrap_call('test_tensor_func', mock_frame)
         self.assertEqual(actual_call_msg, expected_call_msg)
@@ -267,7 +267,7 @@ class TestTensorShapeLogger(unittest.TestCase):
         tensors_set = {torch.randn(2, 2) for _ in range(5)}
         mock_frame.f_locals = {'arg_tensors': tensors_set}
         expected_call_msg = (
-            " <- '0':(set)[torch.Size([2, 2]), torch.Size([2, 2]), torch.Size([2, 2]), '... (2 more elements)']"
+            "'0':(set)[torch.Size([2, 2]), torch.Size([2, 2]), torch.Size([2, 2]), '... (2 more elements)']"
         )
         actual_call_msg = self.tensor_shape_logger.wrap_call('test_tensor_func', mock_frame)
         self.assertEqual(actual_call_msg, expected_call_msg)
@@ -279,7 +279,7 @@ class TestTensorShapeLogger(unittest.TestCase):
 
         tensors_dict = {f"key_{i}": torch.randn(2, 2) for i in range(5)}
         mock_frame.f_locals = {'arg_tensors': tensors_dict}
-        expected_call_msg = " <- '0':(dict)[('key_0', torch.Size([2, 2])), ('key_1', torch.Size([2, 2])), ('key_2', torch.Size([2, 2])), '... (2 more elements)']"
+        expected_call_msg = "'0':(dict)[('key_0', torch.Size([2, 2])), ('key_1', torch.Size([2, 2])), ('key_2', torch.Size([2, 2])), '... (2 more elements)']"
         actual_call_msg = self.tensor_shape_logger.wrap_call('test_tensor_func', mock_frame)
         self.assertEqual(actual_call_msg, expected_call_msg)
 
@@ -288,7 +288,7 @@ class TestTensorShapeLogger(unittest.TestCase):
         mock_frame.f_code.co_varnames = ('arg_tensors',)
         mock_frame.f_code.co_argcount = 1
         mock_frame.f_locals = {'arg_tensors': []}
-        expected_call_msg = " <- '0':(list)[]"
+        expected_call_msg = "'0':(list)[]"
         actual_call_msg = self.tensor_shape_logger.wrap_call('test_tensor_func', mock_frame)
         self.assertEqual(actual_call_msg, expected_call_msg)
 
@@ -297,10 +297,10 @@ class TestCustomWrapper(unittest.TestCase):
     def setUp(self):
         class CustomWrapper(FunctionWrapper):
             def wrap_call(self, func_name, frame):
-                return f" <- CustomCall: {func_name} called with args {frame.f_locals}"
+                return f"CustomCall: {func_name} called with args {frame.f_locals}"
 
             def wrap_return(self, func_name, result):
-                return f" -> CustomReturn: {func_name} returned {result}"
+                return f"CustomReturn: {func_name} returned {result}"
 
         self.custom_wrapper = CustomWrapper
 
