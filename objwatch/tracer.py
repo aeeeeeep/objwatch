@@ -124,7 +124,7 @@ class Tracer:
                 and torch.distributed.is_initialized()
             ):
                 self.current_rank = torch.distributed.get_rank()
-            elif self.torch_available and self.current_rank in self.ranks:
+            if self.torch_available and self.current_rank in self.ranks:
                 rank_info = f"[Rank {self.current_rank}] "
             elif self.torch_available and self.current_rank is not None and self.current_rank not in self.ranks:
                 return trace_func
