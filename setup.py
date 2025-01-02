@@ -5,14 +5,8 @@ try:
 
     this_dir = Path(__file__).parent
     version = (this_dir / 'version.txt').read_text()
-except ImportError:
-    try:
-        with open('version.txt', 'r') as v:
-            version = v.read()
-    except IOError:
-        pass
-    except FileNotFoundError:
-        pass
+except (ImportError, FileNotFoundError):
+    version = '0.0.0'
 
 setup(
     name='objwatch',
