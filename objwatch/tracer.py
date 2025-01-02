@@ -234,7 +234,7 @@ class Tracer:
                         old_local = old_locals[var]
                         old_local_len = old_locals_lens.get(var, None)
                         current_local = current_locals[var]
-                        if old_local_len is not None:
+                        if old_local_len is not None and isinstance(current_local, log_sequence_types):
                             current_local_len = len(current_local)
                             change_type = self.event_handlers.determine_change_type(old_local_len, current_local_len)
                         else:
