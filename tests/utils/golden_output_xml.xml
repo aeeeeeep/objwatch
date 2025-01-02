@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
 <ObjWatch>
-  <Function name="__main__.outer_function">
+  <Function name="test_output_xml.outer_function">
     <upd name="TestClass.a None -&gt; 10" />
     <upd name="TestClass.b None -&gt; (list)[1, 2, 3]" />
     <apd name="TestClass.b (list)(len)3 -&gt; 4" />
     <upd name="TestClass.a 10 -&gt; 20" />
-    <Function name="__main__.inner_function">
+    <Function name="test_output_xml.inner_function">
       <upd name="_.a None -&gt; 10" />
       <upd name="_.b None -&gt; (list)[1, 2, 3]" />
       <upd name="TestClass.lst None -&gt; (list)[1, 2, 3, '... (1 more elements)']" />
