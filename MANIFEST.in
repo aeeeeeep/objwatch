@@ -1,0 +1,2 @@
+include *.txt README.md README_zh.md
+recursive-include requirements *.txt
