@@ -76,24 +76,23 @@ class EventHandls:
             self.current_node.pop()
 
     def handle_upd(
-        self, class_name: str, key: str, old_value: Any, current_value: Any, call_depth: int, rank_info: str
+        self,
+        class_name: str,
+        key: str,
+        old_value: Any,
+        current_value: Any,
+        call_depth: int,
+        rank_info: str,
+        function_wrapper: FunctionType = None,
     ):
         """
         Handles the 'upd' event representing the creation of a new variable or updating an existing one.
         """
-        if isinstance(old_value, log_element_types):
-            old_msg = old_value
-        elif isinstance(old_value, log_sequence_types):
-            old_msg = EventHandls.format_sequence(old_value)
+        if function_wrapper:
+            old_msg, current_msg = function_wrapper.wrap_upd(old_value, current_value)
         else:
-            old_msg = old_value.__class__.__name__
-
-        if isinstance(current_value, log_element_types):
-            current_msg = current_value
-        elif isinstance(current_value, log_sequence_types):
-            current_msg = EventHandls.format_sequence(current_value)
-        else:
-            current_msg = current_value.__class__.__name__
+            old_msg = self._format_value(old_value)
+            current_msg = self._format_value(current_value)
 
         diff_msg = f" {old_msg} -> {current_msg}"
         logger_msg = f"{class_name}.{key}{diff_msg}"
@@ -216,6 +215,18 @@ class EventHandls:
             return f'({type(seq).__name__})' + str(display)
         else:
             return f"({type(seq).__name__})[{len(seq)} elements]"
+
+    @staticmethod
+    def _format_value(value: Any) -> str:
+        """
+        Helper method to format individual values for the 'upd' event when no wrapper is provided.
+        """
+        if isinstance(value, log_element_types):
+            return f"{value}"
+        elif isinstance(value, log_sequence_types):
+            return EventHandls.format_sequence(value)
+        else:
+            return f"(type){value.__class__.__name__}"
 
     def save_xml(self):
         if self.output_xml and not self.is_xml_saved:

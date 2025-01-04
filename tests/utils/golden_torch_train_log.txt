@@ -1,5 +1,5 @@
-DEBUG:objwatch:run train
-DEBUG:objwatch:| run SimpleNet.__init__
+DEBUG:objwatch:run train <- 
+DEBUG:objwatch:| run SimpleNet.__init__ <- '0':(type)SimpleNet
 DEBUG:objwatch:| | upd SimpleNet.training None -> True
 DEBUG:objwatch:| | upd SimpleNet._parameters None -> (OrderedDict)[]
 DEBUG:objwatch:| | upd SimpleNet._buffers None -> (OrderedDict)[]
@@ -18,9 +18,9 @@ DEBUG:objwatch:| | upd SimpleNet._load_state_dict_post_hooks None -> (OrderedDic
 DEBUG:objwatch:| | upd SimpleNet._modules None -> (OrderedDict)[]
 DEBUG:objwatch:| | apd SimpleNet._modules (OrderedDict)(len)0 -> 1
 DEBUG:objwatch:| | apd SimpleNet._modules (OrderedDict)(len)1 -> 2
-DEBUG:objwatch:| end SimpleNet.__init__
-DEBUG:objwatch:| run SimpleNet.forward
-DEBUG:objwatch:| end SimpleNet.forward
-DEBUG:objwatch:| run SimpleNet.forward
-DEBUG:objwatch:| end SimpleNet.forward
-DEBUG:objwatch:end train
+DEBUG:objwatch:| end SimpleNet.__init__ -> None
+DEBUG:objwatch:| run SimpleNet.forward <- '0':(type)SimpleNet, '1':torch.Size([64, 784])
+DEBUG:objwatch:| end SimpleNet.forward -> torch.Size([64, 10])
+DEBUG:objwatch:| run SimpleNet.forward <- '0':(type)SimpleNet, '1':torch.Size([64, 784])
+DEBUG:objwatch:| end SimpleNet.forward -> torch.Size([64, 10])
+DEBUG:objwatch:end train -> None

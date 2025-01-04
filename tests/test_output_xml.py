@@ -67,7 +67,6 @@ class TestOutputXML(unittest.TestCase):
                 self.e['inner_key1'] = 'updated_inner_value1'
                 del self.e['inner_key2']
 
-
                 self.f = {10, 20, 30}
                 self.f.add(40)
                 self.f.remove(20)

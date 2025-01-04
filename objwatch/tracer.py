@@ -204,7 +204,13 @@ class Tracer:
                                 )
                             elif id(old_value) != id(current_value) and change_type == EventType.UPD:
                                 self.event_handlers.handle_upd(
-                                    class_name, key, old_value, current_value, self.call_depth, rank_info
+                                    class_name,
+                                    key,
+                                    old_value,
+                                    current_value,
+                                    self.call_depth,
+                                    rank_info,
+                                    self.function_wrapper,
                                 )
                             old_attrs[key] = current_value
                             if isinstance(current_value, log_sequence_types):
@@ -225,6 +231,7 @@ class Tracer:
                             current_value=current_local,
                             call_depth=self.call_depth,
                             rank_info=rank_info,
+                            function_wrapper=self.function_wrapper,
                         )
                         if isinstance(current_local, log_sequence_types):
                             self.tracked_locals_lens[frame][var] = len(current_local)
@@ -262,7 +269,7 @@ class Tracer:
                             )
                         elif id(old_local) != id(current_local) and change_type == EventType.UPD:
                             self.event_handlers.handle_upd(
-                                "_", var, old_local, current_local, self.call_depth, rank_info
+                                "_", var, old_local, current_local, self.call_depth, rank_info, self.function_wrapper
                             )
                         if isinstance(current_local, log_sequence_types):
                             self.tracked_locals_lens[frame][var] = len(current_local)

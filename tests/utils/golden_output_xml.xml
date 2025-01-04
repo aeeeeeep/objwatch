@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <ObjWatch>
-  <Function name="test_output_xml.outer_function" call_msg="" return_msg="['result':(list)[200, 3, 4, '... (1 more elements)']]">
+  <Function name="test_output_xml.outer_function" call_msg="'0':(type)TestClass" return_msg="[(list)[200, 3, 4, '... (1 more elements)']]">
     <upd name="TestClass.a" old="None" new="10" />
     <upd name="TestClass.b" old="None" new="(list)[1, 2, 3]" />
     <apd name="TestClass.b" old="(list)(len)3" new="(list)(len)4" />
@@ -14,7 +14,7 @@
     <apd name="TestClass.d" old="(set)(len)3" new="(set)(len)5" />
     <pop name="TestClass.d" old="(set)(len)5" new="(set)(len)4" />
     <upd name="TestClass.a" old="10" new="20" />
-    <Function name="test_output_xml.inner_function" call_msg="'1':(list)[100, 3, 4]" return_msg="['result':(list)[200, 3, 4, '... (1 more elements)']]">
+    <Function name="test_output_xml.inner_function" call_msg="'0':(type)TestClass, '1':(list)[100, 3, 4]" return_msg="[(list)[200, 3, 4, '... (1 more elements)']]">
       <upd name="_.a" old="None" new="10" />
       <upd name="_.b" old="None" new="(list)[1, 2, 3]" />
       <apd name="_.b" old="(list)(len)3" new="(list)(len)4" />
