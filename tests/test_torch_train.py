@@ -58,6 +58,7 @@ def train():
 
 class TestPytorchTraining(unittest.TestCase):
     maxDiff = 1e9
+
     @patch('objwatch.utils.logger.get_logger')
     def test_training_with_objwatch(self, mock_logger):
         mock_logger.return_value = unittest.mock.Mock()

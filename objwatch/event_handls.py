@@ -83,7 +83,7 @@ class EventHandls:
         current_value: Any,
         call_depth: int,
         rank_info: str,
-        function_wrapper: FunctionType = None
+        function_wrapper: FunctionType = None,
     ):
         """
         Handles the 'upd' event representing the creation of a new variable or updating an existing one.

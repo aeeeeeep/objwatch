@@ -1,4 +1,4 @@
-DEBUG:objwatch:run train <-
+DEBUG:objwatch:run train <- 
 DEBUG:objwatch:| run SimpleNet.__init__ <- '0':(type)SimpleNet
 DEBUG:objwatch:| | upd SimpleNet.training None -> True
 DEBUG:objwatch:| | upd SimpleNet._parameters None -> (OrderedDict)[]

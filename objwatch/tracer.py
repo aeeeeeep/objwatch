@@ -204,7 +204,13 @@ class Tracer:
                                 )
                             elif id(old_value) != id(current_value) and change_type == EventType.UPD:
                                 self.event_handlers.handle_upd(
-                                    class_name, key, old_value, current_value, self.call_depth, rank_info, self.function_wrapper
+                                    class_name,
+                                    key,
+                                    old_value,
+                                    current_value,
+                                    self.call_depth,
+                                    rank_info,
+                                    self.function_wrapper,
                                 )
                             old_attrs[key] = current_value
                             if isinstance(current_value, log_sequence_types):
