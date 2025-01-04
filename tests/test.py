@@ -117,7 +117,7 @@ class TestBaseLogger(unittest.TestCase):
 
     def test_wrap_return_with_simple_return(self):
         result = 20
-        expected_return_msg = "'result':20"
+        expected_return_msg = "20"
         actual_return_msg = self.base_logger.wrap_return('test_func', result)
         self.assertEqual(actual_return_msg, expected_return_msg)
 
@@ -132,7 +132,7 @@ class TestBaseLogger(unittest.TestCase):
 
     def test_wrap_return_with_list(self):
         result = [True, False, True, False]
-        expected_return_msg = "['result':(list)[True, False, True, '... (1 more elements)']]"
+        expected_return_msg = "[(list)[True, False, True, '... (1 more elements)']]"
         actual_return_msg = self.base_logger.wrap_return('test_func', result)
         self.assertEqual(actual_return_msg, expected_return_msg)
 
@@ -301,6 +301,11 @@ class TestCustomWrapper(unittest.TestCase):
 
             def wrap_return(self, func_name, result):
                 return f"CustomReturn: {func_name} returned {result}"
+
+            def wrap_upd(self, old_value, current_value):
+                old_msg = self._format_value(old_value)
+                current_msg = self._format_value(current_value)
+                return old_msg, current_msg
 
         self.custom_wrapper = CustomWrapper
 

@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 from objwatch import ObjWatch
+from objwatch.wrappers import TensorShapeLogger
 import logging
 
 
@@ -56,6 +57,7 @@ def train():
 
 
 class TestPytorchTraining(unittest.TestCase):
+    maxDiff = 1e9
     @patch('objwatch.utils.logger.get_logger')
     def test_training_with_objwatch(self, mock_logger):
         mock_logger.return_value = unittest.mock.Mock()
@@ -65,7 +67,7 @@ class TestPytorchTraining(unittest.TestCase):
             output=None,
             level=logging.DEBUG,
             simple=True,
-            wrapper=None,
+            wrapper=TensorShapeLogger,
         )
         obj_watch.start()
 

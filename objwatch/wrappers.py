@@ -11,6 +11,10 @@ class FunctionWrapper(ABC):
     def wrap_return(self, func_name, result):
         pass
 
+    @abstractmethod
+    def wrap_upd(self, old_value, current_value):
+        pass
+
     def _extract_args_kwargs(self, frame):
         args = []
         kwargs = {}
@@ -25,16 +29,16 @@ class FunctionWrapper(ABC):
         return args, kwargs
 
     def _format_args_kwargs(self, args, kwargs):
-        formatted_args = [self._format_value(i, arg) for i, arg in enumerate(args)]
-        formatted_kwargs = [self._format_value(k, v) for k, v in kwargs.items()]
+        formatted_args = [f"'{i}':{self._format_value(arg)}" for i, arg in enumerate(args)]
+        formatted_kwargs = [f"'{k}':{self._format_value(v)}" for k, v in kwargs.items()]
         call_msg = ', '.join(filter(None, formatted_args + formatted_kwargs))
         return call_msg
 
-    def _format_value(self, key, value, is_return=False):
+    def _format_value(self, value, is_return=False):
         pass
 
     def _format_return(self, result):
-        return_msg = self._format_value('result', result, is_return=True)
+        return_msg = self._format_value(result, is_return=True)
         return return_msg
 
 
@@ -48,17 +52,22 @@ class BaseLogger(FunctionWrapper):
         return_msg = self._format_return(result)
         return return_msg
 
-    def _format_value(self, key, value, is_return=False):
+    def wrap_upd(self, old_value, current_value):
+        old_msg = self._format_value(old_value)
+        current_msg = self._format_value(current_value)
+        return old_msg, current_msg
+
+    def _format_value(self, value, is_return=False):
         if isinstance(value, log_element_types):
-            formatted = f"'{key}':{value}"
+            formatted = f"{value}"
         elif isinstance(value, log_sequence_types):
             formatted_sequence = EventHandls.format_sequence(value)
             if formatted_sequence:
-                formatted = f"'{key}':{formatted_sequence}"
+                formatted = f"{formatted_sequence}"
             else:
-                formatted = ''
+                formatted = f"(type){value.__class__.__name__}"
         else:
-            formatted = ''
+            formatted = f"(type){value.__class__.__name__}"
 
         if is_return:
             if isinstance(value, log_sequence_types) and formatted:
@@ -90,19 +99,24 @@ class TensorShapeLogger(FunctionWrapper):
         return_msg = self._format_return(result)
         return return_msg
 
-    def _format_value(self, key, value, is_return=False):
+    def wrap_upd(self, old_value, current_value):
+        old_msg = self._format_value(old_value)
+        current_msg = self._format_value(current_value)
+        return old_msg, current_msg
+
+    def _format_value(self, value, is_return=False):
         if isinstance(value, torch.Tensor):
-            formatted = f"'{key}':{value.shape}"
+            formatted = f"{value.shape}"
         elif isinstance(value, log_element_types):
-            formatted = f"'{key}':{value}"
+            formatted = f"{value}"
         elif isinstance(value, log_sequence_types):
             formatted_sequence = EventHandls.format_sequence(value, func=TensorShapeLogger._process_tensor_item)
             if formatted_sequence:
-                formatted = f"'{key}':{formatted_sequence}"
+                formatted = f"{formatted_sequence}"
             else:
-                formatted = ''
+                formatted = f"(type){value.__class__.__name__}"
         else:
-            formatted = ''
+            formatted = f"(type){value.__class__.__name__}"
 
         if is_return:
             if isinstance(value, torch.Tensor):
