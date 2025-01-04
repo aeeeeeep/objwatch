@@ -7,6 +7,7 @@ class ObjWatch:
     def __init__(
         self,
         targets,
+        exclude_targets=None,
         ranks=None,
         output=None,
         output_xml=None,
@@ -19,6 +20,7 @@ class ObjWatch:
         create_logger(output=output, level=level, simple=simple)
         self.tracer = Tracer(
             targets,
+            exclude_targets=exclude_targets,
             ranks=ranks,
             wrapper=wrapper,
             output_xml=output_xml,
@@ -47,6 +49,7 @@ class ObjWatch:
 
 def watch(
     targets,
+    exclude_targets=None,
     ranks=None,
     output=None,
     output_xml=None,
@@ -58,6 +61,7 @@ def watch(
 ):
     obj_watch = ObjWatch(
         targets,
+        exclude_targets=exclude_targets,
         ranks=ranks,
         output=output,
         output_xml=output_xml,

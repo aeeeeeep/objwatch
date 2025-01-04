@@ -16,14 +16,25 @@ except ImportError:
 
 
 class Tracer:
-    def __init__(self, targets, ranks=None, wrapper=None, output_xml=None, with_locals=False, with_module_path=False):
+    def __init__(
+        self,
+        targets,
+        exclude_targets=None,
+        ranks=None,
+        wrapper=None,
+        output_xml=None,
+        with_locals=False,
+        with_module_path=False,
+    ):
         self.with_locals = with_locals
         if self.with_locals:
             self.tracked_locals = {}
             self.tracked_locals_lens = {}
         self.with_module_path = with_module_path
 
-        self.targets = self._process_targets(targets)
+        self.targets = self._process_targets(targets) - self._process_targets(exclude_targets)
+        log_debug(f"Processed targets:\n{'>' * 10}\n" + "\n".join(self.targets) + f"\n{'<' * 10}")
+
         self.tracked_objects = WeakTensorKeyDictionary()
         self.tracked_objects_lens = WeakTensorKeyDictionary()
         self.event_handlers = EventHandls(output_xml=output_xml)
@@ -44,6 +55,8 @@ class Tracer:
         processed = set()
         if isinstance(targets, str):
             targets = [targets]
+        elif targets is None:
+            return processed
         for target in targets:
             if target.endswith('.py'):
                 processed.add(target)
@@ -66,12 +79,6 @@ class Tracer:
                         log_warn(f"Module {target} does not have a __file__ attribute.")
                 except ImportError:
                     log_warn(f"Module {target} could not be imported.")
-
-        log_debug(f"Processed targets:")
-        log_debug(">" * 10)
-        for target in processed:
-            log_debug(target)
-        log_debug("<" * 10)
 
         return processed
 

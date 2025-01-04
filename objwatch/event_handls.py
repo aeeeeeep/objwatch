@@ -13,7 +13,7 @@ log_element_types = (
     NoneType,
     FunctionType,
 )
-log_sequence_types = (list, set, dict)
+log_sequence_types = (list, set, dict, tuple)
 
 
 class EventHandls:
@@ -188,7 +188,7 @@ class EventHandls:
                 display = seq[:max_elements]
             elif func is not None:
                 display = func(seq[:max_elements])
-        elif isinstance(seq, set):
+        elif isinstance(seq, (set, tuple)):
             seq_list = list(seq)[:max_elements]
             if all(isinstance(x, log_element_types) for x in seq_list):
                 display = seq_list

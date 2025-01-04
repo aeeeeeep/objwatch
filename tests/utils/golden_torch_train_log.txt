@@ -16,11 +16,107 @@ DEBUG:objwatch:| | upd SimpleNet._state_dict_pre_hooks None -> (OrderedDict)[]
 DEBUG:objwatch:| | upd SimpleNet._load_state_dict_pre_hooks None -> (OrderedDict)[]
 DEBUG:objwatch:| | upd SimpleNet._load_state_dict_post_hooks None -> (OrderedDict)[]
 DEBUG:objwatch:| | upd SimpleNet._modules None -> (OrderedDict)[]
+DEBUG:objwatch:| | run no_grad.__init__ <- '0':(type)no_grad
+DEBUG:objwatch:| | end no_grad.__init__ -> None
+DEBUG:objwatch:| | run no_grad.__enter__ <- '0':(type)no_grad
+DEBUG:objwatch:| | | upd no_grad.prev None -> False
+DEBUG:objwatch:| | | upd no_grad.prev False -> True
+DEBUG:objwatch:| | | run set_grad_enabled.__init__ <- '0':(type)set_grad_enabled, '1':False
+DEBUG:objwatch:| | | | upd set_grad_enabled.prev None -> True
+DEBUG:objwatch:| | | | upd set_grad_enabled.mode None -> False
+DEBUG:objwatch:| | | end set_grad_enabled.__init__ -> None
+DEBUG:objwatch:| | end no_grad.__enter__ -> None
+DEBUG:objwatch:| | run no_grad.__exit__ <- '0':(type)no_grad, '1':None, '2':None, '3':None
+DEBUG:objwatch:| | | run set_grad_enabled.__init__ <- '0':(type)set_grad_enabled, '1':True
+DEBUG:objwatch:| | | | upd set_grad_enabled.prev None -> False
+DEBUG:objwatch:| | | | upd set_grad_enabled.mode None -> True
+DEBUG:objwatch:| | | end set_grad_enabled.__init__ -> None
+DEBUG:objwatch:| | end no_grad.__exit__ -> None
+DEBUG:objwatch:| | run no_grad.__init__ <- '0':(type)no_grad
+DEBUG:objwatch:| | end no_grad.__init__ -> None
+DEBUG:objwatch:| | run no_grad.__enter__ <- '0':(type)no_grad
+DEBUG:objwatch:| | | upd no_grad.prev None -> False
+DEBUG:objwatch:| | | upd no_grad.prev False -> True
+DEBUG:objwatch:| | | run set_grad_enabled.__init__ <- '0':(type)set_grad_enabled, '1':False
+DEBUG:objwatch:| | | | upd set_grad_enabled.prev None -> True
+DEBUG:objwatch:| | | | upd set_grad_enabled.mode None -> False
+DEBUG:objwatch:| | | end set_grad_enabled.__init__ -> None
+DEBUG:objwatch:| | end no_grad.__enter__ -> None
+DEBUG:objwatch:| | run no_grad.__exit__ <- '0':(type)no_grad, '1':None, '2':None, '3':None
+DEBUG:objwatch:| | | run set_grad_enabled.__init__ <- '0':(type)set_grad_enabled, '1':True
+DEBUG:objwatch:| | | | upd set_grad_enabled.prev None -> False
+DEBUG:objwatch:| | | | upd set_grad_enabled.mode None -> True
+DEBUG:objwatch:| | | end set_grad_enabled.__init__ -> None
+DEBUG:objwatch:| | end no_grad.__exit__ -> None
 DEBUG:objwatch:| | apd SimpleNet._modules (OrderedDict)(len)0 -> 1
 DEBUG:objwatch:| | apd SimpleNet._modules (OrderedDict)(len)1 -> 2
+DEBUG:objwatch:| | run no_grad.__init__ <- '0':(type)no_grad
+DEBUG:objwatch:| | end no_grad.__init__ -> None
+DEBUG:objwatch:| | run no_grad.__enter__ <- '0':(type)no_grad
+DEBUG:objwatch:| | | upd no_grad.prev None -> False
+DEBUG:objwatch:| | | upd no_grad.prev False -> True
+DEBUG:objwatch:| | | run set_grad_enabled.__init__ <- '0':(type)set_grad_enabled, '1':False
+DEBUG:objwatch:| | | | upd set_grad_enabled.prev None -> True
+DEBUG:objwatch:| | | | upd set_grad_enabled.mode None -> False
+DEBUG:objwatch:| | | end set_grad_enabled.__init__ -> None
+DEBUG:objwatch:| | end no_grad.__enter__ -> None
+DEBUG:objwatch:| | run no_grad.__exit__ <- '0':(type)no_grad, '1':None, '2':None, '3':None
+DEBUG:objwatch:| | | run set_grad_enabled.__init__ <- '0':(type)set_grad_enabled, '1':True
+DEBUG:objwatch:| | | | upd set_grad_enabled.prev None -> False
+DEBUG:objwatch:| | | | upd set_grad_enabled.mode None -> True
+DEBUG:objwatch:| | | end set_grad_enabled.__init__ -> None
+DEBUG:objwatch:| | end no_grad.__exit__ -> None
+DEBUG:objwatch:| | run no_grad.__init__ <- '0':(type)no_grad
+DEBUG:objwatch:| | end no_grad.__init__ -> None
+DEBUG:objwatch:| | run no_grad.__enter__ <- '0':(type)no_grad
+DEBUG:objwatch:| | | upd no_grad.prev None -> False
+DEBUG:objwatch:| | | upd no_grad.prev False -> True
+DEBUG:objwatch:| | | run set_grad_enabled.__init__ <- '0':(type)set_grad_enabled, '1':False
+DEBUG:objwatch:| | | | upd set_grad_enabled.prev None -> True
+DEBUG:objwatch:| | | | upd set_grad_enabled.mode None -> False
+DEBUG:objwatch:| | | end set_grad_enabled.__init__ -> None
+DEBUG:objwatch:| | end no_grad.__enter__ -> None
+DEBUG:objwatch:| | run no_grad.__exit__ <- '0':(type)no_grad, '1':None, '2':None, '3':None
+DEBUG:objwatch:| | | run set_grad_enabled.__init__ <- '0':(type)set_grad_enabled, '1':True
+DEBUG:objwatch:| | | | upd set_grad_enabled.prev None -> False
+DEBUG:objwatch:| | | | upd set_grad_enabled.mode None -> True
+DEBUG:objwatch:| | | end set_grad_enabled.__init__ -> None
+DEBUG:objwatch:| | end no_grad.__exit__ -> None
 DEBUG:objwatch:| end SimpleNet.__init__ -> None
 DEBUG:objwatch:| run SimpleNet.forward <- '0':(type)SimpleNet, '1':torch.Size([64, 784])
 DEBUG:objwatch:| end SimpleNet.forward -> torch.Size([64, 10])
+DEBUG:objwatch:| run backward <- '0':torch.Size([]), '1':None, '2':None, '3':False, '4':None, '5':None
+DEBUG:objwatch:| | run _tensor_or_tensors_to_tuple <- '0':None, '1':1
+DEBUG:objwatch:| | end _tensor_or_tensors_to_tuple -> [(tuple)[None]]
+DEBUG:objwatch:| | run _make_grads <- '0':(tuple)[torch.Size([])], '1':(tuple)[None], '2':False
+DEBUG:objwatch:| | end _make_grads -> [(tuple)[torch.Size([])]]
+DEBUG:objwatch:| | run _engine_run_backward <- '0':(tuple)[torch.Size([])], 'args':(tuple)[4 elements], 'kwargs':(dict)[('allow_unreachable', True), ('accumulate_grad', True)]
+DEBUG:objwatch:| | end _engine_run_backward -> None
+DEBUG:objwatch:| end backward -> None
+DEBUG:objwatch:| run set_grad_enabled.__init__ <- '0':(type)set_grad_enabled, '1':False
+DEBUG:objwatch:| | upd set_grad_enabled.prev None -> True
+DEBUG:objwatch:| | upd set_grad_enabled.mode None -> False
+DEBUG:objwatch:| end set_grad_enabled.__init__ -> None
+DEBUG:objwatch:| run set_grad_enabled.__init__ <- '0':(type)set_grad_enabled, '1':True
+DEBUG:objwatch:| | upd set_grad_enabled.prev None -> False
+DEBUG:objwatch:| | upd set_grad_enabled.mode None -> True
+DEBUG:objwatch:| end set_grad_enabled.__init__ -> None
 DEBUG:objwatch:| run SimpleNet.forward <- '0':(type)SimpleNet, '1':torch.Size([64, 784])
 DEBUG:objwatch:| end SimpleNet.forward -> torch.Size([64, 10])
+DEBUG:objwatch:| run backward <- '0':torch.Size([]), '1':None, '2':None, '3':False, '4':None, '5':None
+DEBUG:objwatch:| | run _tensor_or_tensors_to_tuple <- '0':None, '1':1
+DEBUG:objwatch:| | end _tensor_or_tensors_to_tuple -> [(tuple)[None]]
+DEBUG:objwatch:| | run _make_grads <- '0':(tuple)[torch.Size([])], '1':(tuple)[None], '2':False
+DEBUG:objwatch:| | end _make_grads -> [(tuple)[torch.Size([])]]
+DEBUG:objwatch:| | run _engine_run_backward <- '0':(tuple)[torch.Size([])], 'args':(tuple)[4 elements], 'kwargs':(dict)[('allow_unreachable', True), ('accumulate_grad', True)]
+DEBUG:objwatch:| | end _engine_run_backward -> None
+DEBUG:objwatch:| end backward -> None
+DEBUG:objwatch:| run set_grad_enabled.__init__ <- '0':(type)set_grad_enabled, '1':False
+DEBUG:objwatch:| | upd set_grad_enabled.prev None -> True
+DEBUG:objwatch:| | upd set_grad_enabled.mode None -> False
+DEBUG:objwatch:| end set_grad_enabled.__init__ -> None
+DEBUG:objwatch:| run set_grad_enabled.__init__ <- '0':(type)set_grad_enabled, '1':True
+DEBUG:objwatch:| | upd set_grad_enabled.prev None -> False
+DEBUG:objwatch:| | upd set_grad_enabled.mode None -> True
+DEBUG:objwatch:| end set_grad_enabled.__init__ -> None
 DEBUG:objwatch:end train -> None
