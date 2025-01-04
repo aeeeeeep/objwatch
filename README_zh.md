@@ -41,6 +41,14 @@ ObjWatch 可通过 [PyPI](https://pypi.org/project/objwatch) 安装。使用 `pi
 pip install objwatch
 ```
 
+或者，你可以克隆最新的源码仓库并从源代码安装：
+
+```bash
+git clone https://github.com/aeeeeeep/objwatch.git
+cd objwatch
+pip install .
+```
+
 ## 快速开始
 
 ### 基本用法
@@ -81,8 +89,10 @@ if __name__ == '__main__':
 下面是一个综合示例，展示如何将 ObjWatch 集成到 Python 脚本中：
 
 ```python
-import objwatch
 import time
+import objwatch
+from objwatch.wrappers import BaseLogger
+
 
 class SampleClass:
     def __init__(self, value):
@@ -96,6 +106,7 @@ class SampleClass:
         self.value -= 1
         time.sleep(0.1)
 
+
 def main():
     obj = SampleClass(10)
     for _ in range(5):
@@ -103,13 +114,14 @@ def main():
     for _ in range(3):
         obj.decrement()
 
+
 if __name__ == '__main__':
-    # 使用上下文管理器并开启详细日志
-    with objwatch.ObjWatch(['examples/example_usage.py']):
+    # 使用上下文管理器并开启日志
+    with objwatch.ObjWatch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseLogger):
         main()
 
-    # 使用 API 并开启简单日志
-    obj_watch = objwatch.watch(['examples/example_usage.py'])
+    # 使用 API 并开启日志
+    obj_watch = objwatch.watch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseLogger)
     main()
     obj_watch.stop()
 ```
@@ -121,74 +133,44 @@ if __name__ == '__main__':
 <summary>Expected Log Output</summary>
 
 ```
-[2024-12-14 20:40:56] [DEBUG] objwatch: Processed targets: {'examples/example_usage.py'}
-[2024-12-14 20:40:56] [INFO] objwatch: Starting ObjWatch tracing.
-[2024-12-14 20:40:56] [INFO] objwatch: Starting tracing.
-[2024-12-14 20:40:56] [DEBUG] objwatch: run main
-[2024-12-14 20:40:56] [DEBUG] objwatch: | run SampleClass.__init__
-[2024-12-14 20:40:56] [DEBUG] objwatch: | end SampleClass.__init__
-[2024-12-14 20:40:56] [DEBUG] objwatch: | run SampleClass.increment
-[2024-12-14 20:40:56] [DEBUG] objwatch: | | upd SampleClass.value
-[2024-12-14 20:40:56] [DEBUG] objwatch: | | upd SampleClass.value
-[2024-12-14 20:40:56] [DEBUG] objwatch: | end SampleClass.increment
-[2024-12-14 20:40:56] [DEBUG] objwatch: | run SampleClass.increment
-[2024-12-14 20:40:56] [DEBUG] objwatch: | | upd SampleClass.value
-[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.increment
-[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.increment
-[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
-[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.increment
-[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.increment
-[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
-[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.increment
-[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.increment
-[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
-[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.increment
-[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.decrement
-[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
-[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.decrement
-[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.decrement
-[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
-[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.decrement
-[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.decrement
-[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
-[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.decrement
-[2024-12-14 20:40:57] [DEBUG] objwatch: end main
-[2024-12-14 20:40:57] [INFO] objwatch: Stopping ObjWatch tracing.
-[2024-12-14 20:40:57] [INFO] objwatch: Stopping tracing.
-[2024-12-14 20:40:57] [DEBUG] objwatch: Processed targets: {'examples/example_usage.py'}
-[2024-12-14 20:40:57] [INFO] objwatch: Starting ObjWatch tracing.
-[2024-12-14 20:40:57] [INFO] objwatch: Starting tracing.
-[2024-12-14 20:40:57] [DEBUG] objwatch: run main
-[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.__init__
-[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.__init__
-[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.increment
-[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
-[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
-[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.increment
-[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.increment
-[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
-[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.increment
-[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.increment
-[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
-[2024-12-14 20:40:57] [DEBUG] objwatch: | end SampleClass.increment
-[2024-12-14 20:40:57] [DEBUG] objwatch: | run SampleClass.increment
-[2024-12-14 20:40:57] [DEBUG] objwatch: | | upd SampleClass.value
-[2024-12-14 20:40:58] [DEBUG] objwatch: | end SampleClass.increment
-[2024-12-14 20:40:58] [DEBUG] objwatch: | run SampleClass.increment
-[2024-12-14 20:40:58] [DEBUG] objwatch: | | upd SampleClass.value
-[2024-12-14 20:40:58] [DEBUG] objwatch: | end SampleClass.increment
-[2024-12-14 20:40:58] [DEBUG] objwatch: | run SampleClass.decrement
-[2024-12-14 20:40:58] [DEBUG] objwatch: | | upd SampleClass.value
-[2024-12-14 20:40:58] [DEBUG] objwatch: | end SampleClass.decrement
-[2024-12-14 20:40:58] [DEBUG] objwatch: | run SampleClass.decrement
-[2024-12-14 20:40:58] [DEBUG] objwatch: | | upd SampleClass.value
-[2024-12-14 20:40:58] [DEBUG] objwatch: | end SampleClass.decrement
-[2024-12-14 20:40:58] [DEBUG] objwatch: | run SampleClass.decrement
-[2024-12-14 20:40:58] [DEBUG] objwatch: | | upd SampleClass.value
-[2024-12-14 20:40:58] [DEBUG] objwatch: | end SampleClass.decrement
-[2024-12-14 20:40:58] [DEBUG] objwatch: end main
-[2024-12-14 20:40:58] [INFO] objwatch: Stopping ObjWatch tracing.
-[2024-12-14 20:40:58] [INFO] objwatch: Stopping tracing.
+[2025-01-04 19:15:13] [DEBUG] objwatch: Processed targets:
+>>>>>>>>>>
+examples/example_usage.py
+<<<<<<<<<<
+[2025-01-04 19:15:13] [WARNING] objwatch: wrapper 'BaseLogger' loaded
+[2025-01-04 19:15:13] [INFO] objwatch: Starting ObjWatch tracing.
+[2025-01-04 19:15:13] [INFO] objwatch: Starting tracing.
+[2025-01-04 19:15:13] [DEBUG] objwatch: run main <-
+[2025-01-04 19:15:13] [DEBUG] objwatch: | run SampleClass.__init__ <- '0':(type)SampleClass, '1':10
+[2025-01-04 19:15:13] [DEBUG] objwatch: | end SampleClass.__init__ -> None
+[2025-01-04 19:15:13] [DEBUG] objwatch: | run SampleClass.increment <- '0':(type)SampleClass
+[2025-01-04 19:15:13] [DEBUG] objwatch: | | upd SampleClass.value None -> 10
+[2025-01-04 19:15:13] [DEBUG] objwatch: | | upd SampleClass.value 10 -> 11
+[2025-01-04 19:15:13] [DEBUG] objwatch: | end SampleClass.increment -> None
+[2025-01-04 19:15:13] [DEBUG] objwatch: | run SampleClass.increment <- '0':(type)SampleClass
+[2025-01-04 19:15:13] [DEBUG] objwatch: | | upd SampleClass.value 11 -> 12
+[2025-01-04 19:15:13] [DEBUG] objwatch: | end SampleClass.increment -> None
+[2025-01-04 19:15:13] [DEBUG] objwatch: | run SampleClass.increment <- '0':(type)SampleClass
+[2025-01-04 19:15:13] [DEBUG] objwatch: | | upd SampleClass.value 12 -> 13
+[2025-01-04 19:15:13] [DEBUG] objwatch: | end SampleClass.increment -> None
+[2025-01-04 19:15:13] [DEBUG] objwatch: | run SampleClass.increment <- '0':(type)SampleClass
+[2025-01-04 19:15:13] [DEBUG] objwatch: | | upd SampleClass.value 13 -> 14
+[2025-01-04 19:15:13] [DEBUG] objwatch: | end SampleClass.increment -> None
+[2025-01-04 19:15:13] [DEBUG] objwatch: | run SampleClass.increment <- '0':(type)SampleClass
+[2025-01-04 19:15:13] [DEBUG] objwatch: | | upd SampleClass.value 14 -> 15
+[2025-01-04 19:15:13] [DEBUG] objwatch: | end SampleClass.increment -> None
+[2025-01-04 19:15:13] [DEBUG] objwatch: | run SampleClass.decrement <- '0':(type)SampleClass
+[2025-01-04 19:15:13] [DEBUG] objwatch: | | upd SampleClass.value 15 -> 14
+[2025-01-04 19:15:13] [DEBUG] objwatch: | end SampleClass.decrement -> None
+[2025-01-04 19:15:13] [DEBUG] objwatch: | run SampleClass.decrement <- '0':(type)SampleClass
+[2025-01-04 19:15:13] [DEBUG] objwatch: | | upd SampleClass.value 14 -> 13
+[2025-01-04 19:15:13] [DEBUG] objwatch: | end SampleClass.decrement -> None
+[2025-01-04 19:15:13] [DEBUG] objwatch: | run SampleClass.decrement <- '0':(type)SampleClass
+[2025-01-04 19:15:13] [DEBUG] objwatch: | | upd SampleClass.value 13 -> 12
+[2025-01-04 19:15:13] [DEBUG] objwatch: | end SampleClass.decrement -> None
+[2025-01-04 19:15:13] [DEBUG] objwatch: end main -> None
+[2025-01-04 19:15:13] [INFO] objwatch: Stopping ObjWatch tracing.
+[2025-01-04 19:15:13] [INFO] objwatch: Stopping tracing.
 ```
 
 </details>
@@ -200,10 +182,11 @@ ObjWatch 提供可定制的日志格式和追踪选项，适应不同项目需�
 ### 参数
 
 - `targets`（列表）：要监控的文件或模块。
+- `exclude_targets`（列表，可选）：要排除监控的文件或模块。
 - `ranks`（列表，可选）：在使用 `torch.distributed` 时跟踪的 GPU ids。
 - `output`（字符串，可选）：写入日志的文件路径。
 - `output_xml`（字符串，可选）：用于写入结构化日志的 XML 文件路径。如果指定，将以嵌套的 XML 格式保存追踪信息，便于浏览和分析。
-- `level`（字符串，可选）：日志级别（例如 `DEBUG`，`INFO`）。
+- `level`（字符串，可选）：日志级别（例如 `logging.DEBUG`，`logging.INFO`，`force` 等）。
 - `simple`（布尔值，可选）：启用简化日志模式，格式为 `"DEBUG: {msg}"`。
 - `wrapper`（FunctionWrapper，可选）：自定义包装器，用于扩展追踪和日志记录功能。
 - `with_locals`（布尔值，可选）：启用在函数执行期间对局部变量的追踪和日志记录。
@@ -219,7 +202,7 @@ ObjWatch 无缝集成到分布式 PyTorch 程序中，允许你跨多个 GPU 监
 import objwatch
 
 def main():
-    # 你的多卡代码
+    # 多卡代码
     pass
 
 if __name__ == '__main__':
@@ -244,6 +227,10 @@ ObjWatch 提供了 `FunctionWrapper` 抽象基类，允许用户创建自定义�
 
   该方法在函数返回时触发，接收函数名和返回的结果。在此方法中可以记录、分析或修改信息，函数执行完成后进行处理。
 
+- **`wrap_upd(self, old_value: Any, current_value: Any) -> Tuple[str, str]`**：
+
+  该方法在变量更新时触发，接收旧值和当前值。可用于记录变量的变化，分析其变化过程，从而跟踪和调试变量状态的变化。
+
 有关帧对象的更多信息，请参考 [官方 Python 文档](https://docs.python.org/3/library/types.html#types.FrameType)。
 
 #### TensorShapeLogger
@@ -254,7 +241,7 @@ ObjWatch 提供了 `FunctionWrapper` 抽象基类，允许用户创建自定义�
 
 要创建自定义包装器：
 
-1. **继承 `FunctionWrapper`**：定义一个新的类，继承 `FunctionWrapper` 并实现 `wrap_call` 和 `wrap_return` 方法，以定义你的自定义行为。
+1. **继承 `FunctionWrapper`**：定义一个新的类，继承 `FunctionWrapper` 并实现 `wrap_call`，`wrap_return` 和 `wrap_upd` 方法，以定义你的自定义行为。
 
 2. **使用自定义包装器初始化 ObjWatch**：在初始化 ObjWatch 时，通过 `wrapper` 参数传递你的自定义包装器。这将把你的自定义追踪逻辑集成到 ObjWatch 的追踪过程中。
 
@@ -275,27 +262,13 @@ with obj_watch:
 
 #### 使用自定义包装器的示例
 
-通过创建自定义包装器来扩展 ObjWatch 的功能。这使你可以根据项目的特定需求调整追踪和日志记录机制。
-
-```python
-from objwatch.wrappers import FunctionWrapper
-
-class CustomWrapper(FunctionWrapper):
-    def wrap_call(self, func_name, frame):
-        return f" - Called {func_name} with args: {frame.f_locals}"
-
-    def wrap_return(self, func_name, result):
-        return f" - {func_name} returned {result}"
-
-# 集成自定义包装器
-obj_watch = objwatch.watch(['your_module.py'], simple=False, wrapper=CustomWrapper)
-main()
-obj_watch.stop()
-```
+推荐阅读 [`tests/test_torch_train.py`](tests/test_torch_train.py) 文件。该文件包含了一个完整的 PyTorch 训练过程示例，展示了如何集成 ObjWatch 进行监控和日志记录。
 
 ## 支持
 
 如果遇到任何问题或有疑问，请随时在 [ObjWatch GitHub 仓库](https://github.com/aeeeeeep/objwatch) 提交 issue，或通过电子邮件与我们联系 [aeeeeeep@proton.me](mailto:aeeeeeep@proton.me)。
+
+更多使用示例可以在 `examples` 目录中找到，我们正在积极更新这个目录。
 
 ## 致谢
 

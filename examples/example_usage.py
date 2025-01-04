@@ -1,6 +1,6 @@
 import time
 import objwatch
-from objwatch.wrappers import FunctionWrapper
+from objwatch.wrappers import BaseLogger
 
 
 class SampleClass:
@@ -26,17 +26,10 @@ def main():
 
 if __name__ == '__main__':
     # Using ObjWatch as a context manager
-    with objwatch.ObjWatch(['examples/example_usage.py'], output='./objwatch.log'):
+    with objwatch.ObjWatch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseLogger):
         main()
 
-    class CustomWrapper(FunctionWrapper):
-        def wrap_call(self, func_name, frame):
-            return f" - Called {func_name} with args: {frame.f_locals}"
-
-        def wrap_return(self, func_name, result):
-            return f" - {func_name} returned {result}"
-
     # Using the watch function
-    obj_watch = objwatch.watch(['examples/example_usage.py'], output='./objwatch.log', wrapper=CustomWrapper)
+    obj_watch = objwatch.watch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseLogger)
     main()
     obj_watch.stop()
