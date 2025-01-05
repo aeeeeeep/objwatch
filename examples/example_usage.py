@@ -1,3 +1,6 @@
+# MIT License
+# Copyright (c) 2025 aeeeeeep
+
 import time
 import objwatch
 from objwatch.wrappers import BaseLogger

@@ -1,10 +1,15 @@
+# MIT License
+# Copyright (c) 2025 aeeeeeep
+
 import atexit
 import xml.etree.ElementTree as ET
 from types import NoneType, FunctionType
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from .utils.logger import log_debug
 from .events import EventType
 
+
+# Define types that are directly loggable
 log_element_types = (
     bool,
     int,
@@ -13,21 +18,42 @@ log_element_types = (
     NoneType,
     FunctionType,
 )
+
+# Define sequence types for logging
 log_sequence_types = (list, set, dict, tuple)
 
 
 class EventHandls:
-    def __init__(self, output_xml: str = None):
+    """
+    Handles various events for ObjWatch, including function execution and variable updates.
+    Optionally saves the events in an XML format.
+    """
+
+    def __init__(self, output_xml: Optional[str] = None) -> None:
+        """
+        Initialize the EventHandls with optional XML output configuration.
+
+        Args:
+            output_xml (Optional[str]): Path to the XML file for writing structured logs.
+        """
         self.output_xml = output_xml
         if self.output_xml:
-            self.is_xml_saved = False
-            self.stack_root = ET.Element('ObjWatch')
-            self.current_node = [self.stack_root]
+            self.is_xml_saved: bool = False
+            self.stack_root: ET.Element = ET.Element('ObjWatch')
+            self.current_node: list = [self.stack_root]
             atexit.register(self.save_xml)
 
-    def handle_run(self, func_info: Dict[str, Any], function_wrapper: Any, call_depth: int, rank_info: str):
+    def handle_run(
+        self, func_info: Dict[str, Any], function_wrapper: Optional[Any], call_depth: int, rank_info: str
+    ) -> None:
         """
-        Handles the 'run' event indicating the start of a function or method execution.
+        Handle the 'run' event indicating the start of a function or method execution.
+
+        Args:
+            func_info (Dict[str, Any]): Information about the function being executed.
+            function_wrapper (Optional[Any]): Custom wrapper for additional processing.
+            call_depth (int): Current depth of the call stack.
+            rank_info (str): Information about the GPU rank, if applicable.
         """
         func_name = func_info['func_name']
         if func_info.get('is_method', False):
@@ -51,10 +77,22 @@ class EventHandls:
             self.current_node.append(function_element)
 
     def handle_end(
-        self, func_info: Dict[str, Any], function_wrapper: Any, call_depth: int, rank_info: str, result: Any
-    ):
+        self,
+        func_info: Dict[str, Any],
+        function_wrapper: Optional[Any],
+        call_depth: int,
+        rank_info: str,
+        result: Any,
+    ) -> None:
         """
-        Handles the 'end' event indicating the end of a function or method execution.
+        Handle the 'end' event indicating the end of a function or method execution.
+
+        Args:
+            func_info (Dict[str, Any]): Information about the function that has ended.
+            function_wrapper (Optional[Any]): Custom wrapper for additional processing.
+            call_depth (int): Current depth of the call stack.
+            rank_info (str): Information about the GPU rank, if applicable.
+            result (Any): The result returned by the function.
         """
         func_name = func_info['func_name']
         if func_info.get('is_method', False):
@@ -83,10 +121,19 @@ class EventHandls:
         current_value: Any,
         call_depth: int,
         rank_info: str,
-        function_wrapper: FunctionType = None,
-    ):
+        function_wrapper: Optional[Any] = None,
+    ) -> None:
         """
-        Handles the 'upd' event representing the creation of a new variable or updating an existing one.
+        Handle the 'upd' event representing the creation or updating of a variable.
+
+        Args:
+            class_name (str): Name of the class containing the variable.
+            key (str): Variable name.
+            old_value (Any): Previous value of the variable.
+            current_value (Any): New value of the variable.
+            call_depth (int): Current depth of the call stack.
+            rank_info (str): Information about the GPU rank, if applicable.
+            function_wrapper (Optional[Any]): Custom wrapper for additional processing.
         """
         if function_wrapper:
             old_msg, current_msg = function_wrapper.wrap_upd(old_value, current_value)
@@ -115,9 +162,18 @@ class EventHandls:
         current_value_len: int,
         call_depth: int,
         rank_info: str,
-    ):
+    ) -> None:
         """
-        Handles the 'apd' event denoting the addition of elements to data structures.
+        Handle the 'apd' event denoting the addition of elements to data structures.
+
+        Args:
+            class_name (str): Name of the class containing the data structure.
+            key (str): Name of the data structure.
+            value_type (type): Type of the elements being added.
+            old_value_len (int): Previous length of the data structure.
+            current_value_len (int): New length of the data structure.
+            call_depth (int): Current depth of the call stack.
+            rank_info (str): Information about the GPU rank, if applicable.
         """
         diff_msg = f" ({value_type.__name__})(len){old_value_len} -> {current_value_len}"
         logger_msg = f"{class_name}.{key}{diff_msg}"
@@ -144,9 +200,18 @@ class EventHandls:
         current_value_len: int,
         call_depth: int,
         rank_info: str,
-    ):
+    ) -> None:
         """
-        Handles the 'pop' event marking the removal of elements from data structures.
+        Handle the 'pop' event marking the removal of elements from data structures.
+
+        Args:
+            class_name (str): Name of the class containing the data structure.
+            key (str): Name of the data structure.
+            value_type (type): Type of the elements being removed.
+            old_value_len (int): Previous length of the data structure.
+            current_value_len (int): New length of the data structure.
+            call_depth (int): Current depth of the call stack.
+            rank_info (str): Information about the GPU rank, if applicable.
         """
         diff_msg = f" ({value_type.__name__})(len){old_value_len} -> {current_value_len}"
         logger_msg = f"{class_name}.{key}{diff_msg}"
@@ -166,7 +231,14 @@ class EventHandls:
 
     def determine_change_type(self, old_value_len: int, current_value_len: int) -> EventType:
         """
-        Determines the type of change between old and current values.
+        Determine the type of change based on the difference in lengths.
+
+        Args:
+            old_value_len (int): Previous length of the data structure.
+            current_value_len (int): New length of the data structure.
+
+        Returns:
+            EventType: The determined event type (APD or POP).
         """
         diff = current_value_len - old_value_len
         if diff > 0:
@@ -175,14 +247,22 @@ class EventHandls:
             return EventType.POP
 
     @staticmethod
-    def format_sequence(seq: Any, max_elements: int = 3, func: FunctionType = None) -> str:
+    def format_sequence(seq: Any, max_elements: int = 3, func: Optional[FunctionType] = None) -> str:
         """
-        Formats a sequence to display at most max_elements elements. Extra elements are represented by '...'.
+        Format a sequence to display a limited number of elements.
+
+        Args:
+            seq (Any): The sequence to format.
+            max_elements (int): Maximum number of elements to display.
+            func (Optional[FunctionType]): Optional function to process elements.
+
+        Returns:
+            str: The formatted sequence string.
         """
         len_seq = len(seq)
         if len_seq == 0:
             return f'({type(seq).__name__})[]'
-        display = None
+        display: Optional[list] = None
         if isinstance(seq, list):
             if all(isinstance(x, log_element_types) for x in seq[:max_elements]):
                 display = seq[:max_elements]
@@ -219,7 +299,13 @@ class EventHandls:
     @staticmethod
     def _format_value(value: Any) -> str:
         """
-        Helper method to format individual values for the 'upd' event when no wrapper is provided.
+        Format individual values for the 'upd' event when no wrapper is provided.
+
+        Args:
+            value (Any): The value to format.
+
+        Returns:
+            str: The formatted value string.
         """
         if isinstance(value, log_element_types):
             return f"{value}"
@@ -228,7 +314,10 @@ class EventHandls:
         else:
             return f"(type){value.__class__.__name__}"
 
-    def save_xml(self):
+    def save_xml(self) -> None:
+        """
+        Save the accumulated events to an XML file upon program exit.
+        """
         if self.output_xml and not self.is_xml_saved:
             tree = ET.ElementTree(self.stack_root)
             ET.indent(tree)

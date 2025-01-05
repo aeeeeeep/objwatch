@@ -1,3 +1,6 @@
+# MIT License
+# Copyright (c) 2025 aeeeeeep
+
 import unittest
 from unittest.mock import patch
 import torch

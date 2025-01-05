@@ -1,3 +1,6 @@
+# MIT License
+# Copyright (c) 2025 aeeeeeep
+
 from setuptools import setup, find_packages
 
 try:

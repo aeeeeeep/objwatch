@@ -1,3 +1,7 @@
+# MIT License
+# Copyright (c) 2025 aeeeeeep
+
+
 def test_func():
     return "result"
 
