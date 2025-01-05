@@ -1,7 +1,14 @@
+# MIT License
+# Copyright (c) 2025 aeeeeeep
+
 from enum import Enum
 
 
 class EventType(Enum):
+    """
+    Enumeration of event types used by ObjWatch to categorize tracing events.
+    """
+
     # Indicates the start of a function or class method execution.
     RUN = 'run'
 
