@@ -254,27 +254,28 @@ class Tracer:
                             else:
                                 change_type = EventType.UPD
 
-                            if id(old_value) == id(current_value) and change_type == EventType.APD:
-                                self.event_handlers.handle_apd(
-                                    class_name,
-                                    key,
-                                    type(current_value),
-                                    old_value_len,
-                                    current_value_len,
-                                    self.call_depth,
-                                    rank_info,
-                                )
-                            elif id(old_value) == id(current_value) and change_type == EventType.POP:
-                                self.event_handlers.handle_pop(
-                                    class_name,
-                                    key,
-                                    type(current_value),
-                                    old_value_len,
-                                    current_value_len,
-                                    self.call_depth,
-                                    rank_info,
-                                )
-                            elif id(old_value) != id(current_value) and change_type == EventType.UPD:
+                            if id(old_value) == id(current_value):
+                                if change_type == EventType.APD:
+                                    self.event_handlers.handle_apd(
+                                        class_name,
+                                        key,
+                                        type(current_value),
+                                        old_value_len,
+                                        current_value_len,
+                                        self.call_depth,
+                                        rank_info,
+                                    )
+                                elif change_type == EventType.POP:
+                                    self.event_handlers.handle_pop(
+                                        class_name,
+                                        key,
+                                        type(current_value),
+                                        old_value_len,
+                                        current_value_len,
+                                        self.call_depth,
+                                        rank_info,
+                                    )
+                            elif change_type == EventType.UPD:
                                 self.event_handlers.handle_upd(
                                     class_name,
                                     key,
@@ -323,27 +324,28 @@ class Tracer:
                         else:
                             change_type = EventType.UPD
 
-                        if id(old_local) == id(current_local) and change_type == EventType.APD:
-                            self.event_handlers.handle_apd(
-                                "_",
-                                var,
-                                type(current_local),
-                                old_local_len,
-                                current_local_len,
-                                self.call_depth,
-                                rank_info,
-                            )
-                        elif id(old_local) == id(current_local) and change_type == EventType.POP:
-                            self.event_handlers.handle_pop(
-                                "_",
-                                var,
-                                type(current_local),
-                                old_local_len,
-                                current_local_len,
-                                self.call_depth,
-                                rank_info,
-                            )
-                        elif id(old_local) != id(current_local) and change_type == EventType.UPD:
+                        if id(old_local) == id(current_local):
+                            if change_type == EventType.APD:
+                                self.event_handlers.handle_apd(
+                                    "_",
+                                    var,
+                                    type(current_local),
+                                    old_local_len,
+                                    current_local_len,
+                                    self.call_depth,
+                                    rank_info,
+                                )
+                            elif change_type == EventType.POP:
+                                self.event_handlers.handle_pop(
+                                    "_",
+                                    var,
+                                    type(current_local),
+                                    old_local_len,
+                                    current_local_len,
+                                    self.call_depth,
+                                    rank_info,
+                                )
+                        elif change_type == EventType.UPD:
                             self.event_handlers.handle_upd(
                                 "_", var, old_local, current_local, self.call_depth, rank_info, self.function_wrapper
                             )
