@@ -51,8 +51,8 @@ class Tracer:
         """
         self.with_locals: bool = with_locals
         if self.with_locals:
-            self.tracked_locals: Dict[Any, Dict[str, Any]] = {}
-            self.tracked_locals_lens: Dict[Any, Dict[str, int]] = {}
+            self.tracked_locals: Dict[FrameType, Dict[str, Any]] = {}
+            self.tracked_locals_lens: Dict[FrameType, Dict[str, int]] = {}
         self.with_module_path: bool = with_module_path
 
         # Process and determine the set of target files to monitor
@@ -70,9 +70,9 @@ class Tracer:
         self.torch_available: bool = torch_available
         if self.torch_available:
             self.current_rank: Optional[int] = None
-            self.ranks: List[int] = ranks if ranks is not None else [0]
+            self.ranks: Set[int] = set(ranks if ranks is not None else [0])
         else:
-            self.ranks: List[int] = []
+            self.ranks: Set[int] = set()
 
         # Load the function wrapper if provided
         self.function_wrapper: Optional[FunctionWrapper] = self.load_wrapper(wrapper)
@@ -186,24 +186,23 @@ class Tracer:
         """
 
         def trace_func(frame: FrameType, event: str, arg: Any) -> Optional[FunctionType]:
-            # Handle multi-GPU ranks if PyTorch is available
-            if (
-                self.torch_available
-                and self.current_rank is None
-                and torch.distributed
-                and torch.distributed.is_initialized()
-            ):
-                self.current_rank = torch.distributed.get_rank()
-            if self.torch_available and self.current_rank in self.ranks:
-                rank_info: str = f"[Rank {self.current_rank}] "
-            elif self.torch_available and self.current_rank is not None and self.current_rank not in self.ranks:
+            if not frame.f_code.co_filename.endswith(tuple(self.targets)):
                 return trace_func
-            else:
-                rank_info = ""
 
-            filename: str = frame.f_code.co_filename
-            if not filename.endswith(tuple(self.targets)):
-                return trace_func
+            # Handle multi-GPU ranks if PyTorch is available
+            if self.torch_available:
+                if (
+                    self.current_rank is None
+                    and torch.distributed
+                    and torch.distributed.is_initialized()
+                ):
+                    self.current_rank = torch.distributed.get_rank()
+                if self.current_rank in self.ranks:
+                    rank_info: str = f"[Rank {self.current_rank}] "
+                elif self.current_rank is not None and self.current_rank not in self.ranks:
+                    return trace_func
+                else:
+                    rank_info = ""
 
             if event == "call":
                 func_info = self._get_function_info(frame, event)
