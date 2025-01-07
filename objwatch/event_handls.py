@@ -75,7 +75,7 @@ class EventHandls:
             logger_msg += ' <- ' + call_msg
 
         prefix = "| " * call_depth
-        log_debug(f"{rank_info}{prefix}{EventType.RUN.value} {logger_msg}")
+        log_debug(f"{rank_info}{prefix}{EventType.RUN.label} {logger_msg}")
 
         if self.output_xml:
             function_element = ET.Element('Function', attrib=attrib)
@@ -113,7 +113,7 @@ class EventHandls:
             logger_msg += ' -> ' + return_msg
 
         prefix = "| " * call_depth
-        log_debug(f"{rank_info}{prefix}{EventType.END.value} {logger_msg}")
+        log_debug(f"{rank_info}{prefix}{EventType.END.label} {logger_msg}")
 
         if self.output_xml and len(self.current_node) > 1:
             self.current_node[-1].set('return_msg', return_msg)
@@ -150,11 +150,11 @@ class EventHandls:
         diff_msg = f" {old_msg} -> {current_msg}"
         logger_msg = f"{class_name}.{key}{diff_msg}"
         prefix = "| " * call_depth
-        log_debug(f"{rank_info}{prefix}{EventType.UPD.value} {logger_msg}")
+        log_debug(f"{rank_info}{prefix}{EventType.UPD.label} {logger_msg}")
 
         if self.output_xml:
             upd_element = ET.Element(
-                EventType.UPD.value,
+                EventType.UPD.label,
                 attrib={'name': f"{class_name}.{key}", 'old': f"{old_msg}", 'new': f"{current_msg}"},
             )
             self.current_node[-1].append(upd_element)
@@ -184,11 +184,11 @@ class EventHandls:
         diff_msg = f" ({value_type.__name__})(len){old_value_len} -> {current_value_len}"
         logger_msg = f"{class_name}.{key}{diff_msg}"
         prefix = "| " * call_depth
-        log_debug(f"{rank_info}{prefix}{EventType.APD.value} {logger_msg}")
+        log_debug(f"{rank_info}{prefix}{EventType.APD.label} {logger_msg}")
 
         if self.output_xml:
             apd_element = ET.Element(
-                EventType.APD.value,
+                EventType.APD.label,
                 attrib={
                     'name': f"{class_name}.{key}",
                     'old': f"({value_type.__name__})(len){old_value_len}",
@@ -222,11 +222,11 @@ class EventHandls:
         diff_msg = f" ({value_type.__name__})(len){old_value_len} -> {current_value_len}"
         logger_msg = f"{class_name}.{key}{diff_msg}"
         prefix = "| " * call_depth
-        log_debug(f"{rank_info}{prefix}{EventType.POP.value} {logger_msg}")
+        log_debug(f"{rank_info}{prefix}{EventType.POP.label} {logger_msg}")
 
         if self.output_xml:
             pop_element = ET.Element(
-                EventType.POP.value,
+                EventType.POP.label,
                 attrib={
                     'name': f"{class_name}.{key}",
                     'old': f"({value_type.__name__})(len){old_value_len}",
