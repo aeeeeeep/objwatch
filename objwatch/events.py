@@ -25,11 +25,5 @@ class EventType(Enum):
     POP = 5
 
     def __init__(self, value):
-        labels = {
-            1: 'run',
-            2: 'end',
-            3: 'upd',
-            4: 'apd',
-            5: 'pop'
-        }
+        labels = {1: 'run', 2: 'end', 3: 'upd', 4: 'apd', 5: 'pop'}
         self.label = labels[value]

@@ -329,6 +329,8 @@ class EventHandls:
             if hasattr(ET, 'indent'):
                 ET.indent(tree)
             else:
-                log_warn("Current Python version does not support `xml.etree.ElementTree.indent`. XML formatting is skipped.")
+                log_warn(
+                    "Current Python version not support `xml.etree.ElementTree.indent`. XML formatting is skipped."
+                )
             tree.write(self.output_xml, encoding='utf-8', xml_declaration=True)
             self.is_xml_saved = True
