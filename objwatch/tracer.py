@@ -177,7 +177,7 @@ class Tracer:
 
         return func_info
 
-    def trace_func_factory(self) -> FunctionType:
+    def trace_factory(self) -> FunctionType:  # noqa: C901
         """
         Create the tracing function to be used with sys.settrace.
 
@@ -190,19 +190,14 @@ class Tracer:
                 return trace_func
 
             # Handle multi-GPU ranks if PyTorch is available
+            rank_info = ""
             if self.torch_available:
-                if (
-                    self.current_rank is None
-                    and torch.distributed
-                    and torch.distributed.is_initialized()
-                ):
+                if self.current_rank is None and torch.distributed and torch.distributed.is_initialized():
                     self.current_rank = torch.distributed.get_rank()
                 if self.current_rank in self.ranks:
                     rank_info: str = f"[Rank {self.current_rank}] "
                 elif self.current_rank is not None and self.current_rank not in self.ranks:
                     return trace_func
-                else:
-                    rank_info = ""
 
             if event == "call":
                 func_info = self._get_function_info(frame, event)
@@ -364,7 +359,7 @@ class Tracer:
         Start the tracing process by setting the trace function.
         """
         log_info("Starting tracing.")
-        sys.settrace(self.trace_func_factory())
+        sys.settrace(self.trace_factory())
         if self.torch_available and torch.distributed and torch.distributed.is_initialized():
             torch.distributed.barrier()
 

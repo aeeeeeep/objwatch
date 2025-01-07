@@ -332,7 +332,7 @@ class TestCustomWrapper(unittest.TestCase):
         mock_frame.f_code.co_name = 'custom_func'
         mock_frame.f_locals = {'arg1': 'value1'}
 
-        trace_func = self.obj_watch.tracer.trace_func_factory()
+        trace_func = self.obj_watch.tracer.trace_factory()
 
         trace_func(mock_frame, 'call', None)
 

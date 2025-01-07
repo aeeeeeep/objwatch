@@ -78,7 +78,7 @@ class TestOutputXML(unittest.TestCase):
 
                 return self.lst
 
-        with patch.object(self.tracer, 'trace_func_factory', return_value=self.tracer.trace_func_factory()):
+        with patch.object(self.tracer, 'trace_factory', return_value=self.tracer.trace_factory()):
             self.tracer.start()
             try:
                 t = TestClass()
