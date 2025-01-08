@@ -161,7 +161,12 @@ class EventHandls:
         if self.output_xml:
             upd_element = ET.Element(
                 EventType.UPD.label,
-                attrib={'name': f"{class_name}.{key}", 'line': str(lineno), 'old': f"{old_msg}", 'new': f"{current_msg}"},
+                attrib={
+                    'name': f"{class_name}.{key}",
+                    'line': str(lineno),
+                    'old': f"{old_msg}",
+                    'new': f"{current_msg}",
+                },
             )
             self.current_node[-1].append(upd_element)
 
