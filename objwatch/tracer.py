@@ -199,9 +199,10 @@ class Tracer:
                 elif self.current_rank is not None and self.current_rank not in self.ranks:
                     return trace_func
 
+            lineno = frame.f_lineno
             if event == "call":
                 func_info = self._get_function_info(frame, event)
-                self.event_handlers.handle_run(func_info, self.function_wrapper, self.call_depth, rank_info)
+                self.event_handlers.handle_run(lineno, func_info, self.function_wrapper, self.call_depth, rank_info)
                 self.call_depth += 1
 
                 if self.with_locals:
@@ -219,7 +220,9 @@ class Tracer:
             elif event == "return":
                 self.call_depth -= 1
                 func_info = self._get_function_info(frame, event)
-                self.event_handlers.handle_end(func_info, self.function_wrapper, self.call_depth, rank_info, arg)
+                self.event_handlers.handle_end(
+                    lineno, func_info, self.function_wrapper, self.call_depth, rank_info, arg
+                )
 
                 if self.with_locals and frame in self.tracked_locals:
                     del self.tracked_locals[frame]
@@ -251,6 +254,7 @@ class Tracer:
                             if id(old_value) == id(current_value):
                                 if change_type == EventType.APD:
                                     self.event_handlers.handle_apd(
+                                        lineno,
                                         class_name,
                                         key,
                                         type(current_value),
@@ -261,6 +265,7 @@ class Tracer:
                                     )
                                 elif change_type == EventType.POP:
                                     self.event_handlers.handle_pop(
+                                        lineno,
                                         class_name,
                                         key,
                                         type(current_value),
@@ -271,6 +276,7 @@ class Tracer:
                                     )
                             elif change_type == EventType.UPD:
                                 self.event_handlers.handle_upd(
+                                    lineno,
                                     class_name,
                                     key,
                                     old_value,
@@ -294,6 +300,7 @@ class Tracer:
                     for var in added_vars:
                         current_local: Any = current_locals[var]
                         self.event_handlers.handle_upd(
+                            lineno,
                             class_name="_",
                             key=var,
                             old_value=None,
@@ -321,6 +328,7 @@ class Tracer:
                         if id(old_local) == id(current_local):
                             if change_type == EventType.APD:
                                 self.event_handlers.handle_apd(
+                                    lineno,
                                     "_",
                                     var,
                                     type(current_local),
@@ -331,6 +339,7 @@ class Tracer:
                                 )
                             elif change_type == EventType.POP:
                                 self.event_handlers.handle_pop(
+                                    lineno,
                                     "_",
                                     var,
                                     type(current_local),
@@ -341,7 +350,14 @@ class Tracer:
                                 )
                         elif change_type == EventType.UPD:
                             self.event_handlers.handle_upd(
-                                "_", var, old_local, current_local, self.call_depth, rank_info, self.function_wrapper
+                                lineno,
+                                "_",
+                                var,
+                                old_local,
+                                current_local,
+                                self.call_depth,
+                                rank_info,
+                                self.function_wrapper,
                             )
                         if isinstance(current_local, log_sequence_types):
                             self.tracked_locals_lens[frame][var] = len(current_local)

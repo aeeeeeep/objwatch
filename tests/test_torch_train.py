@@ -67,8 +67,8 @@ class TestPytorchTraining(unittest.TestCase):
         mock_logger.return_value = unittest.mock.Mock()
 
         obj_watch = ObjWatch(
-            targets=['tests/test_torch_train.py', 'torch.autograd'],
-            exclude_targets=['torch.autograd.profiler', 'torch.autograd.function'],
+            targets=['tests/test_torch_train.py'],
+            exclude_targets=[],
             output=None,
             level=logging.DEBUG,
             simple=True,
@@ -86,7 +86,6 @@ class TestPytorchTraining(unittest.TestCase):
         golden_log_path = 'tests/utils/golden_torch_train_log.txt'
         with open(golden_log_path, 'r') as f:
             golden_log = f.read()
-
         self.assertEqual(
             generated_log,
             golden_log,

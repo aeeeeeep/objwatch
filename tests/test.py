@@ -2,6 +2,7 @@
 # Copyright (c) 2025 aeeeeeep
 
 import os
+import re
 import runpy
 import importlib
 import unittest
@@ -19,15 +20,27 @@ except ImportError:
     torch = None
 
 
-golden_log = """DEBUG:objwatch:run <module>
-DEBUG:objwatch:| run TestClass
-DEBUG:objwatch:| end TestClass
-DEBUG:objwatch:| run main
-DEBUG:objwatch:| | run TestClass.method
-DEBUG:objwatch:| | | upd TestClass.attr None -> 1
-DEBUG:objwatch:| | end TestClass.method
-DEBUG:objwatch:| end main
-DEBUG:objwatch:end <module>"""
+golden_log = """DEBUG:objwatch:    run <module>
+DEBUG:objwatch:    | run TestClass
+DEBUG:objwatch:    | end TestClass
+DEBUG:objwatch:    | run main
+DEBUG:objwatch:    | | run TestClass.method
+DEBUG:objwatch:    | | | upd TestClass.attr None -> 1
+DEBUG:objwatch:    | | end TestClass.method
+DEBUG:objwatch:    | end main
+DEBUG:objwatch:   end <module>"""
+
+def strip_line_numbers(log):
+    pattern = r'(DEBUG:objwatch:\s*)\d+\s*(\|*\s*.*)'
+    stripped_lines = []
+    for line in log.splitlines():
+        match = re.match(pattern, line)
+        if match:
+            stripped_line = f"{match.group(1)}{match.group(2)}"
+            stripped_lines.append(stripped_line)
+        else:
+            stripped_lines.append(line)
+    return '\n'.join(stripped_lines)
 
 
 class TestTracer(unittest.TestCase):
@@ -65,7 +78,7 @@ if __name__ == '__main__':
         obj_watch.stop()
 
         test_log = '\n'.join(log.output)
-        self.assertIn(golden_log, test_log)
+        self.assertIn(golden_log, strip_line_numbers(test_log))
 
 
 class TestWatch(unittest.TestCase):
@@ -102,7 +115,7 @@ if __name__ == '__main__':
         obj_watch.stop()
 
         test_log = '\n'.join(log.output)
-        self.assertIn(golden_log, test_log)
+        self.assertIn(golden_log, strip_line_numbers(test_log))
 
 
 class TestBaseLogger(unittest.TestCase):
@@ -331,6 +344,7 @@ class TestCustomWrapper(unittest.TestCase):
         mock_frame.f_code.co_filename = 'example_module.py'
         mock_frame.f_code.co_name = 'custom_func'
         mock_frame.f_locals = {'arg1': 'value1'}
+        mock_frame.f_lineno = 42
 
         trace_func = self.obj_watch.tracer.trace_factory()
 
