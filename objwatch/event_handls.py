@@ -50,12 +50,13 @@ class EventHandls:
             atexit.register(self.save_xml)
 
     def handle_run(
-        self, func_info: Dict[str, Any], function_wrapper: Optional[Any], call_depth: int, rank_info: str
+        self, lineno: int, func_info: Dict[str, Any], function_wrapper: Optional[Any], call_depth: int, rank_info: str
     ) -> None:
         """
         Handle the 'run' event indicating the start of a function or method execution.
 
         Args:
+            lineno (int): The line number where the event is called.
             func_info (Dict[str, Any]): Information about the function being executed.
             function_wrapper (Optional[Any]): Custom wrapper for additional processing.
             call_depth (int): Current depth of the call stack.
@@ -67,14 +68,14 @@ class EventHandls:
             logger_msg = f"{class_name}.{func_name}"
         else:
             logger_msg = f"{func_name}"
-        attrib = {'name': logger_msg}
+        attrib = {'name': logger_msg, 'run_line': str(lineno)}
 
         if function_wrapper:
             call_msg = function_wrapper.wrap_call(func_name, func_info['frame'])
             attrib['call_msg'] = call_msg
             logger_msg += ' <- ' + call_msg
 
-        prefix = "| " * call_depth
+        prefix = f"{lineno:>5} " + "| " * call_depth
         log_debug(f"{rank_info}{prefix}{EventType.RUN.label} {logger_msg}")
 
         if self.output_xml:
@@ -84,6 +85,7 @@ class EventHandls:
 
     def handle_end(
         self,
+        lineno: int,
         func_info: Dict[str, Any],
         function_wrapper: Optional[Any],
         call_depth: int,
@@ -94,6 +96,7 @@ class EventHandls:
         Handle the 'end' event indicating the end of a function or method execution.
 
         Args:
+            lineno (int): The line number where the event is called.
             func_info (Dict[str, Any]): Information about the function that has ended.
             function_wrapper (Optional[Any]): Custom wrapper for additional processing.
             call_depth (int): Current depth of the call stack.
@@ -112,15 +115,17 @@ class EventHandls:
             return_msg = function_wrapper.wrap_return(func_name, result)
             logger_msg += ' -> ' + return_msg
 
-        prefix = "| " * call_depth
+        prefix = f"{lineno:>5} " + "| " * call_depth
         log_debug(f"{rank_info}{prefix}{EventType.END.label} {logger_msg}")
 
         if self.output_xml and len(self.current_node) > 1:
             self.current_node[-1].set('return_msg', return_msg)
+            self.current_node[-1].set('end_line', str(lineno))
             self.current_node.pop()
 
     def handle_upd(
         self,
+        lineno: int,
         class_name: str,
         key: str,
         old_value: Any,
@@ -133,6 +138,7 @@ class EventHandls:
         Handle the 'upd' event representing the creation or updating of a variable.
 
         Args:
+            lineno (int): The line number where the event is called.
             class_name (str): Name of the class containing the variable.
             key (str): Variable name.
             old_value (Any): Previous value of the variable.
@@ -149,18 +155,19 @@ class EventHandls:
 
         diff_msg = f" {old_msg} -> {current_msg}"
         logger_msg = f"{class_name}.{key}{diff_msg}"
-        prefix = "| " * call_depth
+        prefix = f"{lineno:>5} " + "| " * call_depth
         log_debug(f"{rank_info}{prefix}{EventType.UPD.label} {logger_msg}")
 
         if self.output_xml:
             upd_element = ET.Element(
                 EventType.UPD.label,
-                attrib={'name': f"{class_name}.{key}", 'old': f"{old_msg}", 'new': f"{current_msg}"},
+                attrib={'name': f"{class_name}.{key}", 'line': str(lineno), 'old': f"{old_msg}", 'new': f"{current_msg}"},
             )
             self.current_node[-1].append(upd_element)
 
     def handle_apd(
         self,
+        lineno: int,
         class_name: str,
         key: str,
         value_type: type,
@@ -173,6 +180,7 @@ class EventHandls:
         Handle the 'apd' event denoting the addition of elements to data structures.
 
         Args:
+            lineno (int): The line number where the event is called.
             class_name (str): Name of the class containing the data structure.
             key (str): Name of the data structure.
             value_type (type): Type of the elements being added.
@@ -183,7 +191,7 @@ class EventHandls:
         """
         diff_msg = f" ({value_type.__name__})(len){old_value_len} -> {current_value_len}"
         logger_msg = f"{class_name}.{key}{diff_msg}"
-        prefix = "| " * call_depth
+        prefix = f"{lineno:>5} " + "| " * call_depth
         log_debug(f"{rank_info}{prefix}{EventType.APD.label} {logger_msg}")
 
         if self.output_xml:
@@ -191,6 +199,7 @@ class EventHandls:
                 EventType.APD.label,
                 attrib={
                     'name': f"{class_name}.{key}",
+                    'line': str(lineno),
                     'old': f"({value_type.__name__})(len){old_value_len}",
                     'new': f"({value_type.__name__})(len){current_value_len}",
                 },
@@ -199,6 +208,7 @@ class EventHandls:
 
     def handle_pop(
         self,
+        lineno: int,
         class_name: str,
         key: str,
         value_type: type,
@@ -211,6 +221,7 @@ class EventHandls:
         Handle the 'pop' event marking the removal of elements from data structures.
 
         Args:
+            lineno (int): The line number where the event is called.
             class_name (str): Name of the class containing the data structure.
             key (str): Name of the data structure.
             value_type (type): Type of the elements being removed.
@@ -221,7 +232,7 @@ class EventHandls:
         """
         diff_msg = f" ({value_type.__name__})(len){old_value_len} -> {current_value_len}"
         logger_msg = f"{class_name}.{key}{diff_msg}"
-        prefix = "| " * call_depth
+        prefix = f"{lineno:>5} " + "| " * call_depth
         log_debug(f"{rank_info}{prefix}{EventType.POP.label} {logger_msg}")
 
         if self.output_xml:
@@ -229,6 +240,7 @@ class EventHandls:
                 EventType.POP.label,
                 attrib={
                     'name': f"{class_name}.{key}",
+                    'line': str(lineno),
                     'old': f"({value_type.__name__})(len){old_value_len}",
                     'new': f"({value_type.__name__})(len){current_value_len}",
                 },

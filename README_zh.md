@@ -133,44 +133,44 @@ if __name__ == '__main__':
 <summary>Expected Log Output</summary>
 
 ```
-[2025-01-04 19:15:13] [DEBUG] objwatch: Processed targets:
+[2025-01-08 20:02:10] [DEBUG] objwatch: Processed targets:
 >>>>>>>>>>
 examples/example_usage.py
 <<<<<<<<<<
-[2025-01-04 19:15:13] [WARNING] objwatch: wrapper 'BaseLogger' loaded
-[2025-01-04 19:15:13] [INFO] objwatch: Starting ObjWatch tracing.
-[2025-01-04 19:15:13] [INFO] objwatch: Starting tracing.
-[2025-01-04 19:15:13] [DEBUG] objwatch: run main <-
-[2025-01-04 19:15:13] [DEBUG] objwatch: | run SampleClass.__init__ <- '0':(type)SampleClass, '1':10
-[2025-01-04 19:15:13] [DEBUG] objwatch: | end SampleClass.__init__ -> None
-[2025-01-04 19:15:13] [DEBUG] objwatch: | run SampleClass.increment <- '0':(type)SampleClass
-[2025-01-04 19:15:13] [DEBUG] objwatch: | | upd SampleClass.value None -> 10
-[2025-01-04 19:15:13] [DEBUG] objwatch: | | upd SampleClass.value 10 -> 11
-[2025-01-04 19:15:13] [DEBUG] objwatch: | end SampleClass.increment -> None
-[2025-01-04 19:15:13] [DEBUG] objwatch: | run SampleClass.increment <- '0':(type)SampleClass
-[2025-01-04 19:15:13] [DEBUG] objwatch: | | upd SampleClass.value 11 -> 12
-[2025-01-04 19:15:13] [DEBUG] objwatch: | end SampleClass.increment -> None
-[2025-01-04 19:15:13] [DEBUG] objwatch: | run SampleClass.increment <- '0':(type)SampleClass
-[2025-01-04 19:15:13] [DEBUG] objwatch: | | upd SampleClass.value 12 -> 13
-[2025-01-04 19:15:13] [DEBUG] objwatch: | end SampleClass.increment -> None
-[2025-01-04 19:15:13] [DEBUG] objwatch: | run SampleClass.increment <- '0':(type)SampleClass
-[2025-01-04 19:15:13] [DEBUG] objwatch: | | upd SampleClass.value 13 -> 14
-[2025-01-04 19:15:13] [DEBUG] objwatch: | end SampleClass.increment -> None
-[2025-01-04 19:15:13] [DEBUG] objwatch: | run SampleClass.increment <- '0':(type)SampleClass
-[2025-01-04 19:15:13] [DEBUG] objwatch: | | upd SampleClass.value 14 -> 15
-[2025-01-04 19:15:13] [DEBUG] objwatch: | end SampleClass.increment -> None
-[2025-01-04 19:15:13] [DEBUG] objwatch: | run SampleClass.decrement <- '0':(type)SampleClass
-[2025-01-04 19:15:13] [DEBUG] objwatch: | | upd SampleClass.value 15 -> 14
-[2025-01-04 19:15:13] [DEBUG] objwatch: | end SampleClass.decrement -> None
-[2025-01-04 19:15:13] [DEBUG] objwatch: | run SampleClass.decrement <- '0':(type)SampleClass
-[2025-01-04 19:15:13] [DEBUG] objwatch: | | upd SampleClass.value 14 -> 13
-[2025-01-04 19:15:13] [DEBUG] objwatch: | end SampleClass.decrement -> None
-[2025-01-04 19:15:13] [DEBUG] objwatch: | run SampleClass.decrement <- '0':(type)SampleClass
-[2025-01-04 19:15:13] [DEBUG] objwatch: | | upd SampleClass.value 13 -> 12
-[2025-01-04 19:15:13] [DEBUG] objwatch: | end SampleClass.decrement -> None
-[2025-01-04 19:15:13] [DEBUG] objwatch: end main -> None
-[2025-01-04 19:15:13] [INFO] objwatch: Stopping ObjWatch tracing.
-[2025-01-04 19:15:13] [INFO] objwatch: Stopping tracing.
+[2025-01-08 20:02:10] [WARNING] objwatch: wrapper 'BaseLogger' loaded
+[2025-01-08 20:02:10] [INFO] objwatch: Starting ObjWatch tracing.
+[2025-01-08 20:02:10] [INFO] objwatch: Starting tracing.
+[2025-01-08 20:02:10] [DEBUG] objwatch:    22 run main <-
+[2025-01-08 20:02:10] [DEBUG] objwatch:    10 | run SampleClass.__init__ <- '0':(type)SampleClass, '1':10
+[2025-01-08 20:02:10] [DEBUG] objwatch:    11 | end SampleClass.__init__ -> None
+[2025-01-08 20:02:10] [DEBUG] objwatch:    13 | run SampleClass.increment <- '0':(type)SampleClass
+[2025-01-08 20:02:10] [DEBUG] objwatch:    14 | | upd SampleClass.value None -> 10
+[2025-01-08 20:02:10] [DEBUG] objwatch:    15 | | upd SampleClass.value 10 -> 11
+[2025-01-08 20:02:10] [DEBUG] objwatch:    15 | end SampleClass.increment -> None
+[2025-01-08 20:02:10] [DEBUG] objwatch:    13 | run SampleClass.increment <- '0':(type)SampleClass
+[2025-01-08 20:02:10] [DEBUG] objwatch:    15 | | upd SampleClass.value 11 -> 12
+[2025-01-08 20:02:10] [DEBUG] objwatch:    15 | end SampleClass.increment -> None
+[2025-01-08 20:02:10] [DEBUG] objwatch:    13 | run SampleClass.increment <- '0':(type)SampleClass
+[2025-01-08 20:02:10] [DEBUG] objwatch:    15 | | upd SampleClass.value 12 -> 13
+[2025-01-08 20:02:10] [DEBUG] objwatch:    15 | end SampleClass.increment -> None
+[2025-01-08 20:02:10] [DEBUG] objwatch:    13 | run SampleClass.increment <- '0':(type)SampleClass
+[2025-01-08 20:02:10] [DEBUG] objwatch:    15 | | upd SampleClass.value 13 -> 14
+[2025-01-08 20:02:10] [DEBUG] objwatch:    15 | end SampleClass.increment -> None
+[2025-01-08 20:02:10] [DEBUG] objwatch:    13 | run SampleClass.increment <- '0':(type)SampleClass
+[2025-01-08 20:02:10] [DEBUG] objwatch:    15 | | upd SampleClass.value 14 -> 15
+[2025-01-08 20:02:10] [DEBUG] objwatch:    15 | end SampleClass.increment -> None
+[2025-01-08 20:02:10] [DEBUG] objwatch:    17 | run SampleClass.decrement <- '0':(type)SampleClass
+[2025-01-08 20:02:10] [DEBUG] objwatch:    19 | | upd SampleClass.value 15 -> 14
+[2025-01-08 20:02:10] [DEBUG] objwatch:    19 | end SampleClass.decrement -> None
+[2025-01-08 20:02:10] [DEBUG] objwatch:    17 | run SampleClass.decrement <- '0':(type)SampleClass
+[2025-01-08 20:02:10] [DEBUG] objwatch:    19 | | upd SampleClass.value 14 -> 13
+[2025-01-08 20:02:10] [DEBUG] objwatch:    19 | end SampleClass.decrement -> None
+[2025-01-08 20:02:10] [DEBUG] objwatch:    17 | run SampleClass.decrement <- '0':(type)SampleClass
+[2025-01-08 20:02:10] [DEBUG] objwatch:    19 | | upd SampleClass.value 13 -> 12
+[2025-01-08 20:02:11] [DEBUG] objwatch:    19 | end SampleClass.decrement -> None
+[2025-01-08 20:02:11] [DEBUG] objwatch:    26 end main -> None
+[2025-01-08 20:02:11] [INFO] objwatch: Stopping ObjWatch tracing.
+[2025-01-08 20:02:11] [INFO] objwatch: Stopping tracing.
 ```
 
 </details>
