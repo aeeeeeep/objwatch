@@ -30,6 +30,7 @@ DEBUG:objwatch:    | | end TestClass.method
 DEBUG:objwatch:    | end main
 DEBUG:objwatch:   end <module>"""
 
+
 def strip_line_numbers(log):
     pattern = r'(DEBUG:objwatch:\s*)\d+\s*(\|*\s*.*)'
     stripped_lines = []

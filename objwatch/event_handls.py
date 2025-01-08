@@ -3,6 +3,7 @@
 
 import atexit
 import xml.etree.ElementTree as ET
+from enum import Enum
 from types import FunctionType
 
 try:
@@ -23,6 +24,7 @@ log_element_types = (
     str,
     NoneType,
     FunctionType,
+    Enum,
 )
 
 # Define sequence types for logging
