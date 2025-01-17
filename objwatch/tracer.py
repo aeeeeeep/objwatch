@@ -4,8 +4,9 @@
 import sys
 import pkgutil
 import importlib
-from types import FunctionType, FrameType
-from typing import Any, Dict, List, Optional, Set
+from functools import lru_cache
+from types import FunctionType, FrameType, ModuleType
+from typing import Optional, Union, Any, Dict, List, Set
 
 from .wrappers import FunctionWrapper
 from .events import EventType
@@ -29,7 +30,7 @@ class Tracer:
 
     def __init__(
         self,
-        targets: List[str],
+        targets: List[Union[str, ModuleType]],
         exclude_targets: Optional[List[str]] = None,
         ranks: Optional[List[int]] = None,
         wrapper: Optional[FunctionWrapper] = None,
@@ -78,12 +79,12 @@ class Tracer:
         self.function_wrapper: Optional[FunctionWrapper] = self.load_wrapper(wrapper)
         self.call_depth: int = 0
 
-    def _process_targets(self, targets: Optional[List[str]]) -> Set[str]:
+    def _process_targets(self, targets: Optional[List[Union[str, ModuleType]]]) -> Set[str]:
         """
         Process the list of target modules or files to monitor.
 
         Args:
-            targets (Optional[List[str]]): List of target modules or file paths.
+            targets (Optional[List[Union[str, ModuleType]]): List of target modules or file paths.
 
         Returns:
             Set[str]: Set of processed file paths to monitor.
@@ -94,27 +95,33 @@ class Tracer:
         elif targets is None:
             return processed
         for target in targets:
-            if target.endswith('.py'):
-                processed.add(target)
+            if isinstance(target, str):
+                if target.endswith('.py'):
+                    processed.add(target)
+                    continue
+                target_name = target
+            elif isinstance(target, ModuleType):
+                target_name = target.__name__
             else:
-                try:
-                    module = importlib.import_module(target)
-                    if hasattr(module, '__file__') and module.__file__:
-                        processed.add(module.__file__)
-                        if hasattr(module, '__path__'):
-                            for importer, modname, ispkg in pkgutil.walk_packages(
-                                module.__path__, module.__name__ + '.'
-                            ):
-                                try:
-                                    submodule = importlib.import_module(modname)
-                                    if hasattr(submodule, '__file__') and submodule.__file__:
-                                        processed.add(submodule.__file__)
-                                except ImportError:
-                                    log_warn(f"Submodule {modname} could not be imported.")
-                    else:
-                        log_warn(f"Module {target} does not have a __file__ attribute.")
-                except ImportError:
-                    log_warn(f"Module {target} could not be imported.")
+                log_warn(f"Unsupported target type: {type(target)}. Only 'str' or 'ModuleType' are supported.")
+                continue
+
+            spec = importlib.util.find_spec(target_name)
+            if spec and spec.origin:
+                processed.add(spec.origin)
+
+                # Check if the module has submodules
+                if hasattr(spec, 'submodule_search_locations'):
+                    for importer, modname, ispkg in pkgutil.walk_packages(
+                        spec.submodule_search_locations, prefix=target_name + '.'
+                    ):
+                        # For each submodule, use find_spec to check its path
+                        sub_spec = importlib.util.find_spec(modname)
+                        if sub_spec and sub_spec.origin:
+                            processed.add(sub_spec.origin)
+            else:
+                log_warn(f"Module {target_name} could not be found or has no file associated.")
+
         return processed
 
     def load_wrapper(self, wrapper: Optional[FunctionWrapper]) -> Optional[FunctionWrapper]:
@@ -132,13 +139,13 @@ class Tracer:
             return wrapper()
         return None
 
-    def _get_function_info(self, frame: FrameType, event: str) -> Dict[str, Any]:
+    @lru_cache(maxsize=sys.maxsize)
+    def _get_function_info(self, frame: FrameType) -> Dict[str, Any]:
         """
         Extract information about the currently executing function.
 
         Args:
             frame (FrameType): The current stack frame.
-            event (str): The event type (e.g., 'call', 'return').
 
         Returns:
             Dict[str, Any]: Dictionary containing function information.
@@ -177,6 +184,19 @@ class Tracer:
 
         return func_info
 
+    @lru_cache(maxsize=sys.maxsize)
+    def filename_not_endswith(self, filename: str) -> bool:
+        """
+        Check if the filename does not end with any of the target extensions.
+
+        Args:
+            filename (str): The filename to check.
+
+        Returns:
+            bool: True if the filename does not end with the target extensions, False otherwise.
+        """
+        return not filename.endswith(tuple(self.targets))
+
     def trace_factory(self) -> FunctionType:  # noqa: C901
         """
         Create the tracing function to be used with sys.settrace.
@@ -186,7 +206,7 @@ class Tracer:
         """
 
         def trace_func(frame: FrameType, event: str, arg: Any) -> Optional[FunctionType]:
-            if not frame.f_code.co_filename.endswith(tuple(self.targets)):
+            if self.filename_not_endswith(frame.f_code.co_filename):
                 return trace_func
 
             # Handle multi-GPU ranks if PyTorch is available
@@ -201,7 +221,7 @@ class Tracer:
 
             lineno = frame.f_lineno
             if event == "call":
-                func_info = self._get_function_info(frame, event)
+                func_info = self._get_function_info(frame)
                 self.event_handlers.handle_run(lineno, func_info, self.function_wrapper, self.call_depth, rank_info)
                 self.call_depth += 1
 
@@ -219,7 +239,7 @@ class Tracer:
 
             elif event == "return":
                 self.call_depth -= 1
-                func_info = self._get_function_info(frame, event)
+                func_info = self._get_function_info(frame)
                 self.event_handlers.handle_end(
                     lineno, func_info, self.function_wrapper, self.call_depth, rank_info, arg
                 )

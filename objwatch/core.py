@@ -2,7 +2,8 @@
 # Copyright (c) 2025 aeeeeeep
 
 import logging
-from typing import List, Optional, Any
+from types import ModuleType
+from typing import Optional, Union, List, Any
 from .tracer import Tracer
 from .wrappers import FunctionWrapper
 from .utils.logger import create_logger, log_info
@@ -15,8 +16,8 @@ class ObjWatch:
 
     def __init__(
         self,
-        targets: List[str],
-        exclude_targets: Optional[List[str]] = None,
+        targets: List[Union[str, ModuleType]],
+        exclude_targets: Optional[List[Union[str, ModuleType]]] = None,
         ranks: Optional[List[int]] = None,
         output: Optional[str] = None,
         output_xml: Optional[str] = None,
@@ -30,8 +31,8 @@ class ObjWatch:
         Initialize the ObjWatch instance with configuration parameters.
 
         Args:
-            targets (List[str]): Files or modules to monitor.
-            exclude_targets (Optional[List[str]]): Files or modules to exclude from monitoring.
+            targets (List[Union[str, ModuleType]]): Files or modules to monitor.
+            exclude_targets (Optional[List[Union[str, ModuleType]]]): Files or modules to exclude from monitoring.
             ranks (Optional[List[int]]): GPU ranks to track when using torch.distributed.
             output (Optional[str]): Path to a file for writing logs.
             output_xml (Optional[str]): Path to the XML file for writing structured logs.
@@ -104,8 +105,8 @@ class ObjWatch:
 
 
 def watch(
-    targets: List[str],
-    exclude_targets: Optional[List[str]] = None,
+    targets: List[Union[str, ModuleType]],
+    exclude_targets: Optional[List[Union[str, ModuleType]]] = None,
     ranks: Optional[List[int]] = None,
     output: Optional[str] = None,
     output_xml: Optional[str] = None,
@@ -119,8 +120,8 @@ def watch(
     Initialize and start an ObjWatch instance.
 
     Args:
-        targets (List[str]): Files or modules to monitor.
-        exclude_targets (Optional[List[str]]): Files or modules to exclude from monitoring.
+        targets (List[Union[str, ModuleType]]): Files or modules to monitor.
+        exclude_targets (Optional[List[Union[str, ModuleType]]]): Files or modules to exclude from monitoring.
         ranks (Optional[List[int]]): GPU ranks to track when using torch.distributed.
         output (Optional[str]): Path to a file for writing logs.
         output_xml (Optional[str]): Path to the XML file for writing structured logs.
