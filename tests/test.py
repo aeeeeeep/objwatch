@@ -369,7 +369,7 @@ class TestCustomWrapper(unittest.TestCase):
             self.logger.removeHandler(handler)
 
 
-class TestTracerProcessTargets(unittest.TestCase):
+class TestTracerProcessTargetsStr(unittest.TestCase):
     def test_process_targets_with_submodules(self):
         tracer = Tracer(targets=['importlib'])
         processed = tracer._process_targets(['importlib'])
@@ -378,24 +378,68 @@ class TestTracerProcessTargets(unittest.TestCase):
         self.assertIn(main_module_file, processed, "Main module file was not processed.")
 
         submodules = [
-            'importlib/metadata/_adapters.py',
-            'importlib/util.py',
-            'importlib/metadata/_meta.py',
-            'importlib/_abc.py',
             'importlib/metadata/_functools.py',
             'importlib/metadata/__init__.py',
-            'importlib/machinery.py',
-            'importlib/resources.py',
-            'importlib/_common.py',
-            'importlib/metadata/_text.py',
-            'importlib/metadata/_collections.py',
-            'importlib/_bootstrap.py',
+            'importlib/resources/simple.py',
+            'importlib/metadata/_adapters.py',
+            'importlib/resources/_adapters.py',
             'importlib/__init__.py',
-            'importlib/readers.py',
-            'importlib/_bootstrap_external.py',
+            'importlib/resources/_legacy.py',
+            'importlib/metadata/_meta.py',
+            'importlib/simple.py',
+            'importlib/resources/__init__.py',
+            'importlib/resources/readers.py',
             'importlib/metadata/_itertools.py',
-            'importlib/_adapters.py',
+            'importlib/metadata/_collections.py',
             'importlib/abc.py',
+            'importlib/_abc.py',
+            'importlib/resources/_common.py',
+            'importlib/readers.py',
+            'importlib/resources/abc.py',
+            'importlib/metadata/_text.py',
+            'importlib/resources/_itertools.py',
+        ]
+
+        for submodule_path in submodules:
+            full_path = None
+            try:
+                submodule = importlib.import_module(submodule_path.replace('/', '.').rstrip('.py'))
+                if hasattr(submodule, '__file__') and submodule.__file__:
+                    full_path = submodule.__file__
+                    self.assertIn(full_path, processed, f"Submodule {submodule_path} was not processed.")
+            except ImportError:
+                pass
+
+
+class TestTracerProcessTargetsModule(unittest.TestCase):
+    def test_process_targets_with_submodules(self):
+        tracer = Tracer(targets=[importlib])
+        processed = tracer._process_targets([importlib])
+
+        main_module_file = importlib.__file__
+        self.assertIn(main_module_file, processed, "Main module file was not processed.")
+
+        submodules = [
+            'importlib/metadata/_functools.py',
+            'importlib/metadata/__init__.py',
+            'importlib/resources/simple.py',
+            'importlib/metadata/_adapters.py',
+            'importlib/resources/_adapters.py',
+            'importlib/__init__.py',
+            'importlib/resources/_legacy.py',
+            'importlib/metadata/_meta.py',
+            'importlib/simple.py',
+            'importlib/resources/__init__.py',
+            'importlib/resources/readers.py',
+            'importlib/metadata/_itertools.py',
+            'importlib/metadata/_collections.py',
+            'importlib/abc.py',
+            'importlib/_abc.py',
+            'importlib/resources/_common.py',
+            'importlib/readers.py',
+            'importlib/resources/abc.py',
+            'importlib/metadata/_text.py',
+            'importlib/resources/_itertools.py',
         ]
 
         for submodule_path in submodules:
