@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ObjWatch>
+  <Function name="main" run_line="10">
+    <Function name="TestClass.method" run_line="5">
+      <upd name="TestClass.attr" line="7" old="None" new="1" />
+      <upd name="TestClass.attr" line="8" old="1" new="2" />
+    </Function>
+  </Function>
+</ObjWatch>

@@ -112,3 +112,19 @@ def log_warn(msg: str, *args: Any, **kwargs: Any) -> None:
         print(msg, flush=True)
     else:
         logger.warning(msg, *args, **kwargs)
+
+
+def log_error(msg: str, *args: Any, **kwargs: Any) -> None:
+    """
+    Log an error message or print it if FORCE is enabled.
+
+    Args:
+        msg (str): The message to log.
+        *args (Any): Variable length argument list.
+        **kwargs (Any): Arbitrary keyword arguments.
+    """
+    global FORCE
+    if FORCE:
+        print(msg, flush=True)
+    else:
+        logger.error(msg, *args, **kwargs)
