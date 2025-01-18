@@ -205,7 +205,7 @@ class Tracer:
         return func_info
 
     @lru_cache(maxsize=sys.maxsize)
-    def filename_not_endswith(self, filename: str) -> bool:
+    def _filename_not_endswith(self, filename: str) -> bool:
         """
         Check if the filename does not end with any of the target extensions.
 
@@ -417,7 +417,7 @@ class Tracer:
             """
 
             # Skip frames that do not match the filename condition
-            if self.filename_not_endswith(frame.f_code.co_filename):
+            if self._filename_not_endswith(frame.f_code.co_filename):
                 return trace_func
 
             # Handle multi-GPU ranks if PyTorch is available
