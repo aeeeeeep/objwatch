@@ -25,6 +25,7 @@ class ObjWatch:
         simple: bool = False,
         wrapper: Optional[FunctionWrapper] = None,
         with_locals: bool = False,
+        with_globals: bool = False,
         with_module_path: bool = False,
     ) -> None:
         """
@@ -40,6 +41,7 @@ class ObjWatch:
             simple (bool): Enable simple logging mode with the format "DEBUG: {msg}".
             wrapper (Optional[FunctionWrapper]): Custom wrapper to extend tracing and logging functionality.
             with_locals (bool): Enable tracing and logging of local variables within functions.
+            with_globals (bool): Enable tracing and logging of global variables across function calls.
             with_module_path (bool): Prepend the module path to function names in logs.
         """
         # Create and configure the logger based on provided parameters
@@ -53,6 +55,7 @@ class ObjWatch:
             wrapper=wrapper,
             output_xml=output_xml,
             with_locals=with_locals,
+            with_globals=with_globals,
             with_module_path=with_module_path,
         )
 
@@ -114,6 +117,7 @@ def watch(
     simple: bool = False,
     wrapper: Optional[FunctionWrapper] = None,
     with_locals: bool = False,
+    with_globals: bool = False,
     with_module_path: bool = False,
 ) -> ObjWatch:
     """
@@ -129,6 +133,7 @@ def watch(
         simple (bool): Enable simple logging mode with the format "DEBUG: {msg}".
         wrapper (Optional[FunctionWrapper]): Custom wrapper to extend tracing and logging functionality.
         with_locals (bool): Enable tracing and logging of local variables within functions.
+        with_globals (bool): Enable tracing and logging of global variables across function calls.
         with_module_path (bool): Prepend the module path to function names in logs.
 
     Returns:
@@ -145,6 +150,7 @@ def watch(
         simple=simple,
         wrapper=wrapper,
         with_locals=with_locals,
+        with_globals=with_globals,
         with_module_path=with_module_path,
     )
 
