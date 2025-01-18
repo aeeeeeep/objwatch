@@ -1,5 +1,6 @@
 # ObjWatch
 
+[![Documentation](https://img.shields.io/badge/docs-latest-green.svg?style=flat)](https://objwatch.readthedocs.io)
 [![License](https://img.shields.io/github/license/aeeeeeep/objwatch)](LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/objwatch)](https://pypi.org/project/objwatch)
 [![Downloads](https://static.pepy.tech/badge/objwatch)](https://pepy.tech/projects/objwatch)
