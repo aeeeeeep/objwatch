@@ -10,6 +10,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from objwatch import ObjWatch
 from objwatch.wrappers import TensorShapeLogger
 import logging
+from tests.util import filter_func_ptr
 
 
 class SimpleNet(nn.Module):
@@ -27,22 +28,23 @@ class SimpleNet(nn.Module):
         return x
 
 
+input_size = 28 * 28
+num_classes = 10
+num_samples = 128
+batch_size = 64
+
+X = torch.randn(num_samples, input_size)
+y = torch.randint(0, num_classes, (num_samples,))
+
+train_dataset = TensorDataset(X, y)
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+
+model = SimpleNet()
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+
+
 def train():
-    input_size = 28 * 28
-    num_classes = 10
-    num_samples = 128
-    batch_size = 64
-
-    X = torch.randn(num_samples, input_size)
-    y = torch.randint(0, num_classes, (num_samples,))
-
-    train_dataset = TensorDataset(X, y)
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-
-    model = SimpleNet()
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
-
     model.train()
     for epoch in range(1):
         for batch_idx, (data, target) in enumerate(train_loader):
@@ -73,6 +75,7 @@ class TestPytorchTraining(unittest.TestCase):
             level=logging.DEBUG,
             simple=True,
             with_locals=False,
+            with_globals=True,
             with_module_path=False,
             wrapper=TensorShapeLogger,
         )
@@ -87,8 +90,8 @@ class TestPytorchTraining(unittest.TestCase):
         with open(golden_log_path, 'r') as f:
             golden_log = f.read()
         self.assertEqual(
-            generated_log,
-            golden_log,
+            filter_func_ptr(generated_log),
+            filter_func_ptr(golden_log),
             "Generated log does not match the golden log. ",
         )
 

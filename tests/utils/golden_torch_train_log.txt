@@ -1,26 +1,31 @@
-DEBUG:objwatch:   30 run train <- 
-DEBUG:objwatch:   16 | run SimpleNet.__init__ <- '0':(type)SimpleNet
-DEBUG:objwatch:   18 | | upd SimpleNet.training None -> True
-DEBUG:objwatch:   18 | | upd SimpleNet._parameters None -> (OrderedDict)[]
-DEBUG:objwatch:   18 | | upd SimpleNet._buffers None -> (OrderedDict)[]
-DEBUG:objwatch:   18 | | upd SimpleNet._non_persistent_buffers_set None -> (set)[]
-DEBUG:objwatch:   18 | | upd SimpleNet._backward_pre_hooks None -> (OrderedDict)[]
-DEBUG:objwatch:   18 | | upd SimpleNet._backward_hooks None -> (OrderedDict)[]
-DEBUG:objwatch:   18 | | upd SimpleNet._forward_hooks None -> (OrderedDict)[]
-DEBUG:objwatch:   18 | | upd SimpleNet._forward_hooks_with_kwargs None -> (OrderedDict)[]
-DEBUG:objwatch:   18 | | upd SimpleNet._forward_hooks_always_called None -> (OrderedDict)[]
-DEBUG:objwatch:   18 | | upd SimpleNet._forward_pre_hooks None -> (OrderedDict)[]
-DEBUG:objwatch:   18 | | upd SimpleNet._forward_pre_hooks_with_kwargs None -> (OrderedDict)[]
-DEBUG:objwatch:   18 | | upd SimpleNet._state_dict_hooks None -> (OrderedDict)[]
-DEBUG:objwatch:   18 | | upd SimpleNet._state_dict_pre_hooks None -> (OrderedDict)[]
-DEBUG:objwatch:   18 | | upd SimpleNet._load_state_dict_pre_hooks None -> (OrderedDict)[]
-DEBUG:objwatch:   18 | | upd SimpleNet._load_state_dict_post_hooks None -> (OrderedDict)[]
-DEBUG:objwatch:   18 | | upd SimpleNet._modules None -> (OrderedDict)[]
-DEBUG:objwatch:   19 | | apd SimpleNet._modules (OrderedDict)(len)0 -> 1
-DEBUG:objwatch:   20 | | apd SimpleNet._modules (OrderedDict)(len)1 -> 2
-DEBUG:objwatch:   20 | end SimpleNet.__init__ -> None
-DEBUG:objwatch:   22 | run SimpleNet.forward <- '0':(type)SimpleNet, '1':torch.Size([64, 784])
-DEBUG:objwatch:   27 | end SimpleNet.forward -> torch.Size([64, 10])
-DEBUG:objwatch:   22 | run SimpleNet.forward <- '0':(type)SimpleNet, '1':torch.Size([64, 784])
-DEBUG:objwatch:   27 | end SimpleNet.forward -> torch.Size([64, 10])
-DEBUG:objwatch:   47 end train -> None
+DEBUG:objwatch:   47 run train <- 
+DEBUG:objwatch:   48 | upd @.unittest None -> (type)module
+DEBUG:objwatch:   48 | upd @.patch None -> <function patch at 0x7f32d9c38a40>
+DEBUG:objwatch:   48 | upd @.torch None -> (type)module
+DEBUG:objwatch:   48 | upd @.nn None -> (type)module
+DEBUG:objwatch:   48 | upd @.optim None -> (type)module
+DEBUG:objwatch:   48 | upd @.TensorDataset None -> (type)type
+DEBUG:objwatch:   48 | upd @.DataLoader None -> (type)type
+DEBUG:objwatch:   48 | upd @.ObjWatch None -> (type)type
+DEBUG:objwatch:   48 | upd @.TensorShapeLogger None -> (type)ABCMeta
+DEBUG:objwatch:   48 | upd @.logging None -> (type)module
+DEBUG:objwatch:   48 | upd @.filter_func_ptr None -> <function filter_func_ptr at 0x7f320ca04400>
+DEBUG:objwatch:   48 | upd @.SimpleNet None -> (type)type
+DEBUG:objwatch:   48 | upd @.input_size None -> 784
+DEBUG:objwatch:   48 | upd @.num_classes None -> 10
+DEBUG:objwatch:   48 | upd @.num_samples None -> 128
+DEBUG:objwatch:   48 | upd @.batch_size None -> 64
+DEBUG:objwatch:   48 | upd @.X None -> torch.Size([128, 784])
+DEBUG:objwatch:   48 | upd @.y None -> torch.Size([128])
+DEBUG:objwatch:   48 | upd @.train_dataset None -> (type)TensorDataset
+DEBUG:objwatch:   48 | upd @.train_loader None -> (type)DataLoader
+DEBUG:objwatch:   48 | upd @.model None -> (type)SimpleNet
+DEBUG:objwatch:   48 | upd @.criterion None -> (type)CrossEntropyLoss
+DEBUG:objwatch:   48 | upd @.optimizer None -> (type)SGD
+DEBUG:objwatch:   48 | upd @.train None -> <function train at 0x7f320ca06480>
+DEBUG:objwatch:   48 | upd @.TestPytorchTraining None -> (type)type
+DEBUG:objwatch:   23 | run SimpleNet.forward <- '0':(type)SimpleNet, '1':torch.Size([64, 784])
+DEBUG:objwatch:   28 | end SimpleNet.forward -> torch.Size([64, 10])
+DEBUG:objwatch:   23 | run SimpleNet.forward <- '0':(type)SimpleNet, '1':torch.Size([64, 784])
+DEBUG:objwatch:   28 | end SimpleNet.forward -> torch.Size([64, 10])
+DEBUG:objwatch:   49 end train -> None

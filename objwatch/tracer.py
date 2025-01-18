@@ -36,6 +36,7 @@ class Tracer:
         wrapper: Optional[FunctionWrapper] = None,
         output_xml: Optional[str] = None,
         with_locals: bool = False,
+        with_globals: bool = False,
         with_module_path: bool = False,
     ) -> None:
         """
@@ -48,12 +49,30 @@ class Tracer:
             wrapper (Optional[FunctionWrapper]): Custom wrapper to extend tracing and logging functionality.
             output_xml (Optional[str]): Path to the XML file for writing structured logs.
             with_locals (bool): Enable tracing and logging of local variables within functions.
+            with_globals (bool): Enable tracing and logging of global variables across function calls.
             with_module_path (bool): Prepend the module path to function names in logs.
         """
         self.with_locals: bool = with_locals
         if self.with_locals:
             self.tracked_locals: Dict[FrameType, Dict[str, Any]] = {}
             self.tracked_locals_lens: Dict[FrameType, Dict[str, int]] = {}
+
+        self.with_globals: bool = with_globals
+        if self.with_globals:
+            self.tracked_globals: Dict[FrameType, Dict[str, Any]] = {}
+            self.tracked_globals_lens: Dict[FrameType, Dict[str, int]] = {}
+            # List of Python built-in fields to exclude from tracking
+            self.builtin_fields = set(dir(__builtins__)) | {
+                'self',
+                '__builtins__',
+                '__name__',
+                '__package__',
+                '__loader__',
+                '__spec__',
+                '__file__',
+                '__cached__',
+            }
+
         self.with_module_path: bool = with_module_path
 
         # Process and determine the set of target files to monitor
@@ -264,6 +283,117 @@ class Tracer:
                 self.function_wrapper,
             )
 
+    def _track_object_change(self, frame: FrameType, lineno: int):
+        """
+        Handle changes in object attributes and track updates.
+
+        Args:
+            frame (FrameType): The current stack frame.
+            lineno (int): The line number where the change occurred.
+        """
+
+        obj = frame.f_locals['self']
+        class_name = obj.__class__.__name__
+
+        if obj in self.tracked_objects:
+            old_attrs = self.tracked_objects[obj]
+            old_attrs_lens = self.tracked_objects_lens[obj]
+            current_attrs = {k: v for k, v in obj.__dict__.items() if not callable(v)}
+
+            for key, current_value in current_attrs.items():
+                old_value = old_attrs.get(key, None)
+                old_value_len = old_attrs_lens.get(key, None)
+                is_current_seq = isinstance(current_value, log_sequence_types)
+                current_value_len = len(current_value) if old_value_len is not None and is_current_seq else None
+
+                self._handle_change_type(
+                    lineno,
+                    class_name,
+                    key,
+                    old_value,
+                    current_value,
+                    old_value_len,
+                    current_value_len,
+                )
+
+                old_attrs[key] = current_value
+                if is_current_seq:
+                    self.tracked_objects_lens[obj][key] = len(current_value)
+
+    def _track_locals_change(self, frame: FrameType, lineno: int):
+        """
+        Handle changes in local variables and track updates.
+
+        Args:
+            frame (FrameType): The current stack frame.
+            lineno (int): The line number where the change occurred.
+        """
+
+        if frame not in self.tracked_locals:
+            return
+
+        old_locals = self.tracked_locals[frame]
+        current_locals = {k: v for k, v in frame.f_locals.items() if k != 'self' and not callable(v)}
+        old_locals_lens = self.tracked_locals_lens[frame]
+
+        added_vars = set(current_locals.keys()) - set(old_locals.keys())
+        for var in added_vars:
+            current_local = current_locals[var]
+
+            self.event_handlers.handle_upd(
+                lineno,
+                class_name="_",
+                key=var,
+                old_value=None,
+                current_value=current_local,
+                call_depth=self.call_depth,
+                rank_info=self.rank_info,
+                function_wrapper=self.function_wrapper,
+            )
+
+            if isinstance(current_local, log_sequence_types):
+                self.tracked_locals_lens[frame][var] = len(current_local)
+
+        common_vars = set(old_locals.keys()) & set(current_locals.keys())
+        for var in common_vars:
+            old_local = old_locals[var]
+            old_local_len = old_locals_lens.get(var, None)
+            current_local = current_locals[var]
+            is_current_seq = isinstance(current_local, log_sequence_types)
+            current_local_len = len(current_local) if old_local_len is not None and is_current_seq else None
+
+            self._handle_change_type(lineno, "_", var, old_local, current_local, old_local_len, current_local_len)
+
+            if is_current_seq:
+                self.tracked_locals_lens[frame][var] = len(current_local)
+
+        self.tracked_locals[frame] = current_locals
+
+    def _track_globals_change(self, frame: FrameType, lineno: int):
+        """
+        Handle changes in global variables and track updates.
+
+        Args:
+            frame (FrameType): The current stack frame.
+            lineno (int): The line number where the change occurred.
+        """
+
+        global_vars = frame.f_globals
+        for key, current_value in global_vars.items():
+            if key in self.builtin_fields:
+                continue
+
+            old_value = self.tracked_globals.get(key, None)
+            old_value_len = self.tracked_globals_lens.get(key, None)
+            is_current_seq = isinstance(current_value, log_sequence_types)
+            current_value_len = len(current_value) if old_value_len is not None and is_current_seq else None
+
+            self._handle_change_type(lineno, "@", key, old_value, current_value, old_value_len, current_value_len)
+
+            self.tracked_globals[key] = current_value
+            if is_current_seq:
+                self.tracked_globals_lens[key] = len(current_value)
+
     def trace_factory(self) -> FunctionType:  # noqa: C901
         """
         Create the tracing function to be used with sys.settrace.
@@ -273,6 +403,20 @@ class Tracer:
         """
 
         def trace_func(frame: FrameType, event: str, arg: Any) -> Optional[FunctionType]:
+            """
+            This function is the actual trace function used by sys.settrace. It is called
+            for every event (e.g., call, return, line) during code execution.
+
+            Args:
+                frame (FrameType): The current stack frame.
+                event (str): The type of event ('call', 'return', or 'line').
+                arg (Any): The argument for the event (e.g., return value for 'return').
+
+            Returns:
+                Optional[FunctionType]: Returns the trace function itself to continue tracing.
+            """
+
+            # Skip frames that do not match the filename condition
             if self.filename_not_endswith(frame.f_code.co_filename):
                 return trace_func
 
@@ -287,12 +431,14 @@ class Tracer:
 
             lineno = frame.f_lineno
             if event == "call":
+                # Handle function call event
                 func_info = self._get_function_info(frame)
                 self.event_handlers.handle_run(
                     lineno, func_info, self.function_wrapper, self.call_depth, self.rank_info
                 )
                 self.call_depth += 1
 
+                # Track local variables if needed
                 if self.with_locals:
                     local_vars: Dict[str, Any] = {
                         k: v for k, v in frame.f_locals.items() if k != 'self' and not callable(v)
@@ -306,12 +452,14 @@ class Tracer:
                 return trace_func
 
             elif event == "return":
+                # Handle function return event
                 self.call_depth -= 1
                 func_info = self._get_function_info(frame)
                 self.event_handlers.handle_end(
                     lineno, func_info, self.function_wrapper, self.call_depth, self.rank_info, arg
                 )
 
+                # Clean up local tracking after function return
                 if self.with_locals and frame in self.tracked_locals:
                     del self.tracked_locals[frame]
                     del self.tracked_locals_lens[frame]
@@ -319,78 +467,15 @@ class Tracer:
                 return trace_func
 
             elif event == "line":
+                # Handle line event (track changes at each line of code)
                 if 'self' in frame.f_locals:
-                    obj = frame.f_locals['self']
-                    class_name: str = obj.__class__.__name__
+                    self._track_object_change(frame, lineno)
 
-                    if obj in self.tracked_objects:
-                        old_attrs: Dict[str, Any] = self.tracked_objects[obj]
-                        old_attrs_lens: Dict[str, int] = self.tracked_objects_lens[obj]
-                        current_attrs: Dict[str, Any] = {k: v for k, v in obj.__dict__.items() if not callable(v)}
+                if self.with_locals:
+                    self._track_locals_change(frame, lineno)
 
-                        for key, current_value in current_attrs.items():
-                            old_value = old_attrs.get(key, None)
-                            old_value_len = old_attrs_lens.get(key, None)
-                            is_current_seq = isinstance(current_value, log_sequence_types)
-                            current_value_len = (
-                                len(current_value) if old_value_len is not None and is_current_seq else None
-                            )
-
-                            self._handle_change_type(
-                                lineno,
-                                class_name,
-                                key,
-                                old_value,
-                                current_value,
-                                old_value_len,
-                                current_value_len,
-                            )
-
-                            old_attrs[key] = current_value
-                            if isinstance(current_value, log_sequence_types):
-                                self.tracked_objects_lens[obj][key] = len(current_value)
-
-                if self.with_locals and frame in self.tracked_locals:
-                    old_locals: Dict[str, Any] = self.tracked_locals[frame]
-                    current_locals: Dict[str, Any] = {
-                        k: v for k, v in frame.f_locals.items() if k != 'self' and not callable(v)
-                    }
-                    old_locals_lens: Dict[str, int] = self.tracked_locals_lens[frame]
-
-                    added_vars: Set[str] = set(current_locals.keys()) - set(old_locals.keys())
-                    for var in added_vars:
-                        current_local = current_locals[var]
-                        self.event_handlers.handle_upd(
-                            lineno,
-                            class_name="_",
-                            key=var,
-                            old_value=None,
-                            current_value=current_local,
-                            call_depth=self.call_depth,
-                            rank_info=self.rank_info,
-                            function_wrapper=self.function_wrapper,
-                        )
-                        if isinstance(current_local, log_sequence_types):
-                            self.tracked_locals_lens[frame][var] = len(current_local)
-
-                    common_vars: Set[str] = set(old_locals.keys()) & set(current_locals.keys())
-                    for var in common_vars:
-                        old_local = old_locals[var]
-                        old_local_len: int = old_locals_lens.get(var, None)
-                        current_local = current_locals[var]
-                        is_current_seq = isinstance(current_local, log_sequence_types)
-                        current_local_len: int = (
-                            len(current_local) if old_local_len is not None and is_current_seq else None
-                        )
-
-                        self._handle_change_type(
-                            lineno, "_", var, old_local, current_local, old_local_len, current_local_len
-                        )
-
-                        if is_current_seq:
-                            self.tracked_locals_lens[frame][var] = len(current_local)
-
-                    self.tracked_locals[frame] = current_locals
+                if self.with_globals:
+                    self._track_globals_change(frame, lineno)
 
                 return trace_func
 
