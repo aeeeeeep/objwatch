@@ -7,6 +7,7 @@ from unittest.mock import patch
 import xml.etree.ElementTree as ET
 from objwatch.tracer import Tracer
 from objwatch.wrappers import BaseLogger
+from tests.util import compare_xml_elements
 
 
 class TestOutputXML(unittest.TestCase):
@@ -96,19 +97,8 @@ class TestOutputXML(unittest.TestCase):
         golden_root = golden_tree.getroot()
 
         self.assertTrue(
-            self.compare_elements(generated_root, golden_root), "Generated XML does not match the golden XML."
+            compare_xml_elements(generated_root, golden_root), "Generated XML does not match the golden XML."
         )
-
-    def compare_elements(self, elem1, elem2):
-        if elem1.tag != elem2.tag:
-            return False
-        if elem1.attrib != elem2.attrib:
-            return False
-        if (elem1.text or '').strip() != (elem2.text or '').strip():
-            return False
-        if len(elem1) != len(elem2):
-            return False
-        return all(self.compare_elements(c1, c2) for c1, c2 in zip(elem1, elem2))
 
 
 if __name__ == '__main__':

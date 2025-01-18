@@ -1,6 +1,7 @@
 # MIT License
 # Copyright (c) 2025 aeeeeeep
 
+import signal
 import atexit
 import xml.etree.ElementTree as ET
 from enum import Enum
@@ -12,7 +13,7 @@ except ImportError:
     NoneType = type(None)
 
 from typing import Any, Dict, Optional
-from .utils.logger import log_debug, log_warn
+from .utils.logger import log_error, log_debug, log_warn, log_info
 from .events import EventType
 
 
@@ -49,7 +50,22 @@ class EventHandls:
             self.is_xml_saved: bool = False
             self.stack_root: ET.Element = ET.Element('ObjWatch')
             self.current_node: list = [self.stack_root]
+            # Register for normal exit handling
             atexit.register(self.save_xml)
+            # Register signal handlers for abnormal exits
+            signal_types = [
+                signal.SIGTERM,  # Termination signal (default)
+                signal.SIGINT,  # Interrupt from keyboard (Ctrl + C)
+                signal.SIGABRT,  # Abort signal from program (e.g., abort() call)
+                signal.SIGHUP,  # Hangup signal (usually for daemon processes)
+                signal.SIGQUIT,  # Quit signal (generates core dump)
+                signal.SIGUSR1,  # User-defined signal 1
+                signal.SIGUSR2,  # User-defined signal 2
+                signal.SIGALRM,  # Alarm signal (usually for timers)
+                signal.SIGSEGV,  # Segmentation fault (access violation)
+            ]
+            for signal_type in signal_types:
+                signal.signal(signal_type, self.signal_handler)
 
     def handle_run(
         self, lineno: int, func_info: Dict[str, Any], function_wrapper: Optional[Any], call_depth: int, rank_info: str
@@ -344,6 +360,7 @@ class EventHandls:
         Save the accumulated events to an XML file upon program exit.
         """
         if self.output_xml and not self.is_xml_saved:
+            log_info("Starting XML formatting.")
             tree = ET.ElementTree(self.stack_root)
             if hasattr(ET, 'indent'):
                 ET.indent(tree)
@@ -351,5 +368,22 @@ class EventHandls:
                 log_warn(
                     "Current Python version not support `xml.etree.ElementTree.indent`. XML formatting is skipped."
                 )
+
+            log_info(f"Starting to save XML to {self.output_xml}.")
             tree.write(self.output_xml, encoding='utf-8', xml_declaration=True)
+            log_info(f"XML saved successfully to {self.output_xml}.")
+
             self.is_xml_saved = True
+
+    def signal_handler(self, signum, frame):
+        """
+        Signal handler for abnormal program termination.
+        Calls save_xml when a termination signal is received.
+
+        Args:
+            signum (int): The signal number.
+            frame (frame): The current stack frame.
+        """
+        log_error(f"Received signal {signum}, saving XML before exiting.")
+        self.save_xml()
+        exit(1)  # Ensure the program exits after handling the signal
