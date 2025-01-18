@@ -11,7 +11,7 @@ import sys
 sys.path.insert(0, os.path.abspath('../..'))
 
 project = 'ObjWatch'
-copyright = 'Copyright (c) 2025 aeeeeeep'
+copyright = '2025 aeeeeeep'
 author = 'aeeeeeep'
 
 try:
