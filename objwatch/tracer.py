@@ -11,7 +11,7 @@ from typing import Optional, Union, Any, Dict, List, Set
 from .wrappers import FunctionWrapper
 from .events import EventType
 from .event_handls import EventHandls, log_sequence_types
-from .utils.logger import log_info, log_debug, log_warn
+from .utils.logger import log_error, log_debug, log_warn, log_info
 from .utils.weak import WeakTensorKeyDictionary
 
 try:
@@ -136,9 +136,12 @@ class Tracer:
                         spec.submodule_search_locations, prefix=target_name + '.'
                     ):
                         # For each submodule, use find_spec to check its path
-                        sub_spec = importlib.util.find_spec(modname)
-                        if sub_spec and sub_spec.origin:
-                            processed.add(sub_spec.origin)
+                        try:
+                            sub_spec = importlib.util.find_spec(modname)
+                            if sub_spec and sub_spec.origin:
+                                processed.add(sub_spec.origin)
+                        except Exception as e:
+                            log_error(f"Submodule {modname} could not be imported. Error: {e}")
             else:
                 log_warn(f"Module {target_name} could not be found or has no file associated.")
 
@@ -184,12 +187,16 @@ class Tracer:
             obj = frame.f_locals['self']
             class_name: str = obj.__class__.__name__
             func_info['is_method'] = False
-            method = getattr(obj, func_name, None)
+            try:
+                method = getattr(obj, func_name, None)
+            except Exception as e:
+                log_error(f"Error occurred while getattr '{func_name}' from class '{class_name}': {e}")
+                method = None
             if callable(method) and hasattr(method, '__code__') and method.__code__ == frame.f_code:
                 func_info['is_method'] = True
                 func_info['class_name'] = class_name
 
-            if hasattr(obj, '__dict__'):
+            if hasattr(obj, '__dict__') and hasattr(obj.__class__, '__weakref__'):
                 attrs: Dict[str, Any] = {k: v for k, v in obj.__dict__.items() if not callable(v)}
                 if obj not in self.tracked_objects:
                     self.tracked_objects[obj] = attrs
