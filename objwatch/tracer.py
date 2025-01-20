@@ -159,7 +159,6 @@ class Tracer:
             return wrapper()
         return None
 
-    @lru_cache(maxsize=sys.maxsize)
     def _get_function_info(self, frame: FrameType) -> Dict[str, Any]:
         """
         Extract information about the currently executing function.
@@ -239,7 +238,7 @@ class Tracer:
             old_value_len (Optional[int]): The length of the old value (if applicable).
             current_value_len (Optional[int]): The length of the current value (if applicable).
         """
-        if old_value_len is not None:
+        if old_value_len is not None and current_value_len is not None:
             change_type: EventType = (
                 self.event_handlers.determine_change_type(old_value_len, current_value_len)
                 if old_value_len is not None
