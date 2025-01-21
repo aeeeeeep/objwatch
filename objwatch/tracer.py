@@ -8,7 +8,7 @@ from functools import lru_cache
 from types import FunctionType, FrameType, ModuleType
 from typing import Optional, Union, Any, Dict, List, Set
 
-from .wrappers import FunctionWrapper
+from .wrappers import ABCWrapper
 from .events import EventType
 from .event_handls import EventHandls, log_sequence_types
 from .utils.logger import log_error, log_debug, log_warn, log_info
@@ -33,7 +33,7 @@ class Tracer:
         targets: List[Union[str, ModuleType]],
         exclude_targets: Optional[List[str]] = None,
         ranks: Optional[List[int]] = None,
-        wrapper: Optional[FunctionWrapper] = None,
+        wrapper: Optional[ABCWrapper] = None,
         output_xml: Optional[str] = None,
         with_locals: bool = False,
         with_globals: bool = False,
@@ -46,7 +46,7 @@ class Tracer:
             targets (List[str]): Files or modules to monitor.
             exclude_targets (Optional[List[str]]): Files or modules to exclude from monitoring.
             ranks (Optional[List[int]]): GPU ranks to track when using torch.distributed.
-            wrapper (Optional[FunctionWrapper]): Custom wrapper to extend tracing and logging functionality.
+            wrapper (Optional[ABCWrapper]): Custom wrapper to extend tracing and logging functionality.
             output_xml (Optional[str]): Path to the XML file for writing structured logs.
             with_locals (bool): Enable tracing and logging of local variables within functions.
             with_globals (bool): Enable tracing and logging of global variables across function calls.
@@ -96,7 +96,7 @@ class Tracer:
             self.ranks: Set[int] = set()
 
         # Load the function wrapper if provided
-        self.function_wrapper: FunctionWrapper = self.load_wrapper(wrapper)
+        self.abc_wrapper: ABCWrapper = self.load_wrapper(wrapper)
         self.call_depth: int = 0
 
     def _process_targets(self, targets: Optional[List[Union[str, ModuleType]]]) -> Set[str]:
@@ -147,17 +147,17 @@ class Tracer:
 
         return processed
 
-    def load_wrapper(self, wrapper: Optional[FunctionWrapper]) -> Optional[FunctionWrapper]:
+    def load_wrapper(self, wrapper: Optional[ABCWrapper]) -> Optional[ABCWrapper]:
         """
         Load a custom function wrapper if provided.
 
         Args:
-            wrapper (Optional[FunctionWrapper]): The custom wrapper to load.
+            wrapper (Optional[ABCWrapper]): The custom wrapper to load.
 
         Returns:
-            Optional[FunctionWrapper]: The initialized wrapper or None.
+            Optional[ABCWrapper]: The initialized wrapper or None.
         """
-        if wrapper and issubclass(wrapper, FunctionWrapper):
+        if wrapper and issubclass(wrapper, ABCWrapper):
             log_warn(f"wrapper '{wrapper.__name__}' loaded")
             return wrapper()
         return None
@@ -286,7 +286,7 @@ class Tracer:
                 current_value,
                 self.call_depth,
                 self.rank_info,
-                self.function_wrapper,
+                self.abc_wrapper,
             )
 
     def _track_object_change(self, frame: FrameType, lineno: int):
@@ -354,7 +354,7 @@ class Tracer:
                 current_value=current_local,
                 call_depth=self.call_depth,
                 rank_info=self.rank_info,
-                function_wrapper=self.function_wrapper,
+                abc_wrapper=self.abc_wrapper,
             )
 
             if isinstance(current_local, log_sequence_types):
@@ -440,7 +440,7 @@ class Tracer:
                 # Handle function call event
                 func_info = self._get_function_info(frame)
                 self.event_handlers.handle_run(
-                    lineno, func_info, self.function_wrapper, self.call_depth, self.rank_info
+                    lineno, func_info, self.abc_wrapper, self.call_depth, self.rank_info
                 )
                 self.call_depth += 1
 
@@ -462,7 +462,7 @@ class Tracer:
                 self.call_depth -= 1
                 func_info = self._get_function_info(frame)
                 self.event_handlers.handle_end(
-                    lineno, func_info, self.function_wrapper, self.call_depth, self.rank_info, arg
+                    lineno, func_info, self.abc_wrapper, self.call_depth, self.rank_info, arg
                 )
 
                 # Clean up local tracking after function return

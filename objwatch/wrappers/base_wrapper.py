@@ -5,12 +5,12 @@ from types import FrameType
 from typing import Any, Tuple
 
 from ..event_handls import log_element_types, log_sequence_types, EventHandls
-from .function_wrapper import FunctionWrapper
+from .abc_wrapper import ABCWrapper
 
 
-class BaseWrapper(FunctionWrapper):
+class BaseWrapper(ABCWrapper):
     """
-    BaseWrapper implements the FunctionWrapper abstract methods to provide basic logging functionality.
+    BaseWrapper implements the ABCWrapper abstract methods to provide basic logging functionality.
     """
 
     def wrap_call(self, func_name: str, frame: FrameType) -> str:

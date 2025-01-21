@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 import logging
 from io import StringIO
 import objwatch
-from objwatch.wrappers import BaseWrapper, TensorShapeWrapper, FunctionWrapper
+from objwatch.wrappers import BaseWrapper, TensorShapeWrapper, ABCWrapper
 from objwatch.core import ObjWatch
 from objwatch.tracer import Tracer
 from tests.util import strip_line_numbers
@@ -299,7 +299,7 @@ class TestTensorShapeWrapper(unittest.TestCase):
 
 class TestCustomWrapper(unittest.TestCase):
     def setUp(self):
-        class CustomWrapper(FunctionWrapper):
+        class CustomWrapper(ABCWrapper):
             def wrap_call(self, func_name, frame):
                 return f"CustomCall: {func_name} called with args {frame.f_locals}"
 

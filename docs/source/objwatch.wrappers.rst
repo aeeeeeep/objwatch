@@ -15,7 +15,7 @@ objwatch.wrappers.base\_wrapper module
 objwatch.wrappers.function\_wrapper module
 ------------------------------------------
 
-.. automodule:: objwatch.wrappers.function_wrapper
+.. automodule:: objwatch.wrappers.abc_wrapper
    :members:
    :undoc-members:
    :show-inheritance:

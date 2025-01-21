@@ -190,7 +190,7 @@ ObjWatch offers customizable logging formats and tracing options to suit various
 - `output_xml` (str, optional): Path to the XML file for writing structured logs. If specified, tracing information will be saved in a nested XML format for easy browsing and analysis.
 - `level` (str, optional): Logging level (e.g., `logging.DEBUG`, `logging.INFO`, `force` etc.).
 - `simple` (bool, optional): Enable simple logging mode with the format `"DEBUG: {msg}"`.
-- `wrapper` (FunctionWrapper, optional): Custom wrapper to extend tracing and logging functionality.
+- `wrapper` (ABCWrapper, optional): Custom wrapper to extend tracing and logging functionality.
 - `with_locals` (bool, optional): Enable tracing and logging of local variables within functions during their execution.
 - `with_globals` (bool, optional): Enable tracing and logging of global variables across function calls.
 - `with_module_path` (bool, optional): Control whether to prepend the module path to function names in logs.
@@ -216,11 +216,11 @@ if __name__ == '__main__':
 
 ### Custom Wrapper Extensions
 
-ObjWatch provides the `FunctionWrapper` abstract base class, enabling users to create custom wrappers that extend and customize the library's tracing and logging capabilities. By subclassing `FunctionWrapper`, developers can implement tailored behaviors that execute during function calls and returns, offering deeper insights and specialized monitoring suited to their project's specific needs.
+ObjWatch provides the `ABCWrapper` abstract base class, enabling users to create custom wrappers that extend and customize the library's tracing and logging capabilities. By subclassing `ABCWrapper`, developers can implement tailored behaviors that execute during function calls and returns, offering deeper insights and specialized monitoring suited to their project's specific needs.
 
-#### FunctionWrapper Class
+#### ABCWrapper Class
 
-The `FunctionWrapper` class defines two essential methods that must be implemented:
+The `ABCWrapper` class defines two essential methods that must be implemented:
 
 - **`wrap_call(self, func_name: str, frame: FrameType) -> str`**:
   
@@ -244,7 +244,7 @@ As an example of a custom wrapper, ObjWatch includes the `TensorShapeWrapper` cl
 
 To create a custom wrapper:
 
-1. **Subclass `FunctionWrapper`**: Define a new class that inherits from `FunctionWrapper` and implement the `wrap_call`, `wrap_return` and `wrap_upd` methods to define your custom behavior.
+1. **Subclass `ABCWrapper`**: Define a new class that inherits from `ABCWrapper` and implement the `wrap_call`, `wrap_return` and `wrap_upd` methods to define your custom behavior.
 
 2. **Initialize ObjWatch with the Custom Wrapper**: When initializing `ObjWatch`, pass your custom wrapper via the `wrapper` parameter. This integrates your custom tracing logic into the ObjWatch tracing process.
 

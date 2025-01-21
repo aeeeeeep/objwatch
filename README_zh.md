@@ -189,7 +189,7 @@ ObjWatch 提供可定制的日志格式和追踪选项，适应不同项目需�
 - `output_xml`（字符串，可选）：用于写入结构化日志的 XML 文件路径。如果指定，将以嵌套的 XML 格式保存追踪信息，便于浏览和分析。
 - `level`（字符串，可选）：日志级别（例如 `logging.DEBUG`，`logging.INFO`，`force` 等）。
 - `simple`（布尔值，可选）：启用简化日志模式，格式为 `"DEBUG: {msg}"`。
-- `wrapper`（FunctionWrapper，可选）：自定义包装器，用于扩展追踪和日志记录功能。
+- `wrapper`（ABCWrapper，可选）：自定义包装器，用于扩展追踪和日志记录功能。
 - `with_locals`（布尔值，可选）：启用在函数执行期间对局部变量的追踪和日志记录。
 - `with_globals`（布尔值，可选）：启用跨函数调用的全局变量追踪和日志记录。
 - `with_module_path`（布尔值，可选）：控制是否在日志中的函数名称前添加模块路径前缀。
@@ -215,11 +215,11 @@ if __name__ == '__main__':
 
 ### 自定义包装器扩展
 
-ObjWatch 提供了 `FunctionWrapper` 抽象基类，允许用户创建自定义包装器，扩展和定制库的追踪和日志记录功能。通过继承 `FunctionWrapper`，开发者可以实现自定义行为，在函数调用和返回时执行，提供更深入的分析和专门的监控，适应项目的特定需求。
+ObjWatch 提供了 `ABCWrapper` 抽象基类，允许用户创建自定义包装器，扩展和定制库的追踪和日志记录功能。通过继承 `ABCWrapper`，开发者可以实现自定义行为，在函数调用和返回时执行，提供更深入的分析和专门的监控，适应项目的特定需求。
 
-#### FunctionWrapper 类
+#### ABCWrapper 类
 
-`FunctionWrapper` 类定义了两个必须实现的核心方法：
+`ABCWrapper` 类定义了两个必须实现的核心方法：
 
 - **`wrap_call(self, func_name: str, frame: FrameType) -> str`**：
 
@@ -243,7 +243,7 @@ ObjWatch 提供了 `FunctionWrapper` 抽象基类，允许用户创建自定义�
 
 要创建自定义包装器：
 
-1. **继承 `FunctionWrapper`**：定义一个新的类，继承 `FunctionWrapper` 并实现 `wrap_call`，`wrap_return` 和 `wrap_upd` 方法，以定义你的自定义行为。
+1. **继承 `ABCWrapper`**：定义一个新的类，继承 `ABCWrapper` 并实现 `wrap_call`，`wrap_return` 和 `wrap_upd` 方法，以定义你的自定义行为。
 
 2. **使用自定义包装器初始化 ObjWatch**：在初始化 ObjWatch 时，通过 `wrapper` 参数传递你的自定义包装器。这将把你的自定义追踪逻辑集成到 ObjWatch 的追踪过程中。
 
