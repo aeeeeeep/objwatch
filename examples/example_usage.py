@@ -3,7 +3,7 @@
 
 import time
 import objwatch
-from objwatch.wrappers import BaseLogger
+from objwatch.wrappers import BaseWrapper
 
 
 class SampleClass:
@@ -29,10 +29,10 @@ def main():
 
 if __name__ == '__main__':
     # Using ObjWatch as a context manager
-    with objwatch.ObjWatch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseLogger):
+    with objwatch.ObjWatch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseWrapper):
         main()
 
     # Using the watch function
-    obj_watch = objwatch.watch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseLogger)
+    obj_watch = objwatch.watch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseWrapper)
     main()
     obj_watch.stop()

@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 import logging
 from io import StringIO
 import objwatch
-from objwatch.wrappers import BaseLogger, TensorShapeLogger, FunctionWrapper
+from objwatch.wrappers import BaseWrapper, TensorShapeWrapper, FunctionWrapper
 from objwatch.core import ObjWatch
 from objwatch.tracer import Tracer
 from tests.util import strip_line_numbers
@@ -106,9 +106,9 @@ if __name__ == '__main__':
         self.assertIn(golden_log, strip_line_numbers(test_log))
 
 
-class TestBaseLogger(unittest.TestCase):
+class TestBaseWrapper(unittest.TestCase):
     def setUp(self):
-        self.base_logger = BaseLogger()
+        self.base_logger = BaseWrapper()
 
     def test_wrap_call_with_simple_args(self):
         mock_frame = MagicMock()
@@ -221,10 +221,10 @@ class TestBaseLogger(unittest.TestCase):
         self.assertEqual(actual_call_msg, expected_call_msg)
 
 
-@unittest.skipIf(torch is None, "PyTorch not installed, skipping TensorShapeLogger tests.")
-class TestTensorShapeLogger(unittest.TestCase):
+@unittest.skipIf(torch is None, "PyTorch not installed, skipping TensorShapeWrapper tests.")
+class TestTensorShapeWrapper(unittest.TestCase):
     def setUp(self):
-        self.tensor_shape_logger = TensorShapeLogger()
+        self.tensor_shape_logger = TensorShapeWrapper()
 
     def test_wrap_call_with_tensor(self):
         mock_frame = MagicMock()

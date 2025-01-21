@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 from objwatch import ObjWatch
-from objwatch.wrappers import TensorShapeLogger
+from objwatch.wrappers import TensorShapeWrapper
 import logging
 from tests.util import filter_func_ptr
 
@@ -77,7 +77,7 @@ class TestPytorchTraining(unittest.TestCase):
             with_locals=False,
             with_globals=True,
             with_module_path=False,
-            wrapper=TensorShapeLogger,
+            wrapper=TensorShapeWrapper,
         )
         obj_watch.start()
 
