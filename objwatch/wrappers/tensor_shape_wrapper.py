@@ -7,12 +7,12 @@ from typing import Any, List, Optional, Tuple
 
 
 from ..event_handls import log_element_types, log_sequence_types, EventHandls
-from .function_wrapper import FunctionWrapper
+from .abc_wrapper import ABCWrapper
 
 
-class TensorShapeWrapper(FunctionWrapper):
+class TensorShapeWrapper(ABCWrapper):
     """
-    TensorShapeWrapper extends FunctionWrapper to log the shapes of torch.Tensor objects.
+    TensorShapeWrapper extends ABCWrapper to log the shapes of torch.Tensor objects.
     """
 
     @staticmethod

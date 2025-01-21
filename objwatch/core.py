@@ -5,7 +5,7 @@ import logging
 from types import ModuleType
 from typing import Optional, Union, List, Any
 from .tracer import Tracer
-from .wrappers import FunctionWrapper
+from .wrappers import ABCWrapper
 from .utils.logger import create_logger, log_info
 
 
@@ -23,7 +23,7 @@ class ObjWatch:
         output_xml: Optional[str] = None,
         level: int = logging.DEBUG,
         simple: bool = False,
-        wrapper: Optional[FunctionWrapper] = None,
+        wrapper: Optional[ABCWrapper] = None,
         with_locals: bool = False,
         with_globals: bool = False,
         with_module_path: bool = False,
@@ -39,7 +39,7 @@ class ObjWatch:
             output_xml (Optional[str]): Path to the XML file for writing structured logs.
             level (int): Logging level (e.g., logging.DEBUG, logging.INFO).
             simple (bool): Enable simple logging mode with the format "DEBUG: {msg}".
-            wrapper (Optional[FunctionWrapper]): Custom wrapper to extend tracing and logging functionality.
+            wrapper (Optional[ABCWrapper]): Custom wrapper to extend tracing and logging functionality.
             with_locals (bool): Enable tracing and logging of local variables within functions.
             with_globals (bool): Enable tracing and logging of global variables across function calls.
             with_module_path (bool): Prepend the module path to function names in logs.
@@ -73,15 +73,15 @@ class ObjWatch:
         log_info("Stopping ObjWatch tracing.")
         self.tracer.stop()
 
-    def load_wrapper(self, wrapper: FunctionWrapper) -> FunctionWrapper:
+    def load_wrapper(self, wrapper: ABCWrapper) -> ABCWrapper:
         """
         Load a custom wrapper into the tracer.
 
         Args:
-            wrapper (FunctionWrapper): The custom wrapper to be loaded.
+            wrapper (ABCWrapper): The custom wrapper to be loaded.
 
         Returns:
-            FunctionWrapper: The result of the tracer's load_wrapper method.
+            ABCWrapper: The result of the tracer's load_wrapper method.
         """
         return self.tracer.load_wrapper(wrapper)
 
@@ -115,7 +115,7 @@ def watch(
     output_xml: Optional[str] = None,
     level: int = logging.DEBUG,
     simple: bool = False,
-    wrapper: Optional[FunctionWrapper] = None,
+    wrapper: Optional[ABCWrapper] = None,
     with_locals: bool = False,
     with_globals: bool = False,
     with_module_path: bool = False,
@@ -131,7 +131,7 @@ def watch(
         output_xml (Optional[str]): Path to the XML file for writing structured logs.
         level (int): Logging level (e.g., logging.DEBUG, logging.INFO).
         simple (bool): Enable simple logging mode with the format "DEBUG: {msg}".
-        wrapper (Optional[FunctionWrapper]): Custom wrapper to extend tracing and logging functionality.
+        wrapper (Optional[ABCWrapper]): Custom wrapper to extend tracing and logging functionality.
         with_locals (bool): Enable tracing and logging of local variables within functions.
         with_globals (bool): Enable tracing and logging of global variables across function calls.
         with_module_path (bool): Prepend the module path to function names in logs.

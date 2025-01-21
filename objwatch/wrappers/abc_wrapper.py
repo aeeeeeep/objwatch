@@ -6,7 +6,7 @@ from types import FrameType
 from typing import Any, Dict, List, Tuple
 
 
-class FunctionWrapper(ABC):
+class ABCWrapper(ABC):
     """
     Abstract base class for function wrappers to extend tracing and logging functionality.
     """

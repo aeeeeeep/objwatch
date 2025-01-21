@@ -68,7 +68,7 @@ class EventHandls:
                 signal.signal(signal_type, self.signal_handler)
 
     def handle_run(
-        self, lineno: int, func_info: Dict[str, Any], function_wrapper: Optional[Any], call_depth: int, rank_info: str
+        self, lineno: int, func_info: Dict[str, Any], abc_wrapper: Optional[Any], call_depth: int, rank_info: str
     ) -> None:
         """
         Handle the 'run' event indicating the start of a function or method execution.
@@ -76,7 +76,7 @@ class EventHandls:
         Args:
             lineno (int): The line number where the event is called.
             func_info (Dict[str, Any]): Information about the function being executed.
-            function_wrapper (Optional[Any]): Custom wrapper for additional processing.
+            abc_wrapper (Optional[Any]): Custom wrapper for additional processing.
             call_depth (int): Current depth of the call stack.
             rank_info (str): Information about the GPU rank, if applicable.
         """
@@ -88,8 +88,8 @@ class EventHandls:
             logger_msg = f"{func_name}"
         attrib = {'name': logger_msg, 'run_line': str(lineno)}
 
-        if function_wrapper:
-            call_msg = function_wrapper.wrap_call(func_name, func_info['frame'])
+        if abc_wrapper:
+            call_msg = abc_wrapper.wrap_call(func_name, func_info['frame'])
             attrib['call_msg'] = call_msg
             logger_msg += ' <- ' + call_msg
 
@@ -105,7 +105,7 @@ class EventHandls:
         self,
         lineno: int,
         func_info: Dict[str, Any],
-        function_wrapper: Optional[Any],
+        abc_wrapper: Optional[Any],
         call_depth: int,
         rank_info: str,
         result: Any,
@@ -116,7 +116,7 @@ class EventHandls:
         Args:
             lineno (int): The line number where the event is called.
             func_info (Dict[str, Any]): Information about the function that has ended.
-            function_wrapper (Optional[Any]): Custom wrapper for additional processing.
+            abc_wrapper (Optional[Any]): Custom wrapper for additional processing.
             call_depth (int): Current depth of the call stack.
             rank_info (str): Information about the GPU rank, if applicable.
             result (Any): The result returned by the function.
@@ -129,8 +129,8 @@ class EventHandls:
             logger_msg = f"{func_name}"
 
         return_msg = ""
-        if function_wrapper:
-            return_msg = function_wrapper.wrap_return(func_name, result)
+        if abc_wrapper:
+            return_msg = abc_wrapper.wrap_return(func_name, result)
             logger_msg += ' -> ' + return_msg
 
         prefix = f"{lineno:>5} " + "| " * call_depth
@@ -150,7 +150,7 @@ class EventHandls:
         current_value: Any,
         call_depth: int,
         rank_info: str,
-        function_wrapper: Optional[Any] = None,
+        abc_wrapper: Optional[Any] = None,
     ) -> None:
         """
         Handle the 'upd' event representing the creation or updating of a variable.
@@ -163,10 +163,10 @@ class EventHandls:
             current_value (Any): New value of the variable.
             call_depth (int): Current depth of the call stack.
             rank_info (str): Information about the GPU rank, if applicable.
-            function_wrapper (Optional[Any]): Custom wrapper for additional processing.
+            abc_wrapper (Optional[Any]): Custom wrapper for additional processing.
         """
-        if function_wrapper:
-            upd_msg = function_wrapper.wrap_upd(old_value, current_value)
+        if abc_wrapper:
+            upd_msg = abc_wrapper.wrap_upd(old_value, current_value)
             if upd_msg is not None:
                 old_msg, current_msg = upd_msg
         else:
