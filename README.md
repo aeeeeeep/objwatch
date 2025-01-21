@@ -92,7 +92,7 @@ Below is a comprehensive example demonstrating how to integrate ObjWatch into a 
 ```python
 import time
 import objwatch
-from objwatch.wrappers import BaseLogger
+from objwatch.wrappers import BaseWrapper
 
 
 class SampleClass:
@@ -118,11 +118,11 @@ def main():
 
 if __name__ == '__main__':
     # Using ObjWatch as a context manager
-    with objwatch.ObjWatch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseLogger):
+    with objwatch.ObjWatch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseWrapper):
         main()
 
     # Using the watch function
-    obj_watch = objwatch.watch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseLogger)
+    obj_watch = objwatch.watch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseWrapper)
     main()
     obj_watch.stop()
 
@@ -139,7 +139,7 @@ When running the above script, ObjWatch will generate logs similar to the follow
 >>>>>>>>>>
 examples/example_usage.py
 <<<<<<<<<<
-[2025-01-08 20:02:10] [WARNING] objwatch: wrapper 'BaseLogger' loaded
+[2025-01-08 20:02:10] [WARNING] objwatch: wrapper 'BaseWrapper' loaded
 [2025-01-08 20:02:10] [INFO] objwatch: Starting ObjWatch tracing.
 [2025-01-08 20:02:10] [INFO] objwatch: Starting tracing.
 [2025-01-08 20:02:10] [DEBUG] objwatch:    22 run main <-
@@ -236,9 +236,9 @@ The `FunctionWrapper` class defines two essential methods that must be implement
 
 For more details on frame objects, refer to the [official Python documentation](https://docs.python.org/3/library/types.html#types.FrameType).
 
-#### TensorShapeLogger
+#### TensorShapeWrapper
 
-As an example of a custom wrapper, ObjWatch includes the `TensorShapeLogger` class within the `objwatch.wrappers` module. This wrapper automatically logs the shapes of tensors involved in function calls, which is particularly beneficial in machine learning and deep learning workflows where tensor dimensions are critical for model performance and debugging.
+As an example of a custom wrapper, ObjWatch includes the `TensorShapeWrapper` class within the `objwatch.wrappers` module. This wrapper automatically logs the shapes of tensors involved in function calls, which is particularly beneficial in machine learning and deep learning workflows where tensor dimensions are critical for model performance and debugging.
 
 #### Creating and Integrating Custom Wrappers
 
@@ -252,13 +252,13 @@ By leveraging custom wrappers, you can enhance ObjWatch to capture additional co
 
 #### Example Use Cases
 
-For example, the `TensorShapeLogger` can be integrated as follows:
+For example, the `TensorShapeWrapper` can be integrated as follows:
 
 ```python
-from objwatch.wrappers import TensorShapeLogger
+from objwatch.wrappers import TensorShapeWrapper
 
-# Initialize ObjWatch with the custom TensorShapeLogger
-obj_watch = objwatch.ObjWatch(['your_module.py'], simple=False, wrapper=TensorShapeLogger))
+# Initialize ObjWatch with the custom TensorShapeWrapper
+obj_watch = objwatch.ObjWatch(['your_module.py'], simple=False, wrapper=TensorShapeWrapper))
 with obj_watch:
     main()
 ```

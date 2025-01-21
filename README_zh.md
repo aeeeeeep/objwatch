@@ -92,7 +92,7 @@ if __name__ == '__main__':
 ```python
 import time
 import objwatch
-from objwatch.wrappers import BaseLogger
+from objwatch.wrappers import BaseWrapper
 
 
 class SampleClass:
@@ -118,11 +118,11 @@ def main():
 
 if __name__ == '__main__':
     # 使用上下文管理器并开启日志
-    with objwatch.ObjWatch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseLogger):
+    with objwatch.ObjWatch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseWrapper):
         main()
 
     # 使用 API 并开启日志
-    obj_watch = objwatch.watch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseLogger)
+    obj_watch = objwatch.watch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseWrapper)
     main()
     obj_watch.stop()
 ```
@@ -138,7 +138,7 @@ if __name__ == '__main__':
 >>>>>>>>>>
 examples/example_usage.py
 <<<<<<<<<<
-[2025-01-08 20:02:10] [WARNING] objwatch: wrapper 'BaseLogger' loaded
+[2025-01-08 20:02:10] [WARNING] objwatch: wrapper 'BaseWrapper' loaded
 [2025-01-08 20:02:10] [INFO] objwatch: Starting ObjWatch tracing.
 [2025-01-08 20:02:10] [INFO] objwatch: Starting tracing.
 [2025-01-08 20:02:10] [DEBUG] objwatch:    22 run main <-
@@ -235,9 +235,9 @@ ObjWatch 提供了 `FunctionWrapper` 抽象基类，允许用户创建自定义�
 
 有关帧对象的更多信息，请参考 [官方 Python 文档](https://docs.python.org/3/library/types.html#types.FrameType)。
 
-#### TensorShapeLogger
+#### TensorShapeWrapper
 
-作为一个自定义包装器的示例，ObjWatch 在 `objwatch.wrappers` 模块中提供了 `TensorShapeLogger` 类。该包装器自动记录在函数调用中涉及的张量形状，这在机器学习和深度学习工作流中尤其有用，因为张量的维度对于模型性能和调试至关重要。
+作为一个自定义包装器的示例，ObjWatch 在 `objwatch.wrappers` 模块中提供了 `TensorShapeWrapper` 类。该包装器自动记录在函数调用中涉及的张量形状，这在机器学习和深度学习工作流中尤其有用，因为张量的维度对于模型性能和调试至关重要。
 
 #### 创建和集成自定义包装器
 
@@ -251,13 +251,13 @@ ObjWatch 提供了 `FunctionWrapper` 抽象基类，允许用户创建自定义�
 
 #### 示例用法
 
-例如，可以如下集成 `TensorShapeLogger`：
+例如，可以如下集成 `TensorShapeWrapper`：
 
 ```python
-from objwatch.wrappers import TensorShapeLogger
+from objwatch.wrappers import TensorShapeWrapper
 
-# 使用自定义 TensorShapeLogger 初始化 ObjWatch
-obj_watch = objwatch.ObjWatch(['your_module.py'], simple=False, wrapper=TensorShapeLogger)
+# 使用自定义 TensorShapeWrapper 初始化 ObjWatch
+obj_watch = objwatch.ObjWatch(['your_module.py'], simple=False, wrapper=TensorShapeWrapper)
 with obj_watch:
     main()
 ```

@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 import xml.etree.ElementTree as ET
 from objwatch.tracer import Tracer
-from objwatch.wrappers import BaseLogger
+from objwatch.wrappers import BaseWrapper
 from tests.util import compare_xml_elements
 
 
@@ -18,7 +18,7 @@ class TestOutputXML(unittest.TestCase):
         self.tracer = Tracer(
             targets="tests/test_output_xml.py",
             output_xml=self.test_output,
-            wrapper=BaseLogger,
+            wrapper=BaseWrapper,
             with_module_path=True,
             with_locals=True,
         )

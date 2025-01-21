@@ -7,7 +7,7 @@ DEBUG:objwatch:   48 | upd @.optim None -> (type)module
 DEBUG:objwatch:   48 | upd @.TensorDataset None -> (type)type
 DEBUG:objwatch:   48 | upd @.DataLoader None -> (type)type
 DEBUG:objwatch:   48 | upd @.ObjWatch None -> (type)type
-DEBUG:objwatch:   48 | upd @.TensorShapeLogger None -> (type)ABCMeta
+DEBUG:objwatch:   48 | upd @.TensorShapeWrapper None -> (type)ABCMeta
 DEBUG:objwatch:   48 | upd @.logging None -> (type)module
 DEBUG:objwatch:   48 | upd @.filter_func_ptr None -> <function filter_func_ptr at 0x7f320ca04400>
 DEBUG:objwatch:   48 | upd @.SimpleNet None -> (type)type
