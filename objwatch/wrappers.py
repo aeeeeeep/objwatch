@@ -41,7 +41,6 @@ class FunctionWrapper(ABC):
         """
         pass
 
-    @abstractmethod
     def wrap_upd(self, old_value: Any, current_value: Any) -> Tuple[str, str]:
         """
         Process and format the update information of a variable.

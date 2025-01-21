@@ -166,7 +166,9 @@ class EventHandls:
             function_wrapper (Optional[Any]): Custom wrapper for additional processing.
         """
         if function_wrapper:
-            old_msg, current_msg = function_wrapper.wrap_upd(old_value, current_value)
+            upd_msg = function_wrapper.wrap_upd(old_value, current_value)
+            if upd_msg is not None:
+                old_msg, current_msg = upd_msg
         else:
             old_msg = self._format_value(old_value)
             current_msg = self._format_value(current_value)
