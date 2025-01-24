@@ -386,6 +386,7 @@ class EventHandls:
             signum (int): The signal number.
             frame (frame): The current stack frame.
         """
-        log_error(f"Received signal {signum}, saving XML before exiting.")
-        self.save_xml()
-        exit(1)  # Ensure the program exits after handling the signal
+        if not self.is_xml_saved:
+            log_error(f"Received signal {signum}, saving XML before exiting.")
+            self.save_xml()
+            exit(1)  # Ensure the program exits after handling the signal
