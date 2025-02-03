@@ -235,6 +235,17 @@ ObjWatch 提供了 `ABCWrapper` 抽象基类，允许用户创建自定义包装
 
 有关帧对象的更多信息，请参考 [官方 Python 文档](https://docs.python.org/3/library/types.html#types.FrameType)。
 
+#### 支持的 Wrapper
+
+下表概述了目前支持的 Wrapper，每个 Wrapper 提供了针对不同跟踪和日志记录需求的专业功能：
+
+| **Wrapper**           | **描述**                                                                                         |
+|-----------------------|--------------------------------------------------------------------------------------------------|
+| [**BaseWrapper**](objwatch/wrappers/base_wrapper.py)        | 实现了基本的日志记录功能，用于监控函数调用和返回。                                                |
+| [**CPUMemoryWrapper**](objwatch/wrappers/cpu_memory_wrapper.py)   | 使用 `psutil.virtual_memory()` 获取 CPU 内存统计信息，支持选择特定的指标，用于在函数执行过程中监控 CPU 内存使用情况。 |
+| [**TensorShapeWrapper**](objwatch/wrappers/tensor_shape_wrapper.py) | 记录 `torch.Tensor` 对象的形状，适用于机器学习和深度学习工作流中的调试与性能分析。              |
+| [**TorchMemoryWrapper**](objwatch/wrappers/torch_memory_wrapper.py) | 使用 `torch.cuda.memory_stats()` 获取 GPU 内存统计信息，支持选择特定的指标，用于监控 GPU 显存使用情况，包括分配、预留和释放内存等。 |
+
 #### TensorShapeWrapper
 
 作为一个自定义包装器的示例，ObjWatch 在 `objwatch.wrappers` 模块中提供了 `TensorShapeWrapper` 类。该包装器自动记录在函数调用中涉及的张量形状，这在机器学习和深度学习工作流中尤其有用，因为张量的维度对于模型性能和调试至关重要。
