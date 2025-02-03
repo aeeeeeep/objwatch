@@ -20,6 +20,14 @@ objwatch.wrappers.base\_wrapper module
    :undoc-members:
    :show-inheritance:
 
+objwatch.wrappers.cpu\_memory\_wrapper module
+---------------------------------------------
+
+.. automodule:: objwatch.wrappers.cpu_memory_wrapper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 objwatch.wrappers.tensor\_shape\_wrapper module
 -----------------------------------------------
 

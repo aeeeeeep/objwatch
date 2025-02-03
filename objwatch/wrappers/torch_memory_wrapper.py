@@ -1,3 +1,6 @@
+# MIT License
+# Copyright (c) 2025 aeeeeeep
+
 import torch
 from types import FrameType
 from typing import Any, Dict, List, Tuple
@@ -15,11 +18,12 @@ class TorchMemoryWrapper(ABCWrapper):
 
     If you want to capture specific GPU memory metrics, you can configure the `mem_types`
     variable before starting the tracking. For example, to capture the current and peak
-    allocated memory across all pools, you can add the following code before objwatch start:
+    allocated memory across all pools, you can add the following code before instantiation of
+    objwatch wrappers:
 
       ```python
       from objwatch.wrappers import TorchMemoryWrapper
-      TorchMemoryWrapper.mem_types = ["allocation.all.current", "allocation.all.peak", ...]
+      TorchMemoryWrapper.mem_types = ["allocation.all.current", "allocation.all.peak"]
       ```
 
     `mem_types` define which statistics should be captured. The
@@ -115,7 +119,7 @@ class TorchMemoryWrapper(ABCWrapper):
             Dict[str, Any]: A dictionary of GPU memory stats.
         """
         stats = torch.cuda.memory_stats()
-        return {k: stats[k] for k in self.mem_types} if self.mem_types else stats
+        return {k: stats[k] for k in self.mem_types}
 
     def _format_memory(self, stats: Dict[str, Any]) -> str:
         """
@@ -140,7 +144,7 @@ class TorchMemoryWrapper(ABCWrapper):
         Returns:
             str: A string representing the formatted memory stats.
         """
-        return f"{self._format_memory(self._capture_memory())}"
+        return self._format_memory(self._capture_memory())
 
     def wrap_return(self, func_name: str, result: Any) -> str:
         """
@@ -153,7 +157,7 @@ class TorchMemoryWrapper(ABCWrapper):
         Returns:
             str: A string representing the formatted memory stats.
         """
-        return f"{self._format_memory(self._capture_memory())}"
+        return self._format_memory(self._capture_memory())
 
     def wrap_upd(self, old_value: Any, current_value: Any) -> Tuple[str, str]:
         """
@@ -166,4 +170,4 @@ class TorchMemoryWrapper(ABCWrapper):
         Returns:
             Tuple[str, str]: Formatted old and new values with memory stats.
         """
-        return "", f"{self._format_memory(self._capture_memory())}"
+        return "", self._format_memory(self._capture_memory())
