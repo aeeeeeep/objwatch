@@ -3,6 +3,7 @@
 
 import logging
 from typing import Optional, Any, Union
+from .async_logger import AsyncFileHandler
 
 # Global flag to force print logs instead of using the logger
 global FORCE
@@ -46,7 +47,8 @@ def create_logger(
         if output:
             file_handler = logging.FileHandler(output)
             file_handler.setFormatter(formatter)
-            logger.addHandler(file_handler)
+            async_file_handler = AsyncFileHandler(file_handler)
+            logger.addHandler(async_file_handler)
 
     # Prevent log messages from being propagated to the root logger
     logger.propagate = False
