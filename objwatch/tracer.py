@@ -439,9 +439,7 @@ class Tracer:
             if event == "call":
                 # Handle function call event
                 func_info = self._get_function_info(frame)
-                self.event_handlers.handle_run(
-                    lineno, func_info, self.abc_wrapper, self.call_depth, self.rank_info
-                )
+                self.event_handlers.handle_run(lineno, func_info, self.abc_wrapper, self.call_depth, self.rank_info)
                 self.call_depth += 1
 
                 # Track local variables if needed
