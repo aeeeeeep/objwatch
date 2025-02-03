@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    objwatch.utils
+   objwatch.wrappers
 
 Submodules
 ----------
@@ -40,14 +41,6 @@ objwatch.tracer module
 ----------------------
 
 .. automodule:: objwatch.tracer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-objwatch.wrappers module
-------------------------
-
-.. automodule:: objwatch.wrappers
    :members:
    :undoc-members:
    :show-inheritance:
