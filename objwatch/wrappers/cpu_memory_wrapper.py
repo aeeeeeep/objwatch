@@ -43,6 +43,10 @@ class CPUMemoryWrapper(ABCWrapper):
       from objwatch.wrappers import CPUMemoryWrapper
       CPUMemoryWrapper.mem_types = ["total", "available", "percent"]
       ```
+
+    For the latest help and more detailed information, please refer to the official
+    psutil documentation at:
+    https://psutil.readthedocs.io/en/latest/index.html#psutil.virtual_memory
     """
 
     mem_types: List[str] = ["total", "available", "percent"]

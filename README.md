@@ -9,32 +9,32 @@
 
 \[ English | [中文](README_zh.md) \]
 
-## Overview
+## 🔭 Overview
 
 ObjWatch is a robust Python library designed to streamline the debugging and monitoring of complex projects. By offering real-time tracing of object attributes and method calls, ObjWatch empowers developers to gain deeper insights into their codebases, facilitating issue identification, performance optimization, and overall code quality enhancement.
 
-**⚠️ Performance Warning**
+**⚠️ Performance Notice**
 
 ObjWatch may impact your application's performance. It is recommended to use it solely in debugging environments.
 
-## Features
+## ✨ Features
 
-- **Nested Structure Tracing**: Visualize and monitor nested function calls and object interactions with clear, hierarchical logging.
-- **Enhanced Logging Support**: Leverage Python's built-in `logging` module for structured, customizable log outputs, including support for simple and detailed formats. Additionally, to ensure logs are captured even if the logger is disabled or removed by external libraries, you can set `level="force"`. When `level` is set to `"force"`, ObjWatch bypasses the standard logging handlers and uses `print()` to output log messages directly to the console, ensuring that critical debugging information is not lost.
-- **Logging Message Types**: ObjWatch categorizes log messages into various types to provide detailed insights into code execution. The primary types include:
+- **🌳 Nested Structure Tracing**: Visualize and monitor nested function calls and object interactions with clear, hierarchical logging.
+- **📝 Enhanced Logging Support**: Utilize Python's built-in `logging` module for structured, customizable log outputs, including support for simple and detailed formats. Additionally, to ensure logs are captured even if the logger is disabled or removed by external libraries, you can set `level="force"`. When `level` is set to `"force"`, ObjWatch bypasses the standard logging handlers and uses `print()` to output log messages directly to the console, ensuring that critical debugging information is not lost.
+- **📋 Logging Message Types**: ObjWatch categorizes log messages into various types to provide detailed insights into code execution. The primary types include:
   
-  - **`run`**: Indicates the start of a function or class method execution.
-  - **`end`**: Signifies the end of a function or class method execution.
-  - **`upd`**: Represents the creation of a new variable.
-  - **`apd`**: Denotes the addition of elements to data structures like lists, sets, or dictionaries.
-  - **`pop`**: Marks the removal of elements from data structures like lists, sets, or dictionaries.
+  - **`run`**: Function/method execution start
+  - **`end`**: Function/method execution end
+  - **`upd`**: Variable creation
+  - **`apd`**: Element addition to data structures
+  - **`pop`**: Element removal from data structures
   
   These classifications help developers efficiently trace and debug their code by understanding the flow and state changes within their applications.
-- **Multi-GPU Support**: Seamlessly trace distributed PyTorch applications running across multiple GPUs, ensuring comprehensive monitoring in high-performance environments.
-- **Custom Wrapper Extensions**: Extend ObjWatch's functionality with custom wrappers, allowing tailored tracing and logging to fit specific project needs.
-- **Context Manager & API Integration**: Integrate ObjWatch effortlessly into your projects using context managers or API functions without relying on command-line interfaces.
+- **🔥 Multi-GPU Support**: Seamlessly trace distributed PyTorch applications running across multiple GPUs, ensuring comprehensive monitoring in high-performance environments.
+- **🔌 Custom Wrapper Extensions**: Extend ObjWatch's functionality with custom wrappers, allowing tailored tracing and logging to fit specific project needs.
+- **🎛️ Context Manager & API Integration**: Integrate ObjWatch effortlessly into your projects using context managers or API functions without relying on command-line interfaces.
 
-## Installation
+## 📦 Installation
 
 ObjWatch is available on [PyPI](https://pypi.org/project/objwatch). Install it using `pip`:
 
@@ -47,10 +47,10 @@ Alternatively, you can clone the latest repository and install from source:
 ```bash
 git clone https://github.com/aeeeeeep/objwatch.git
 cd objwatch
-pip install .
+pip install -e .
 ```
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Basic Usage
 
@@ -177,7 +177,7 @@ examples/example_usage.py
 
 </details>
 
-## Configuration
+## ⚙️ Configuration
 
 ObjWatch offers customizable logging formats and tracing options to suit various project requirements. Utilize the `simple` parameter to toggle between detailed and simplified logging outputs.
 
@@ -195,7 +195,7 @@ ObjWatch offers customizable logging formats and tracing options to suit various
 - `with_globals` (bool, optional): Enable tracing and logging of global variables across function calls.
 - `with_module_path` (bool, optional): Control whether to prepend the module path to function names in logs.
 
-## Advanced Usage
+## 🪁 Advanced Usage
 
 ### Multi-GPU Support
 
@@ -240,10 +240,10 @@ For more details on frame objects, refer to the [official Python documentation](
 
 The following table outlines the currently supported wrappers, each offering specialized functionality for different tracing and logging needs:
 
-| **Wrapper**           | **Description**                                                                                         |
-|-----------------------|---------------------------------------------------------------------------------------------------------|
-| [**BaseWrapper**](objwatch/wrappers/base_wrapper.py)        | Implements basic logging functionality for monitoring function calls and returns.                       |
-| [**CPUMemoryWrapper**](objwatch/wrappers/cpu_memory_wrapper.py)   | Uses `psutil.virtual_memory()` to retrieve CPU memory statistics. Allows selection of specific metrics for monitoring CPU memory usage during function execution. |
+| **Wrapper**                                                         | **Description**                                                                                         |
+|---------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
+| [**BaseWrapper**](objwatch/wrappers/base_wrapper.py)                | Implements basic logging functionality for monitoring function calls and returns.                       |
+| [**CPUMemoryWrapper**](objwatch/wrappers/cpu_memory_wrapper.py)     | Uses `psutil.virtual_memory()` to retrieve CPU memory statistics. Allows selection of specific metrics for monitoring CPU memory usage during function execution. |
 | [**TensorShapeWrapper**](objwatch/wrappers/tensor_shape_wrapper.py) | Logs the shapes of `torch.Tensor` objects, useful for machine learning and deep learning workflows.     |
 | [**TorchMemoryWrapper**](objwatch/wrappers/torch_memory_wrapper.py) | Uses `torch.cuda.memory_stats()` to retrieve GPU memory statistics. Allows selection of specific metrics for monitoring GPU memory usage, including allocation, reservation, and freeing of memory. |
 
@@ -278,13 +278,13 @@ with obj_watch:
 
 It is recommended to refer to the  [`tests/test_torch_train.py`](tests/test_torch_train.py)  file. This file contains a complete example of a PyTorch training process, demonstrating how to integrate ObjWatch for monitoring and logging.
 
-## Support
+## 💬 Support
 
 If you encounter any issues or have questions, feel free to open an issue on the [ObjWatch GitHub repository](https://github.com/aeeeeeep/objwatch) or reach out via email at [aeeeeeep@proton.me](mailto:aeeeeeep@proton.me).
 
 More usage examples can be found in the `examples` directory, which is actively being updated.
 
-## Acknowledgements
+## 🙏 Acknowledgements
 
 - Inspired by the need for better debugging and understanding tools in large Python projects.
 - Powered by Python's robust tracing and logging capabilities.
