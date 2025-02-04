@@ -9,32 +9,32 @@
 
 \[ [English](README.md) | 中文 \]
 
-## 概述
+## 🔭 概述
 
 ObjWatch 是一个用于简化复杂项目调试和监控的 Python 工具库。通过实时追踪对象属性和方法调用，ObjWatch 使开发者能够深入了解代码库，帮助识别问题、优化性能并提升代码质量。
 
-**⚠️ 性能警告**
+**⚠️ 性能提示**
 
 ObjWatch 会影响程序的性能，建议仅在调试环境中使用。
 
-## 功能
+## ✨ 功能
 
-- **嵌套结构追踪**：通过清晰的层次化日志，直观地可视化和监控嵌套的函数调用和对象交互。
-- **增强的日志支持**：利用 Python 内建的 `logging` 模块进行结构化、可定制的日志输出，支持简单和详细模式。此外，为确保即使 logger 被外部库禁用或删除，你也可以设置 `level="force"`。当 `level` 设置为 `"force"` 时，ObjWatch 将绕过标准的日志处理器，直接使用 `print()` 将日志消息输出到控制台，确保关键的调试信息不会丢失。
-- **日志消息类型**：ObjWatch 将日志消息分类，以便提供详细的代码执行信息。主要类型包括：
+- **🌳 嵌套结构追踪**：通过清晰的层次化日志，直观地可视化和监控嵌套的函数调用和对象交互。
+- **📝 增强的日志支持**：利用 Python 内建的 `logging` 模块进行结构化、可定制的日志输出，支持简单和详细模式。此外，为确保即使 logger 被外部库禁用或删除，你也可以设置 `level="force"`。当 `level` 设置为 `"force"` 时，ObjWatch 将绕过标准的日志处理器，直接使用 `print()` 将日志消息输出到控制台，确保关键的调试信息不会丢失。
+- **📋 日志消息类型**：ObjWatch 将日志消息分类，以便提供详细的代码执行信息。主要类型包括：
 
   - **`run`**：表示函数或类方法的执行开始。
   - **`end`**：表示函数或类方法的执行结束。
   - **`upd`**：表示新变量的创建。
-  - **`apd`**：表示向列表、集合或字典等数据结构中添加元素。
-  - **`pop`**：表示从列表、集合或字典等数据结构中移除元素。
+  - **`apd`**：表示向数据结构中添加元素。
+  - **`pop`**：表示从数据结构中移除元素。
 
   这些分类帮助开发者高效地追踪和调试代码，了解程序中的执行流和状态变化。
-- **多 GPU 支持**：无缝追踪分布式 PyTorch 程序，支持跨多个 GPU 运行，确保高性能环境中的全面监控。
-- **自定义包装器扩展**：通过自定义包装器扩展 ObjWatch 的功能，使其能够根据项目需求进行定制化的追踪和日志记录。
-- **上下文管理器和 API 集成**：通过上下文管理器或 API 函数轻松集成 ObjWatch，无需依赖命令行界面。
+- **🔥 多 GPU 支持**：无缝追踪分布式 PyTorch 程序，支持跨多个 GPU 运行，确保高性能环境中的全面监控。
+- **🔌 自定义包装器扩展**：通过自定义包装器扩展 ObjWatch 的功能，使其能够根据项目需求进行定制化的追踪和日志记录。
+- **🎛️ 上下文管理器和 API 集成**：通过上下文管理器或 API 函数轻松集成 ObjWatch，无需依赖命令行界面。
 
-## 安装
+## 📦 安装
 
 ObjWatch 可通过 [PyPI](https://pypi.org/project/objwatch) 安装。使用 `pip` 安装：
 
@@ -47,10 +47,10 @@ pip install objwatch
 ```bash
 git clone https://github.com/aeeeeeep/objwatch.git
 cd objwatch
-pip install .
+pip install -e .
 ```
 
-## 快速开始
+## 🚀 快速开始
 
 ### 基本用法
 
@@ -176,7 +176,7 @@ examples/example_usage.py
 
 </details>
 
-## 配置
+## ⚙️ 配置
 
 ObjWatch 提供可定制的日志格式和追踪选项，适应不同项目需求。使用 `simple` 参数可以在详细和简化日志输出之间切换。
 
@@ -194,7 +194,7 @@ ObjWatch 提供可定制的日志格式和追踪选项，适应不同项目需�
 - `with_globals`（布尔值，可选）：启用跨函数调用的全局变量追踪和日志记录。
 - `with_module_path`（布尔值，可选）：控制是否在日志中的函数名称前添加模块路径前缀。
 
-## 高级用法
+## 🪁 高级用法
 
 ### 多 GPU 支持
 
@@ -239,11 +239,11 @@ ObjWatch 提供了 `ABCWrapper` 抽象基类，允许用户创建自定义包装
 
 下表概述了目前支持的 Wrapper，每个 Wrapper 提供了针对不同跟踪和日志记录需求的专业功能：
 
-| **Wrapper**           | **描述**                                                                                         |
-|-----------------------|--------------------------------------------------------------------------------------------------|
-| [**BaseWrapper**](objwatch/wrappers/base_wrapper.py)        | 实现了基本的日志记录功能，用于监控函数调用和返回。                                                |
-| [**CPUMemoryWrapper**](objwatch/wrappers/cpu_memory_wrapper.py)   | 使用 `psutil.virtual_memory()` 获取 CPU 内存统计信息，支持选择特定的指标，用于在函数执行过程中监控 CPU 内存使用情况。 |
-| [**TensorShapeWrapper**](objwatch/wrappers/tensor_shape_wrapper.py) | 记录 `torch.Tensor` 对象的形状，适用于机器学习和深度学习工作流中的调试与性能分析。              |
+| **Wrapper**                                                         | **描述**                                                                                         |
+|---------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
+| [**BaseWrapper**](objwatch/wrappers/base_wrapper.py)                | 实现了基本的日志记录功能，用于监控函数调用和返回。                                                  |
+| [**CPUMemoryWrapper**](objwatch/wrappers/cpu_memory_wrapper.py)     | 使用 `psutil.virtual_memory()` 获取 CPU 内存统计信息，支持选择特定的指标，用于在函数执行过程中监控 CPU 内存使用情况。 |
+| [**TensorShapeWrapper**](objwatch/wrappers/tensor_shape_wrapper.py) | 记录 `torch.Tensor` 对象的形状，适用于机器学习和深度学习工作流中的调试与性能分析。                   |
 | [**TorchMemoryWrapper**](objwatch/wrappers/torch_memory_wrapper.py) | 使用 `torch.cuda.memory_stats()` 获取 GPU 内存统计信息，支持选择特定的指标，用于监控 GPU 显存使用情况，包括分配、预留和释放内存等。 |
 
 #### TensorShapeWrapper
@@ -277,13 +277,13 @@ with obj_watch:
 
 推荐阅读 [`tests/test_torch_train.py`](tests/test_torch_train.py) 文件。该文件包含了一个完整的 PyTorch 训练过程示例，展示了如何集成 ObjWatch 进行监控和日志记录。
 
-## 支持
+## 💬 支持
 
 如果遇到任何问题或有疑问，请随时在 [ObjWatch GitHub 仓库](https://github.com/aeeeeeep/objwatch) 提交 issue，或通过电子邮件与我们联系 [aeeeeeep@proton.me](mailto:aeeeeeep@proton.me)。
 
 更多使用示例可以在 `examples` 目录中找到，我们正在积极更新这个目录。
 
-## 致谢
+## 🙏 致谢
 
 - 灵感来源于对大型 Python 项目更深入理解和便捷调试的需求。
 - 基于 Python 强大的追踪和日志记录功能。
