@@ -47,7 +47,7 @@ pip install objwatch
 ```bash
 git clone https://github.com/aeeeeeep/objwatch.git
 cd objwatch
-pip install .
+pip install -e .
 ```
 
 ## 🚀 快速开始
