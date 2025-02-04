@@ -236,6 +236,17 @@ The `ABCWrapper` class defines two essential methods that must be implemented:
 
 For more details on frame objects, refer to the [official Python documentation](https://docs.python.org/3/library/types.html#types.FrameType).
 
+#### Supported Wrappers
+
+The following table outlines the currently supported wrappers, each offering specialized functionality for different tracing and logging needs:
+
+| **Wrapper**           | **Description**                                                                                         |
+|-----------------------|---------------------------------------------------------------------------------------------------------|
+| [**BaseWrapper**](objwatch/wrappers/base_wrapper.py)        | Implements basic logging functionality for monitoring function calls and returns.                       |
+| [**CPUMemoryWrapper**](objwatch/wrappers/cpu_memory_wrapper.py)   | Uses `psutil.virtual_memory()` to retrieve CPU memory statistics. Allows selection of specific metrics for monitoring CPU memory usage during function execution. |
+| [**TensorShapeWrapper**](objwatch/wrappers/tensor_shape_wrapper.py) | Logs the shapes of `torch.Tensor` objects, useful for machine learning and deep learning workflows.     |
+| [**TorchMemoryWrapper**](objwatch/wrappers/torch_memory_wrapper.py) | Uses `torch.cuda.memory_stats()` to retrieve GPU memory statistics. Allows selection of specific metrics for monitoring GPU memory usage, including allocation, reservation, and freeing of memory. |
+
 #### TensorShapeWrapper
 
 As an example of a custom wrapper, ObjWatch includes the `TensorShapeWrapper` class within the `objwatch.wrappers` module. This wrapper automatically logs the shapes of tensors involved in function calls, which is particularly beneficial in machine learning and deep learning workflows where tensor dimensions are critical for model performance and debugging.
