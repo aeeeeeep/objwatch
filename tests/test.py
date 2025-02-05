@@ -484,9 +484,9 @@ class TestLoggerForce(unittest.TestCase):
 
         mock_print.assert_called_with(msg, flush=True)
 
-    @patch('objwatch.utils.logger.logger.info')
-    @patch('objwatch.utils.logger.logger.debug')
-    @patch('objwatch.utils.logger.logger.warning')
+    @patch('objwatch.utils.logger.LOGGER.info')
+    @patch('objwatch.utils.logger.LOGGER.debug')
+    @patch('objwatch.utils.logger.LOGGER.warning')
     @patch('builtins.print')
     def test_log_functions_force_false(self, mock_print, mock_warning, mock_debug, mock_info):
         import objwatch.utils.logger

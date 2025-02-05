@@ -4,9 +4,13 @@
 import logging
 from typing import Optional, Any, Union
 
+global FORCE, LOGGER
+
 # Global flag to force print logs instead of using the logger
-global FORCE
 FORCE: bool = False
+
+# Initialize the logger for 'objwatch'
+LOGGER: logging.Logger = logging.getLogger('objwatch')
 
 
 def create_logger(
@@ -52,10 +56,6 @@ def create_logger(
     logger.propagate = False
 
 
-# Initialize the logger for 'objwatch'
-logger = logging.getLogger('objwatch')
-
-
 def get_logger() -> logging.Logger:
     """
     Retrieve the configured logger.
@@ -63,7 +63,13 @@ def get_logger() -> logging.Logger:
     Returns:
         logging.Logger: The logger instance.
     """
-    return logger
+    global LOGGER
+    return LOGGER
+
+
+def switch_logger(name: str):
+    global LOGGER
+    LOGGER = logging.getLogger(name)
 
 
 def log_info(msg: str, *args: Any, **kwargs: Any) -> None:
@@ -75,11 +81,11 @@ def log_info(msg: str, *args: Any, **kwargs: Any) -> None:
         *args (Any): Variable length argument list.
         **kwargs (Any): Arbitrary keyword arguments.
     """
-    global FORCE
+    global FORCE, LOGGER
     if FORCE:
         print(msg, flush=True)
     else:
-        logger.info(msg, *args, **kwargs)
+        LOGGER.info(msg, *args, **kwargs)
 
 
 def log_debug(msg: str, *args: Any, **kwargs: Any) -> None:
@@ -91,11 +97,11 @@ def log_debug(msg: str, *args: Any, **kwargs: Any) -> None:
         *args (Any): Variable length argument list.
         **kwargs (Any): Arbitrary keyword arguments.
     """
-    global FORCE
+    global FORCE, LOGGER
     if FORCE:
         print(msg, flush=True)
     else:
-        logger.debug(msg, *args, **kwargs)
+        LOGGER.debug(msg, *args, **kwargs)
 
 
 def log_warn(msg: str, *args: Any, **kwargs: Any) -> None:
@@ -107,11 +113,11 @@ def log_warn(msg: str, *args: Any, **kwargs: Any) -> None:
         *args (Any): Variable length argument list.
         **kwargs (Any): Arbitrary keyword arguments.
     """
-    global FORCE
+    global FORCE, LOGGER
     if FORCE:
         print(msg, flush=True)
     else:
-        logger.warning(msg, *args, **kwargs)
+        LOGGER.warning(msg, *args, **kwargs)
 
 
 def log_error(msg: str, *args: Any, **kwargs: Any) -> None:
@@ -123,8 +129,8 @@ def log_error(msg: str, *args: Any, **kwargs: Any) -> None:
         *args (Any): Variable length argument list.
         **kwargs (Any): Arbitrary keyword arguments.
     """
-    global FORCE
+    global FORCE, LOGGER
     if FORCE:
         print(msg, flush=True)
     else:
-        logger.error(msg, *args, **kwargs)
+        LOGGER.error(msg, *args, **kwargs)
