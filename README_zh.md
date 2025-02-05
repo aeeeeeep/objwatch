@@ -184,7 +184,8 @@ ObjWatch 提供可定制的日志格式和追踪选项，适应不同项目需�
 
 - `targets`（列表）：要监控的文件或模块。
 - `exclude_targets`（列表，可选）：要排除监控的文件或模块。
-- `ranks`（列表，可选）：在使用 `torch.distributed` 时跟踪的 GPU ids。
+- `framework` (字符串，可选)：需要使用的多进程框架模块。
+- `indexes` (列表，可选)：需要在多进程环境中跟踪的 ids。
 - `output`（字符串，可选）：写入日志的文件路径。
 - `output_xml`（字符串，可选）：用于写入结构化日志的 XML 文件路径。如果指定，将以嵌套的 XML 格式保存追踪信息，便于浏览和分析。
 - `level`（字符串，可选）：日志级别（例如 `logging.DEBUG`，`logging.INFO`，`force` 等）。
