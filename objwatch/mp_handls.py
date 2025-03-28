@@ -3,10 +3,10 @@
 
 from typing import Optional
 from types import FunctionType
-from .utils.logger import log_error, log_warn, log_info
+from .utils.logger import log_error, log_info
 
 
-class MultiProcHandls:
+class MPHandls:
     """
     Handles multi-process initialization and synchronization
     using specified multi-process frameworks.
@@ -43,6 +43,7 @@ class MultiProcHandls:
             self._check_init_multiprocessing()
         else:
             log_error(f"Invalid framework: {self.framework}")
+            raise ValueError(f"Invalid framework: {self.framework}")
 
     def sync(self) -> None:
         """

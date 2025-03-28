@@ -2,6 +2,7 @@
 # Copyright (c) 2025 aeeeeeep
 
 import sys
+import logging
 import pkgutil
 import importlib
 from functools import lru_cache
@@ -11,7 +12,7 @@ from typing import Optional, Union, Any, Dict, List, Set
 from .wrappers import ABCWrapper
 from .events import EventType
 from .event_handls import EventHandls, log_sequence_types
-from .multiproc_handls import MultiProcHandls
+from .mp_handls import MPHandls
 from .utils.logger import log_error, log_debug, log_warn, log_info
 from .utils.weak import WeakIdKeyDictionary
 
@@ -83,7 +84,7 @@ class Tracer:
         self.event_handlers: EventHandls = EventHandls(output_xml=output_xml)
 
         # Initialize multi-process handler with the specified framework
-        self.multiproc_handlers: MultiProcHandls = MultiProcHandls(framework=framework)
+        self.mp_handlers: MPHandls = MPHandls(framework=framework)
         self.index_info: str = ""
         self.current_index = None
         self.indexes: Set[int] = set(indexes if indexes is not None else [0])
@@ -421,8 +422,8 @@ class Tracer:
 
             if self.current_index is None:
                 # Check if multi-process framework is initialized and set the current process index
-                if self.multiproc_handlers.is_initialized():
-                    self.current_index = self.multiproc_handlers.get_index()
+                if self.mp_handlers.is_initialized():
+                    self.current_index = self.mp_handlers.get_index()
                     self.index_info = f"[#{self.current_index}] "
             elif self.current_index not in self.indexes:
                 # Skip tracing for processes that are not part of the tracked indexes
@@ -486,7 +487,7 @@ class Tracer:
         """
         log_info("Starting tracing.")
         sys.settrace(self.trace_factory())
-        self.multiproc_handlers.sync()
+        self.mp_handlers.sync()
 
     def stop(self) -> None:
         """
