@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 import logging
 from io import StringIO
 import objwatch
+from objwatch.config import ObjWatchConfig
 from objwatch.wrappers import BaseWrapper, TensorShapeWrapper, ABCWrapper
 from objwatch.core import ObjWatch
 from objwatch.tracer import Tracer
@@ -358,7 +359,8 @@ class TestCustomWrapper(unittest.TestCase):
 
 class TestTracerProcessTargetsStr(unittest.TestCase):
     def test_process_targets_with_submodules(self):
-        tracer = Tracer(targets=['importlib'])
+        config = ObjWatchConfig(targets=['importlib'])
+        tracer = Tracer(config=config)
         processed = tracer._process_targets(['importlib'])
 
         main_module_file = importlib.__file__
@@ -400,7 +402,8 @@ class TestTracerProcessTargetsStr(unittest.TestCase):
 
 class TestTracerProcessTargetsModule(unittest.TestCase):
     def test_process_targets_with_submodules(self):
-        tracer = Tracer(targets=[importlib])
+        config = ObjWatchConfig(targets=[importlib])
+        tracer = Tracer(config=config)
         processed = tracer._process_targets([importlib])
 
         main_module_file = importlib.__file__
