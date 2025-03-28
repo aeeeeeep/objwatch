@@ -2,13 +2,13 @@
 # Copyright (c) 2025 aeeeeeep
 
 import sys
-import logging
 import pkgutil
 import importlib
 from functools import lru_cache
 from types import FunctionType, FrameType, ModuleType
 from typing import Optional, Union, Any, Dict, List, Set
 
+from .config import ObjWatchConfig
 from .wrappers import ABCWrapper
 from .events import EventType
 from .event_handls import EventHandls, log_sequence_types
@@ -25,37 +25,22 @@ class Tracer:
 
     def __init__(
         self,
-        targets: List[Union[str, ModuleType]],
-        exclude_targets: Optional[List[str]] = None,
-        framework: Optional[str] = None,
-        indexes: Optional[List[int]] = None,
-        wrapper: Optional[ABCWrapper] = None,
-        output_xml: Optional[str] = None,
-        with_locals: bool = False,
-        with_globals: bool = False,
-        with_module_path: bool = False,
+        config: ObjWatchConfig,
     ) -> None:
         """
         Initialize the Tracer with configuration parameters.
 
         Args:
-            targets (List[str]): Files or modules to monitor.
-            exclude_targets (Optional[List[str]]): Files or modules to exclude from monitoring.
-            framework (Optional[str]): The multi-process framework module to use.
-            indexes (Optional[List[int]]): The indexes to track in a multi-process environment.
-            wrapper (Optional[ABCWrapper]): Custom wrapper to extend tracing and logging functionality.
-            output_xml (Optional[str]): Path to the XML file for writing structured logs.
-            with_locals (bool): Enable tracing and logging of local variables within functions.
-            with_globals (bool): Enable tracing and logging of global variables across function calls.
-            with_module_path (bool): Prepend the module path to function names in logs.
+            config (ObjWatchConfig): Configuration parameters for ObjWatch.
         """
-        self.with_locals: bool = with_locals
-        if self.with_locals:
+
+        self.config = config
+
+        if self.config.with_locals:
             self.tracked_locals: Dict[FrameType, Dict[str, Any]] = {}
             self.tracked_locals_lens: Dict[FrameType, Dict[str, int]] = {}
 
-        self.with_globals: bool = with_globals
-        if self.with_globals:
+        if self.config.with_globals:
             self.tracked_globals: Dict[FrameType, Dict[str, Any]] = {}
             self.tracked_globals_lens: Dict[FrameType, Dict[str, int]] = {}
             # List of Python built-in fields to exclude from tracking
@@ -70,10 +55,10 @@ class Tracer:
                 '__cached__',
             }
 
-        self.with_module_path: bool = with_module_path
-
         # Process and determine the set of target files to monitor
-        self.targets: Set[str] = self._process_targets(targets) - self._process_targets(exclude_targets)
+        self.targets: Set[str] = self._process_targets(self.config.targets) - self._process_targets(
+            self.config.exclude_targets
+        )
         log_debug(f"Processed targets:\n{'>' * 10}\n" + "\n".join(self.targets) + f"\n{'<' * 10}")
 
         # Initialize tracking dictionaries for objects
@@ -81,16 +66,16 @@ class Tracer:
         self.tracked_objects_lens: WeakIdKeyDictionary = WeakIdKeyDictionary()
 
         # Initialize event handlers with optional XML output
-        self.event_handlers: EventHandls = EventHandls(output_xml=output_xml)
+        self.event_handlers: EventHandls = EventHandls(output_xml=self.config.output_xml)
 
         # Initialize multi-process handler with the specified framework
-        self.mp_handlers: MPHandls = MPHandls(framework=framework)
+        self.mp_handlers: MPHandls = MPHandls(framework=self.config.framework)
         self.index_info: str = ""
         self.current_index = None
-        self.indexes: Set[int] = set(indexes if indexes is not None else [0])
+        self.indexes: Set[int] = set(self.config.indexes if self.config.indexes is not None else [0])
 
         # Load the function wrapper if provided
-        self.abc_wrapper: ABCWrapper = self.load_wrapper(wrapper)
+        self.abc_wrapper: ABCWrapper = self.load_wrapper(self.config.wrapper)
         self.call_depth: int = 0
 
     def _process_targets(self, targets: Optional[List[Union[str, ModuleType]]]) -> Set[str]:
@@ -169,7 +154,7 @@ class Tracer:
         func_info: Dict[str, Any] = {}
         func_name: str = frame.f_code.co_name
 
-        if self.with_module_path:
+        if self.config.with_module_path:
             module_name: str = frame.f_globals.get('__name__', '')
             if module_name:
                 func_name = f"{module_name}.{func_name}"
@@ -437,7 +422,7 @@ class Tracer:
                 self.call_depth += 1
 
                 # Track local variables if needed
-                if self.with_locals:
+                if self.config.with_locals:
                     local_vars: Dict[str, Any] = {
                         k: v for k, v in frame.f_locals.items() if k != 'self' and not callable(v)
                     }
@@ -458,7 +443,7 @@ class Tracer:
                 )
 
                 # Clean up local tracking after function return
-                if self.with_locals and frame in self.tracked_locals:
+                if self.config.with_locals and frame in self.tracked_locals:
                     del self.tracked_locals[frame]
                     del self.tracked_locals_lens[frame]
 
@@ -469,10 +454,10 @@ class Tracer:
                 if 'self' in frame.f_locals:
                     self._track_object_change(frame, lineno)
 
-                if self.with_locals:
+                if self.config.with_locals:
                     self._track_locals_change(frame, lineno)
 
-                if self.with_globals:
+                if self.config.with_globals:
                     self._track_globals_change(frame, lineno)
 
                 return trace_func

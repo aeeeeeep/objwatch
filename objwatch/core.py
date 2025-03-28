@@ -4,6 +4,8 @@
 import logging
 from types import ModuleType
 from typing import Optional, Union, List, Any
+
+from .config import ObjWatchConfig
 from .tracer import Tracer
 from .wrappers import ABCWrapper
 from .utils.logger import create_logger, log_info
@@ -46,21 +48,27 @@ class ObjWatch:
             with_globals (bool): Enable tracing and logging of global variables across function calls.
             with_module_path (bool): Prepend the module path to function names in logs.
         """
-        # Create and configure the logger based on provided parameters
-        create_logger(output=output, level=level, simple=simple)
-
-        # Initialize the Tracer with the given configuration
-        self.tracer = Tracer(
+        # Create configuration parameters for ObjWatch
+        config = ObjWatchConfig(
             targets=targets,
             exclude_targets=exclude_targets,
             framework=framework,
             indexes=indexes,
-            wrapper=wrapper,
+            output=output,
             output_xml=output_xml,
+            level=level,
+            simple=simple,
+            wrapper=wrapper,
             with_locals=with_locals,
             with_globals=with_globals,
             with_module_path=with_module_path,
         )
+
+        # Create and configure the logger based on provided parameters
+        create_logger(output=config.output, level=config.level, simple=config.simple)
+
+        # Initialize the Tracer with the given configuration
+        self.tracer = Tracer(config=config)
 
     def start(self) -> None:
         """

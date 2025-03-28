@@ -5,6 +5,7 @@ import os
 import unittest
 from unittest.mock import patch
 import xml.etree.ElementTree as ET
+from objwatch.config import ObjWatchConfig
 from objwatch.tracer import Tracer
 from objwatch.wrappers import BaseWrapper
 from tests.util import compare_xml_elements
@@ -15,13 +16,15 @@ class TestOutputXML(unittest.TestCase):
         self.test_output = "test_trace.xml"
         self.golden_output = "tests/utils/golden_output_xml.xml"
 
-        self.tracer = Tracer(
+        config = ObjWatchConfig(
             targets="tests/test_output_xml.py",
             output_xml=self.test_output,
             wrapper=BaseWrapper,
             with_module_path=True,
             with_locals=True,
         )
+
+        self.tracer = Tracer(config=config)
 
     def tearDown(self):
         self.tracer.stop()
