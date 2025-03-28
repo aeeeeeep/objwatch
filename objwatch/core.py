@@ -18,7 +18,8 @@ class ObjWatch:
         self,
         targets: List[Union[str, ModuleType]],
         exclude_targets: Optional[List[Union[str, ModuleType]]] = None,
-        ranks: Optional[List[int]] = None,
+        framework: Optional[str] = None,
+        indexes: Optional[List[int]] = None,
         output: Optional[str] = None,
         output_xml: Optional[str] = None,
         level: int = logging.DEBUG,
@@ -34,7 +35,8 @@ class ObjWatch:
         Args:
             targets (List[Union[str, ModuleType]]): Files or modules to monitor.
             exclude_targets (Optional[List[Union[str, ModuleType]]]): Files or modules to exclude from monitoring.
-            ranks (Optional[List[int]]): GPU ranks to track when using torch.distributed.
+            framework (Optional[str]): The multi-process framework module to use.
+            indexes (Optional[List[int]]): The indexes to track in a multi-process environment.
             output (Optional[str]): Path to a file for writing logs.
             output_xml (Optional[str]): Path to the XML file for writing structured logs.
             level (int): Logging level (e.g., logging.DEBUG, logging.INFO).
@@ -51,7 +53,8 @@ class ObjWatch:
         self.tracer = Tracer(
             targets=targets,
             exclude_targets=exclude_targets,
-            ranks=ranks,
+            framework=framework,
+            indexes=indexes,
             wrapper=wrapper,
             output_xml=output_xml,
             with_locals=with_locals,
@@ -110,7 +113,8 @@ class ObjWatch:
 def watch(
     targets: List[Union[str, ModuleType]],
     exclude_targets: Optional[List[Union[str, ModuleType]]] = None,
-    ranks: Optional[List[int]] = None,
+    framework: Optional[str] = None,
+    indexes: Optional[List[int]] = None,
     output: Optional[str] = None,
     output_xml: Optional[str] = None,
     level: int = logging.DEBUG,
@@ -126,7 +130,8 @@ def watch(
     Args:
         targets (List[Union[str, ModuleType]]): Files or modules to monitor.
         exclude_targets (Optional[List[Union[str, ModuleType]]]): Files or modules to exclude from monitoring.
-        ranks (Optional[List[int]]): GPU ranks to track when using torch.distributed.
+        framework (Optional[str]): The multi-process framework module to use.
+        indexes (Optional[List[int]]): The indexes to track in a multi-process environment.
         output (Optional[str]): Path to a file for writing logs.
         output_xml (Optional[str]): Path to the XML file for writing structured logs.
         level (int): Logging level (e.g., logging.DEBUG, logging.INFO).
@@ -143,7 +148,8 @@ def watch(
     obj_watch = ObjWatch(
         targets=targets,
         exclude_targets=exclude_targets,
-        ranks=ranks,
+        framework=framework,
+        indexes=indexes,
         output=output,
         output_xml=output_xml,
         level=level,

@@ -68,7 +68,7 @@ class EventHandls:
                 signal.signal(signal_type, self.signal_handler)
 
     def handle_run(
-        self, lineno: int, func_info: Dict[str, Any], abc_wrapper: Optional[Any], call_depth: int, rank_info: str
+        self, lineno: int, func_info: Dict[str, Any], abc_wrapper: Optional[Any], call_depth: int, index_info: str
     ) -> None:
         """
         Handle the 'run' event indicating the start of a function or method execution.
@@ -78,7 +78,7 @@ class EventHandls:
             func_info (Dict[str, Any]): Information about the function being executed.
             abc_wrapper (Optional[Any]): Custom wrapper for additional processing.
             call_depth (int): Current depth of the call stack.
-            rank_info (str): Information about the GPU rank, if applicable.
+            index_info (str): Information about the index to track in a multi-process environment.
         """
         func_name = func_info['func_name']
         if func_info.get('is_method', False):
@@ -94,7 +94,7 @@ class EventHandls:
             logger_msg += ' <- ' + call_msg
 
         prefix = f"{lineno:>5} " + "| " * call_depth
-        log_debug(f"{rank_info}{prefix}{EventType.RUN.label} {logger_msg}")
+        log_debug(f"{index_info}{prefix}{EventType.RUN.label} {logger_msg}")
 
         if self.output_xml:
             function_element = ET.Element('Function', attrib=attrib)
@@ -107,7 +107,7 @@ class EventHandls:
         func_info: Dict[str, Any],
         abc_wrapper: Optional[Any],
         call_depth: int,
-        rank_info: str,
+        index_info: str,
         result: Any,
     ) -> None:
         """
@@ -118,7 +118,7 @@ class EventHandls:
             func_info (Dict[str, Any]): Information about the function that has ended.
             abc_wrapper (Optional[Any]): Custom wrapper for additional processing.
             call_depth (int): Current depth of the call stack.
-            rank_info (str): Information about the GPU rank, if applicable.
+            index_info (str): Information about the index to track in a multi-process environment.
             result (Any): The result returned by the function.
         """
         func_name = func_info['func_name']
@@ -134,7 +134,7 @@ class EventHandls:
             logger_msg += ' -> ' + return_msg
 
         prefix = f"{lineno:>5} " + "| " * call_depth
-        log_debug(f"{rank_info}{prefix}{EventType.END.label} {logger_msg}")
+        log_debug(f"{index_info}{prefix}{EventType.END.label} {logger_msg}")
 
         if self.output_xml and len(self.current_node) > 1:
             self.current_node[-1].set('return_msg', return_msg)
@@ -149,7 +149,7 @@ class EventHandls:
         old_value: Any,
         current_value: Any,
         call_depth: int,
-        rank_info: str,
+        index_info: str,
         abc_wrapper: Optional[Any] = None,
     ) -> None:
         """
@@ -162,7 +162,7 @@ class EventHandls:
             old_value (Any): Previous value of the variable.
             current_value (Any): New value of the variable.
             call_depth (int): Current depth of the call stack.
-            rank_info (str): Information about the GPU rank, if applicable.
+            index_info (str): Information about the index to track in a multi-process environment.
             abc_wrapper (Optional[Any]): Custom wrapper for additional processing.
         """
         if abc_wrapper:
@@ -176,7 +176,7 @@ class EventHandls:
         diff_msg = f" {old_msg} -> {current_msg}"
         logger_msg = f"{class_name}.{key}{diff_msg}"
         prefix = f"{lineno:>5} " + "| " * call_depth
-        log_debug(f"{rank_info}{prefix}{EventType.UPD.label} {logger_msg}")
+        log_debug(f"{index_info}{prefix}{EventType.UPD.label} {logger_msg}")
 
         if self.output_xml:
             upd_element = ET.Element(
@@ -199,7 +199,7 @@ class EventHandls:
         old_value_len: int,
         current_value_len: int,
         call_depth: int,
-        rank_info: str,
+        index_info: str,
     ) -> None:
         """
         Handle the 'apd' event denoting the addition of elements to data structures.
@@ -212,12 +212,12 @@ class EventHandls:
             old_value_len (int): Previous length of the data structure.
             current_value_len (int): New length of the data structure.
             call_depth (int): Current depth of the call stack.
-            rank_info (str): Information about the GPU rank, if applicable.
+            index_info (str): Information about the index to track in a multi-process environment.
         """
         diff_msg = f" ({value_type.__name__})(len){old_value_len} -> {current_value_len}"
         logger_msg = f"{class_name}.{key}{diff_msg}"
         prefix = f"{lineno:>5} " + "| " * call_depth
-        log_debug(f"{rank_info}{prefix}{EventType.APD.label} {logger_msg}")
+        log_debug(f"{index_info}{prefix}{EventType.APD.label} {logger_msg}")
 
         if self.output_xml:
             apd_element = ET.Element(
@@ -240,7 +240,7 @@ class EventHandls:
         old_value_len: int,
         current_value_len: int,
         call_depth: int,
-        rank_info: str,
+        index_info: str,
     ) -> None:
         """
         Handle the 'pop' event marking the removal of elements from data structures.
@@ -253,12 +253,12 @@ class EventHandls:
             old_value_len (int): Previous length of the data structure.
             current_value_len (int): New length of the data structure.
             call_depth (int): Current depth of the call stack.
-            rank_info (str): Information about the GPU rank, if applicable.
+            index_info (str): Information about the index to track in a multi-process environment.
         """
         diff_msg = f" ({value_type.__name__})(len){old_value_len} -> {current_value_len}"
         logger_msg = f"{class_name}.{key}{diff_msg}"
         prefix = f"{lineno:>5} " + "| " * call_depth
-        log_debug(f"{rank_info}{prefix}{EventType.POP.label} {logger_msg}")
+        log_debug(f"{index_info}{prefix}{EventType.POP.label} {logger_msg}")
 
         if self.output_xml:
             pop_element = ET.Element(

@@ -2,6 +2,7 @@
 # Copyright (c) 2025 aeeeeeep
 
 import sys
+import logging
 import pkgutil
 import importlib
 from functools import lru_cache
@@ -11,15 +12,9 @@ from typing import Optional, Union, Any, Dict, List, Set
 from .wrappers import ABCWrapper
 from .events import EventType
 from .event_handls import EventHandls, log_sequence_types
+from .mp_handls import MPHandls
 from .utils.logger import log_error, log_debug, log_warn, log_info
-from .utils.weak import WeakTensorKeyDictionary
-
-try:
-    import torch
-
-    torch_available = True
-except ImportError:
-    torch_available = False
+from .utils.weak import WeakIdKeyDictionary
 
 
 class Tracer:
@@ -32,7 +27,8 @@ class Tracer:
         self,
         targets: List[Union[str, ModuleType]],
         exclude_targets: Optional[List[str]] = None,
-        ranks: Optional[List[int]] = None,
+        framework: Optional[str] = None,
+        indexes: Optional[List[int]] = None,
         wrapper: Optional[ABCWrapper] = None,
         output_xml: Optional[str] = None,
         with_locals: bool = False,
@@ -45,7 +41,8 @@ class Tracer:
         Args:
             targets (List[str]): Files or modules to monitor.
             exclude_targets (Optional[List[str]]): Files or modules to exclude from monitoring.
-            ranks (Optional[List[int]]): GPU ranks to track when using torch.distributed.
+            framework (Optional[str]): The multi-process framework module to use.
+            indexes (Optional[List[int]]): The indexes to track in a multi-process environment.
             wrapper (Optional[ABCWrapper]): Custom wrapper to extend tracing and logging functionality.
             output_xml (Optional[str]): Path to the XML file for writing structured logs.
             with_locals (bool): Enable tracing and logging of local variables within functions.
@@ -80,20 +77,17 @@ class Tracer:
         log_debug(f"Processed targets:\n{'>' * 10}\n" + "\n".join(self.targets) + f"\n{'<' * 10}")
 
         # Initialize tracking dictionaries for objects
-        self.tracked_objects: WeakTensorKeyDictionary = WeakTensorKeyDictionary()
-        self.tracked_objects_lens: WeakTensorKeyDictionary = WeakTensorKeyDictionary()
+        self.tracked_objects: WeakIdKeyDictionary = WeakIdKeyDictionary()
+        self.tracked_objects_lens: WeakIdKeyDictionary = WeakIdKeyDictionary()
 
         # Initialize event handlers with optional XML output
         self.event_handlers: EventHandls = EventHandls(output_xml=output_xml)
 
-        # Handle multi-GPU support if PyTorch is available
-        self.torch_available: bool = torch_available
-        self.rank_info: str = ""
-        if self.torch_available:
-            self.current_rank = None
-            self.ranks: Set[int] = set(ranks if ranks is not None else [0])
-        else:
-            self.ranks: Set[int] = set()
+        # Initialize multi-process handler with the specified framework
+        self.mp_handlers: MPHandls = MPHandls(framework=framework)
+        self.index_info: str = ""
+        self.current_index = None
+        self.indexes: Set[int] = set(indexes if indexes is not None else [0])
 
         # Load the function wrapper if provided
         self.abc_wrapper: ABCWrapper = self.load_wrapper(wrapper)
@@ -264,7 +258,7 @@ class Tracer:
                     old_value_len,
                     current_value_len,
                     self.call_depth,
-                    self.rank_info,
+                    self.index_info,
                 )
             elif change_type == EventType.POP:
                 self.event_handlers.handle_pop(
@@ -275,7 +269,7 @@ class Tracer:
                     old_value_len,
                     current_value_len,
                     self.call_depth,
-                    self.rank_info,
+                    self.index_info,
                 )
         elif change_type == EventType.UPD:
             self.event_handlers.handle_upd(
@@ -285,7 +279,7 @@ class Tracer:
                 old_value,
                 current_value,
                 self.call_depth,
-                self.rank_info,
+                self.index_info,
                 self.abc_wrapper,
             )
 
@@ -353,7 +347,7 @@ class Tracer:
                 old_value=None,
                 current_value=current_local,
                 call_depth=self.call_depth,
-                rank_info=self.rank_info,
+                index_info=self.index_info,
                 abc_wrapper=self.abc_wrapper,
             )
 
@@ -426,20 +420,20 @@ class Tracer:
             if self._filename_not_endswith(frame.f_code.co_filename):
                 return trace_func
 
-            # Handle multi-GPU ranks if PyTorch is available
-            if self.torch_available:
-                if self.current_rank is None:
-                    if torch.distributed and torch.distributed.is_initialized():
-                        self.current_rank = torch.distributed.get_rank()
-                        self.rank_info = f"[Rank {self.current_rank}] "
-                elif self.current_rank not in self.ranks:
-                    return trace_func
+            if self.current_index is None:
+                # Check if multi-process framework is initialized and set the current process index
+                if self.mp_handlers.is_initialized():
+                    self.current_index = self.mp_handlers.get_index()
+                    self.index_info = f"[#{self.current_index}] "
+            elif self.current_index not in self.indexes:
+                # Skip tracing for processes that are not part of the tracked indexes
+                return trace_func
 
             lineno = frame.f_lineno
             if event == "call":
                 # Handle function call event
                 func_info = self._get_function_info(frame)
-                self.event_handlers.handle_run(lineno, func_info, self.abc_wrapper, self.call_depth, self.rank_info)
+                self.event_handlers.handle_run(lineno, func_info, self.abc_wrapper, self.call_depth, self.index_info)
                 self.call_depth += 1
 
                 # Track local variables if needed
@@ -460,7 +454,7 @@ class Tracer:
                 self.call_depth -= 1
                 func_info = self._get_function_info(frame)
                 self.event_handlers.handle_end(
-                    lineno, func_info, self.abc_wrapper, self.call_depth, self.rank_info, arg
+                    lineno, func_info, self.abc_wrapper, self.call_depth, self.index_info, arg
                 )
 
                 # Clean up local tracking after function return
@@ -493,8 +487,7 @@ class Tracer:
         """
         log_info("Starting tracing.")
         sys.settrace(self.trace_factory())
-        if self.torch_available and torch.distributed and torch.distributed.is_initialized():
-            torch.distributed.barrier()
+        self.mp_handlers.sync()
 
     def stop(self) -> None:
         """
