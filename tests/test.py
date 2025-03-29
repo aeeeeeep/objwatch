@@ -12,6 +12,7 @@ import objwatch
 from objwatch.config import ObjWatchConfig
 from objwatch.wrappers import BaseWrapper, TensorShapeWrapper, ABCWrapper
 from objwatch.core import ObjWatch
+from objwatch.targets import Targets
 from objwatch.tracer import Tracer
 from tests.util import strip_line_numbers
 
@@ -357,11 +358,9 @@ class TestCustomWrapper(unittest.TestCase):
             self.logger.removeHandler(handler)
 
 
-class TestTracerProcessTargetsStr(unittest.TestCase):
-    def test_process_targets_with_submodules(self):
-        config = ObjWatchConfig(targets=['importlib'])
-        tracer = Tracer(config=config)
-        processed = tracer._process_targets(['importlib'])
+class TestTargetsStr(unittest.TestCase):
+    def test_targets_with_submodules(self):
+        processed = Targets(['importlib']).processed_targets
 
         main_module_file = importlib.__file__
         self.assertIn(main_module_file, processed, "Main module file was not processed.")
@@ -400,11 +399,9 @@ class TestTracerProcessTargetsStr(unittest.TestCase):
                 pass
 
 
-class TestTracerProcessTargetsModule(unittest.TestCase):
-    def test_process_targets_with_submodules(self):
-        config = ObjWatchConfig(targets=[importlib])
-        tracer = Tracer(config=config)
-        processed = tracer._process_targets([importlib])
+class TestTargetsModule(unittest.TestCase):
+    def test_targets_with_submodules(self):
+        processed = Targets([importlib]).processed_targets
 
         main_module_file = importlib.__file__
         self.assertIn(main_module_file, processed, "Main module file was not processed.")
