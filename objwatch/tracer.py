@@ -2,13 +2,12 @@
 # Copyright (c) 2025 aeeeeeep
 
 import sys
-import pkgutil
-import importlib
 from functools import lru_cache
-from types import FunctionType, FrameType, ModuleType
-from typing import Optional, Union, Any, Dict, List, Set
+from types import FunctionType, FrameType
+from typing import Optional, Any, Dict, Set
 
 from .config import ObjWatchConfig
+from .targets import Targets
 from .wrappers import ABCWrapper
 from .events import EventType
 from .event_handls import EventHandls, log_sequence_types
@@ -56,9 +55,7 @@ class Tracer:
             }
 
         # Process and determine the set of target files to monitor
-        self.targets: Set[str] = self._process_targets(self.config.targets) - self._process_targets(
-            self.config.exclude_targets
-        )
+        self.targets: Set[str] = Targets(self.config.targets, self.config.exclude_targets).processed_targets
         log_debug(f"Processed targets:\n{'>' * 10}\n" + "\n".join(self.targets) + f"\n{'<' * 10}")
 
         # Initialize tracking dictionaries for objects
@@ -77,54 +74,6 @@ class Tracer:
         # Load the function wrapper if provided
         self.abc_wrapper: ABCWrapper = self.load_wrapper(self.config.wrapper)
         self.call_depth: int = 0
-
-    def _process_targets(self, targets: Optional[List[Union[str, ModuleType]]]) -> Set[str]:
-        """
-        Process the list of target modules or files to monitor.
-
-        Args:
-            targets (Optional[List[Union[str, ModuleType]]): List of target modules or file paths.
-
-        Returns:
-            Set[str]: Set of processed file paths to monitor.
-        """
-        processed: Set[str] = set()
-        if isinstance(targets, str):
-            targets = [targets]
-        elif targets is None:
-            return processed
-        for target in targets:
-            if isinstance(target, str):
-                if target.endswith('.py'):
-                    processed.add(target)
-                    continue
-                target_name = target
-            elif isinstance(target, ModuleType):
-                target_name = target.__name__
-            else:
-                log_warn(f"Unsupported target type: {type(target)}. Only 'str' or 'ModuleType' are supported.")
-                continue
-
-            spec = importlib.util.find_spec(target_name)
-            if spec and spec.origin:
-                processed.add(spec.origin)
-
-                # Check if the module has submodules
-                if hasattr(spec, 'submodule_search_locations'):
-                    for importer, modname, ispkg in pkgutil.walk_packages(
-                        spec.submodule_search_locations, prefix=target_name + '.'
-                    ):
-                        # For each submodule, use find_spec to check its path
-                        try:
-                            sub_spec = importlib.util.find_spec(modname)
-                            if sub_spec and sub_spec.origin:
-                                processed.add(sub_spec.origin)
-                        except Exception as e:
-                            log_error(f"Submodule {modname} could not be imported. Error: {e}")
-            else:
-                log_warn(f"Module {target_name} could not be found or has no file associated.")
-
-        return processed
 
     def load_wrapper(self, wrapper: Optional[ABCWrapper]) -> Optional[ABCWrapper]:
         """
