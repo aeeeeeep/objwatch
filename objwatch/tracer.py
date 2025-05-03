@@ -159,13 +159,12 @@ class Tracer:
             if module_name:
                 func_name = f"{module_name}.{func_name}"
 
-        func_info['func_name'] = func_name
+        func_info['function'] = func_name
         func_info['frame'] = frame
 
         if 'self' in frame.f_locals:
             obj = frame.f_locals['self']
             class_name: str = obj.__class__.__name__
-            func_info['is_method'] = False
             try:
                 method = getattr(obj, func_name, None)
             except Exception as e:
@@ -173,7 +172,22 @@ class Tracer:
                 method = None
             if callable(method) and hasattr(method, '__code__') and method.__code__ == frame.f_code:
                 func_info['is_method'] = True
-                func_info['class_name'] = class_name
+                func_info['class'] = class_name
+
+        else:
+            func_info['is_method'] = False
+
+        return func_info
+
+    def _update_objects_lens(self, frame: FrameType) -> None:
+        """
+        Update tracked objects' sequence-type attribute lengths.
+
+        Args:
+            frame (FrameType): Current stack frame to inspect.
+        """
+        if 'self' in frame.f_locals:
+            obj = frame.f_locals['self']
 
             if hasattr(obj, '__dict__') and hasattr(obj.__class__, '__weakref__'):
                 attrs: Dict[str, Any] = {k: v for k, v in obj.__dict__.items() if not callable(v)}
@@ -184,10 +198,6 @@ class Tracer:
                 for k, v in attrs.items():
                     if isinstance(v, log_sequence_types):
                         self.tracked_objects_lens[obj][k] = len(v)
-        else:
-            func_info['is_method'] = False
-
-        return func_info
 
     @lru_cache(maxsize=sys.maxsize)
     def _filename_not_endswith(self, filename: str) -> bool:
@@ -418,6 +428,7 @@ class Tracer:
             if event == "call":
                 # Handle function call event
                 func_info = self._get_function_info(frame)
+                self._update_objects_lens(frame)
                 self.event_handlers.handle_run(lineno, func_info, self.abc_wrapper, self.call_depth, self.index_info)
                 self.call_depth += 1
 
@@ -438,6 +449,7 @@ class Tracer:
                 # Handle function return event
                 self.call_depth -= 1
                 func_info = self._get_function_info(frame)
+                self._update_objects_lens(frame)
                 self.event_handlers.handle_end(
                     lineno, func_info, self.abc_wrapper, self.call_depth, self.index_info, arg
                 )

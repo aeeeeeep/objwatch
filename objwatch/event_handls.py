@@ -80,9 +80,9 @@ class EventHandls:
             call_depth (int): Current depth of the call stack.
             index_info (str): Information about the index to track in a multi-process environment.
         """
-        func_name = func_info['func_name']
+        func_name = func_info['function']
         if func_info.get('is_method', False):
-            class_name = func_info['class_name']
+            class_name = func_info['class']
             logger_msg = f"{class_name}.{func_name}"
         else:
             logger_msg = f"{func_name}"
@@ -121,9 +121,9 @@ class EventHandls:
             index_info (str): Information about the index to track in a multi-process environment.
             result (Any): The result returned by the function.
         """
-        func_name = func_info['func_name']
+        func_name = func_info['function']
         if func_info.get('is_method', False):
-            class_name = func_info['class_name']
+            class_name = func_info['class']
             logger_msg = f"{class_name}.{func_name}"
         else:
             logger_msg = f"{func_name}"
