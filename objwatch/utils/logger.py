@@ -22,7 +22,7 @@ def create_logger(
         simple (bool): Enable simple logging mode with a basic format.
     """
     if level == "force":
-        global FORCE
+        global FORCE  # noqa: F824
         FORCE = True
         return
 
@@ -75,7 +75,7 @@ def log_info(msg: str, *args: Any, **kwargs: Any) -> None:
         *args (Any): Variable length argument list.
         **kwargs (Any): Arbitrary keyword arguments.
     """
-    global FORCE
+    global FORCE  # noqa: F824
     if FORCE:
         print(msg, flush=True)
     else:
@@ -91,7 +91,7 @@ def log_debug(msg: str, *args: Any, **kwargs: Any) -> None:
         *args (Any): Variable length argument list.
         **kwargs (Any): Arbitrary keyword arguments.
     """
-    global FORCE
+    global FORCE  # noqa: F824
     if FORCE:
         print(msg, flush=True)
     else:
@@ -107,7 +107,7 @@ def log_warn(msg: str, *args: Any, **kwargs: Any) -> None:
         *args (Any): Variable length argument list.
         **kwargs (Any): Arbitrary keyword arguments.
     """
-    global FORCE
+    global FORCE  # noqa: F824
     if FORCE:
         print(msg, flush=True)
     else:
@@ -123,7 +123,7 @@ def log_error(msg: str, *args: Any, **kwargs: Any) -> None:
         *args (Any): Variable length argument list.
         **kwargs (Any): Arbitrary keyword arguments.
     """
-    global FORCE
+    global FORCE  # noqa: F824
     if FORCE:
         print(msg, flush=True)
     else:
