@@ -4,10 +4,10 @@
 import sys
 from functools import lru_cache
 from types import FunctionType, FrameType
-from typing import Optional, Any, Dict, Set
+from typing import Optional, Any, Dict, Set, defaultdict
 
 from .config import ObjWatchConfig
-from .targets import Targets
+from .targets import Targets, TargetsDict
 from .wrappers import ABCWrapper
 from .events import EventType
 from .event_handls import EventHandls, log_sequence_types
@@ -55,7 +55,8 @@ class Tracer:
             }
 
         # Process and determine the set of target files to monitor
-        self.targets: Set[str] = Targets(self.config.targets, self.config.exclude_targets).processed_targets
+        self.targets: TargetsDict = Targets(self.config.targets, self.config.exclude_targets).processed_targets
+        self._build_target_index()
         log_debug(f"Processed targets:\n{'>' * 10}\n" + "\n".join(self.targets) + f"\n{'<' * 10}")
 
         # Initialize tracking dictionaries for objects
@@ -75,6 +76,23 @@ class Tracer:
         self.abc_wrapper: ABCWrapper = self.load_wrapper(self.config.wrapper)
         self.call_depth: int = 0
 
+    def _build_target_index(self):
+        """构建快速查询索引"""
+        self.module_index = set(self.targets.keys())
+        self.class_index = defaultdict(set)
+        self.function_index = defaultdict(set)
+        self.global_index = defaultdict(set)
+
+        for module, details in self.targets.items():
+            for cls in details.get('classes', {}):
+                self.class_index[module].add(cls)
+            for func in details.get('functions', []):
+                self.function_index[module].add(func)
+            for gvar in details.get('globals', []):
+                self.global_index[module].add(gvar)
+
+        self.index_map = {'class': self.class_index, 'function': self.function_index, 'global': self.global_index}
+
     def load_wrapper(self, wrapper: Optional[ABCWrapper]) -> Optional[ABCWrapper]:
         """
         Load a custom function wrapper if provided.
@@ -90,6 +108,16 @@ class Tracer:
             return wrapper()
         return None
 
+    @lru_cache(maxsize=sys.maxsize)
+    def _should_trace_module(self, module: str) -> bool:
+        """检查模块是否在监控范围"""
+        return module in self.module_index
+
+    @lru_cache(maxsize=sys.maxsize)
+    def _should_trace_symbol(self, module: str, symbol_type: str, symbol: str) -> bool:
+        """检查具体符号是否需要监控"""
+        return symbol in self.index_map[symbol_type].get(module, set())
+
     def _get_function_info(self, frame: FrameType) -> Dict[str, Any]:
         """
         Extract information about the currently executing function.
@@ -100,33 +128,50 @@ class Tracer:
         Returns:
             Dict[str, Any]: Dictionary containing function information.
         """
-        func_info: Dict[str, Any] = {}
-        func_name: str = frame.f_code.co_name
+        func_info = {}
+        module = frame.f_globals.get('__name__', '')
 
-        if self.config.with_module_path:
-            module_name: str = frame.f_globals.get('__name__', '')
-            if module_name:
-                func_name = f"{module_name}.{func_name}"
-
-        func_info['function'] = func_name
-        func_info['frame'] = frame
-
+        # 构造完整调用路径
         if 'self' in frame.f_locals:
-            obj = frame.f_locals['self']
-            class_name: str = obj.__class__.__name__
-            try:
-                method = getattr(obj, func_name, None)
-            except Exception as e:
-                log_error(f"Error occurred while getattr '{func_name}' from class '{class_name}': {e}")
-                method = None
-            if callable(method) and hasattr(method, '__code__') and method.__code__ == frame.f_code:
-                func_info['is_method'] = True
-                func_info['class'] = class_name
-
+            cls = frame.f_locals['self'].__class__.__name__
+            func_name = f"{cls}.{frame.f_code.co_name}"
+            symbol_type = 'method' if self._should_trace_symbol(module, 'class', cls) else None
         else:
-            func_info['is_method'] = False
+            func_name = frame.f_code.co_name
+            symbol_type = 'function' if self._should_trace_symbol(module, 'function', func_name) else None
 
+        func_info.update(
+            {
+                'module': module,
+                'symbol': func_name,
+                'symbol_type': symbol_type,
+                'qualified_name': f"{module}.{func_name}" if module else func_name,
+                'frame': frame,
+            }
+        )
         return func_info
+
+    def _should_trace_frame(self, frame: FrameType) -> bool:
+        """综合判断是否需要跟踪当前frame"""
+        module = frame.f_globals.get('__name__', '')
+
+        # 基础模块检查
+        if not self._should_trace_module(module):
+            return False
+
+        # 具体符号检查
+        if 'self' in frame.f_locals:
+            cls_name = frame.f_locals['self'].__class__.__name__
+            return self._should_trace_symbol(module, 'class', cls_name)
+        return any(
+            [self._should_trace_symbol(module, 'function', frame.f_code.co_name), self._check_global_changes(frame)]
+        )
+
+    def _check_global_changes(self, frame: FrameType) -> bool:
+        """检查全局变量变更"""
+        return any(
+            var in self.global_index.get(frame.f_globals.get('__name__', ''), set()) for var in frame.f_globals.keys()
+        )
 
     def _update_objects_lens(self, frame: FrameType) -> None:
         """
@@ -361,7 +406,7 @@ class Tracer:
             """
 
             # Skip frames that do not match the filename condition
-            if self._filename_not_endswith(frame.f_code.co_filename):
+            if not self._should_trace_frame(frame):
                 return trace_func
 
             if self.current_index is None:

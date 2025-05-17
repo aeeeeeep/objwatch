@@ -69,7 +69,11 @@ class TestPytorchTraining(unittest.TestCase):
         mock_logger.return_value = unittest.mock.Mock()
 
         obj_watch = ObjWatch(
-            targets=['tests/test_torch_train.py'],
+            targets=[
+                'tests/test_torch_train.py',
+                # torch.nn.Parameter,
+                # torch.distributed.get_rank,
+            ],
             exclude_targets=[],
             output=None,
             level=logging.DEBUG,
@@ -86,6 +90,8 @@ class TestPytorchTraining(unittest.TestCase):
         obj_watch.stop()
 
         generated_log = '\n'.join(log.output)
+        print(generated_log)
+        exit()
         golden_log_path = 'tests/utils/golden_torch_train_log.txt'
         with open(golden_log_path, 'r') as f:
             golden_log = f.read()
