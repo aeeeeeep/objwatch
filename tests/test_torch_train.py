@@ -71,8 +71,6 @@ class TestPytorchTraining(unittest.TestCase):
         obj_watch = ObjWatch(
             targets=[
                 'tests/test_torch_train.py',
-                # torch.nn.Parameter,
-                # torch.distributed.get_rank,
             ],
             exclude_targets=[],
             output=None,

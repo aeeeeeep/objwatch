@@ -55,7 +55,9 @@ class Tracer:
             }
 
         # Process and determine the set of target files to monitor
-        self.targets: TargetsDict = Targets(self.config.targets, self.config.exclude_targets).processed_targets
+        targets_cls = Targets(self.config.targets, self.config.exclude_targets)
+        self.targets: TargetsDict = targets_cls.get_processed_targets()
+        self.filename_targets: Set = targets_cls.get_filename_targets()
         self._build_target_index()
         log_debug(f"Processed targets:\n{'>' * 10}\n" + "\n".join(self.targets) + f"\n{'<' * 10}")
 
@@ -118,41 +120,24 @@ class Tracer:
         """检查具体符号是否需要监控"""
         return symbol in self.index_map[symbol_type].get(module, set())
 
-    def _get_function_info(self, frame: FrameType) -> Dict[str, Any]:
+    @lru_cache(maxsize=sys.maxsize)
+    def _filename_endswith(self, filename: str) -> bool:
         """
-        Extract information about the currently executing function.
+        Check if the filename does not end with any of the target extensions.
 
         Args:
-            frame (FrameType): The current stack frame.
+            filename (str): The filename to check.
 
         Returns:
-            Dict[str, Any]: Dictionary containing function information.
+            bool: True if the filename does not end with the target extensions, False otherwise.
         """
-        func_info = {}
-        module = frame.f_globals.get('__name__', '')
-
-        # 构造完整调用路径
-        if 'self' in frame.f_locals:
-            cls = frame.f_locals['self'].__class__.__name__
-            func_name = f"{cls}.{frame.f_code.co_name}"
-            symbol_type = 'method' if self._should_trace_symbol(module, 'class', cls) else None
-        else:
-            func_name = frame.f_code.co_name
-            symbol_type = 'function' if self._should_trace_symbol(module, 'function', func_name) else None
-
-        func_info.update(
-            {
-                'module': module,
-                'symbol': func_name,
-                'symbol_type': symbol_type,
-                'qualified_name': f"{module}.{func_name}" if module else func_name,
-                'frame': frame,
-            }
-        )
-        return func_info
+        return filename.endswith(tuple(self.filename_targets))
 
     def _should_trace_frame(self, frame: FrameType) -> bool:
         """综合判断是否需要跟踪当前frame"""
+        if self._filename_endswith(frame.f_code.co_filename):
+            return True
+
         module = frame.f_globals.get('__name__', '')
 
         # 基础模块检查
@@ -193,18 +178,38 @@ class Tracer:
                     if isinstance(v, log_sequence_types):
                         self.tracked_objects_lens[obj][k] = len(v)
 
-    @lru_cache(maxsize=sys.maxsize)
-    def _filename_not_endswith(self, filename: str) -> bool:
+    def _get_function_info(self, frame: FrameType) -> Dict[str, Any]:
         """
-        Check if the filename does not end with any of the target extensions.
+        Extract information about the currently executing function.
 
         Args:
-            filename (str): The filename to check.
+            frame (FrameType): The current stack frame.
 
         Returns:
-            bool: True if the filename does not end with the target extensions, False otherwise.
+            Dict[str, Any]: Dictionary containing function information.
         """
-        return not filename.endswith(tuple(self.targets))
+        func_info = {}
+        module = frame.f_globals.get('__name__', '')
+
+        # 构造完整调用路径
+        if 'self' in frame.f_locals:
+            cls = frame.f_locals['self'].__class__.__name__
+            func_name = f"{cls}.{frame.f_code.co_name}"
+            symbol_type = 'method' if self._should_trace_symbol(module, 'class', cls) else None
+        else:
+            func_name = frame.f_code.co_name
+            symbol_type = 'function' if self._should_trace_symbol(module, 'function', func_name) else None
+
+        func_info.update(
+            {
+                'module': module,
+                'symbol': func_name,
+                'symbol_type': symbol_type,
+                'qualified_name': f"{module}.{func_name}" if module else func_name,
+                'frame': frame,
+            }
+        )
+        return func_info
 
     def _handle_change_type(
         self,

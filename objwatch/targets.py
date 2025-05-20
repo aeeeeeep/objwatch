@@ -1,16 +1,17 @@
 # MIT License
 # Copyright (c) 2025 aeeeeeep
 
-import importlib
 import ast
 import inspect
 import pkgutil
+import importlib
 from pathlib import Path
 from types import ModuleType, FunctionType
 from typing import Optional, List, Union, Dict, Set, Any
 
 from .utils.logger import log_error, log_warn
 
+TargetsType = Optional[List[Union[str, type, ModuleType]]]
 ModuleStructure = Dict[str, Union[Dict[str, Any], List[str]]]
 TargetsDict = Dict[str, ModuleStructure]
 
@@ -26,11 +27,7 @@ class Targets:
     Targets class to process and determine the set of target files to monitor.
     """
 
-    def __init__(
-        self,
-        targets: Optional[List[Union[str, type, ModuleType]]],
-        exclude_targets: Optional[List[Union[str, type, ModuleType]]] = None,
-    ):
+    def __init__(self, targets: TargetsType, exclude_targets: TargetsType = None):
         """
         新参数规则：
         - 字符串格式支持：
@@ -40,56 +37,23 @@ class Targets:
           * 方法选择器：package.module:ClassName.method
           * 全局变量：package.module::global_var
         """
+        self._check_targets(targets, exclude_targets)
+        self.filename_targets: Set = set()
         self.targets: TargetsDict = self._process_targets(targets)
         self.exclude_targets: TargetsDict = self._process_targets(exclude_targets)
         self.processed_targets: TargetsDict = self._diff_targets()
 
-    def _process_modules(self, targets: Optional[List[Union[str, type]]]) -> Set[str]:
-        processed: Set[str] = set()
-        if isinstance(targets, str):
-            targets = [targets]
-        elif targets is None:
-            return processed
-        for target in targets:
-            if isinstance(target, (str, ModuleType, type, FunctionType)):  # 新增函数类型支持
-                if target.endswith('.py'):
-                    processed.add(target)
-                    continue
-                target_name = target
-            elif isinstance(target, ModuleType):
-                target_name = target.__name__
-            else:
-                log_warn(f"Unsupported target type: {type(target)}. Supported: str/ModuleType/type/function.")
-                continue
+    def _check_targets(self, targets: TargetsType, exclude_targets: TargetsType):
+        for exclude_target in exclude_targets or []:
+            if isinstance(exclude_target, str) and exclude_target.endswith('.py'):
+                log_error("Unsupported .py files in exclude_target")
 
-            spec = importlib.util.find_spec(target_name)
-            if spec and spec.origin:
-                processed.add(spec.origin)
-
-                # Check if the module has submodules
-                if hasattr(spec, 'submodule_search_locations'):
-                    for importer, modname, ispkg in pkgutil.walk_packages(
-                        spec.submodule_search_locations, prefix=target_name + '.'
-                    ):
-                        # For each submodule, use find_spec to check its path
-                        try:
-                            sub_spec = importlib.util.find_spec(modname)
-                            if sub_spec and sub_spec.origin:
-                                processed.add(sub_spec.origin)
-                        except Exception as e:
-                            log_error(f"Submodule {modname} could not be imported. Error: {e}")
-            else:
-                log_warn(f"Module {target_name} could not be found or has no file associated.")
-
-        return processed
-
-    def _process_targets(self, targets: Optional[List[Union[str, type, ModuleType]]]) -> TargetsDict:
+    def _process_targets(self, targets: TargetsType) -> TargetsDict:
         processed: TargetsDict = {}
         for target in targets or []:
             if isinstance(target, str) and target.endswith('.py'):
                 # 处理文件路径
-                module_path = self._file_path_to_module(target)
-                processed[module_path] = self._parse_py_file(target)
+                self.filename_targets.add(target)
             elif isinstance(target, (str, ModuleType, FunctionType, type)):
                 # 处理模块/类/方法
                 module_path, details = self._parse_target(target)
@@ -250,27 +214,6 @@ class Targets:
                     diff[key] = filtered
         return diff
 
-    @property
-    def flat_targets(self) -> Set[str]:
-        """兼容旧版本的平面文件路径集合"""
-        return self._legacy_processed
-
-    def _file_path_to_module(self, file_path: str) -> str:
-        """将文件路径转换为模块路径"""
-        try:
-            # 获取项目根目录路径
-            project_root = Path(__file__).resolve().parent.parent
-            # 标准化文件路径
-            abs_path = Path(file_path).resolve()
-            # 转换为相对路径
-            relative_path = abs_path.relative_to(project_root)
-            # 替换路径分隔符并去除扩展名
-            module_path = str(relative_path).replace('/', '.').replace('.py', '')
-            return module_path
-        except ValueError:
-            # 如果文件不在项目目录下，返回文件名
-            return Path(file_path).stem
-
     def _process_assignment(self, node: ast.Assign, result: ModuleStructure):
         """处理赋值语句以提取全局变量"""
         for target in node.targets:
@@ -282,3 +225,9 @@ class Targets:
                 for elt in target.elts:
                     if isinstance(elt, ast.Name):
                         result['globals'].append(elt.id)
+
+    def get_processed_targets(self) -> TargetsDict:
+        return self.processed_targets
+
+    def get_filename_targets(self) -> Set:
+        return self.filename_targets
