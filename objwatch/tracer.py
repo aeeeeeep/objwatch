@@ -59,7 +59,14 @@ class Tracer:
         self.targets: TargetsDict = targets_cls.get_processed_targets()
         self.filename_targets: Set = targets_cls.get_filename_targets()
         self._build_target_index()
-        log_debug(f"Processed targets:\n{'>' * 10}\n" + "\n".join(self.targets) + f"\n{'<' * 10}")
+        log_debug(
+            f"\nProcessed targets:\n{'>' * 10}\n"
+            + "\n".join(self.targets)
+            + f"\n{'<' * 10}\n"
+            + f"Filename targets:\n{'>' * 10}\n"
+            + "\n".join(self.filename_targets)
+            + f"\n{'<' * 10}"
+        )
 
         # Initialize tracking dictionaries for objects
         self.tracked_objects: WeakIdKeyDictionary = WeakIdKeyDictionary()
@@ -142,7 +149,7 @@ class Tracer:
 
         Args:
             module (str): Parent module name
-            symbol_type (str): Type of symbol (class/function/global)
+            symbol_type (str): Type of symbol
             symbol (str): Symbol name to check
 
         Returns:
@@ -165,11 +172,6 @@ class Tracer:
 
     def _should_trace_frame(self, frame: FrameType) -> bool:
         """Determine if a stack frame should be traced.
-
-        Evaluation criteria:
-        1. Check if filename matches target patterns
-        2. Verify module inclusion in monitoring scope
-        3. Check class/method/global variable eligibility
 
         Args:
             frame (FrameType): Execution frame to evaluate

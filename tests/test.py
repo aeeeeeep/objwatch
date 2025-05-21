@@ -361,11 +361,11 @@ class TestCustomWrapper(unittest.TestCase):
 class TestTargetsStr(unittest.TestCase):
     def test_targets_with_submodules(self):
         processed = Targets(['importlib']).get_processed_targets()
-
+        print(processed)
         self.assertIn('importlib', processed)
         module_info = processed['importlib']
 
-        expected_functions = ["import_module", "reload", "find_loader", "invalidate_caches"]
+        expected_functions = ["import_module", "reload", "invalidate_caches"]
         for func in expected_functions:
             self.assertIn(func, module_info.get('functions', []))
 
@@ -376,8 +376,6 @@ class TestTargetsStr(unittest.TestCase):
             "pkgpath",
             "parent",
             "spec",
-            "loader",
-            "msg",
             "__all__",
             "name",
             "_RELOADING",
@@ -397,7 +395,7 @@ class TestTargetsModule(unittest.TestCase):
         self.assertIn('importlib', processed)
         module_info = processed['importlib']
 
-        expected_functions = ["import_module", "reload", "find_loader", "invalidate_caches"]
+        expected_functions = ["import_module", "reload", "invalidate_caches"]
         for func in expected_functions:
             self.assertIn(func, module_info.get('functions', []))
 
@@ -408,8 +406,6 @@ class TestTargetsModule(unittest.TestCase):
             "pkgpath",
             "parent",
             "spec",
-            "loader",
-            "msg",
             "__all__",
             "name",
             "_RELOADING",

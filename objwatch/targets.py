@@ -45,12 +45,13 @@ class Targets:
     """
     Target processor for monitoring file changes and module structures.
 
-    Handles:
-    - File paths (path/to/module.py)
-    - Module paths (package.module)
-    - Class selectors (package.module:ClassName)
-    - Method selectors (package.module:ClassName.method)
-    - Global variables (package.module::global_var)
+    Supported syntax:
+    1. Module: 'package.module'
+    2. Class: 'package.module:ClassName'
+    3. Class attribute: 'package.module:ClassName.attribute'
+    4. Class method: 'package.module:ClassName.method()'
+    5. Function: 'package.module:function()'
+    6. Global variable: 'package.module::GLOBAL_VAR'
     """
 
     def __init__(self, targets: TargetsType, exclude_targets: TargetsType = None):
@@ -96,13 +97,6 @@ class Targets:
 
         Returns:
             TargetsDict: Hierarchical structure:
-                {
-                    'module': {
-                        'classes': {'ClassName': {'methods': [...]}},
-                        'functions': [...],
-                        'globals': [...]
-                    }
-                }
         """
         processed: TargetsDict = {}
         for target in targets or []:
@@ -120,7 +114,7 @@ class Targets:
         Parse different target formats into module structure.
 
         Args:
-            target: Target specification (module/class/function/string selector)
+            target: Target specification
 
         Returns:
             tuple: (module_path, parsed_structure)
@@ -182,40 +176,43 @@ class Targets:
         return module_struct
 
     def _parse_string(self, target: str) -> tuple[str, ModuleStructure]:
-        """Parse string-formatted target specification.
-
-        Handles three patterns:
-        1. Function signatures: 'module:function(params)'
-        2. Hierarchical selectors: 'module:class:method'
-        3. Global variables: 'module::global_var'
+        """Parse string-formatted target definitions
 
         Args:
-            target: String-formatted target specification
+            target: Target definition string
 
         Returns:
             tuple: (module_path, parsed_structure)
         """
-        if ':' in target and '(' in target:
-            module_part, func_signature = target.split(':', 1)
-            details = {'functions': [func_signature]}
-            return (module_part, details)
-        if ':' not in target:
-            return (target, self._parse_module_by_name(target))
+        # Handle global variable syntax
+        if '::' in target:
+            module_part, _, global_var = target.partition('::')
+            return (module_part, {'globals': [global_var.strip()]})
 
-        parts = target.split(':')
-        module_part = parts[0]
+        # Split module path and symbol definition
+        module_part, _, symbol = target.partition(':')
+        if not symbol:
+            return (module_part, self._parse_module_by_name(module_part))
+
         details = {}
 
-        if len(parts) > 1 and parts[1]:
-            class_part = parts[1]
-            details['classes'] = {class_part: {}}
-
-            if len(parts) > 2 and parts[2]:
-                method_part = parts[2]
-                details['classes'][class_part]['methods'] = [method_part]
-
-        if target.count(':') == 2 and parts[1] == '':
-            details['globals'] = [parts[2]]
+        # Parse class members/methods
+        if '.' in symbol:
+            class_part, _, member = symbol.partition('.')
+            # Detect method with parentheses
+            if member.endswith('()'):
+                method_name = member[:-2]
+                details['classes'] = {class_part: {'methods': [method_name]}}
+            else:
+                details['classes'] = {class_part: {'attributes': [member]}}
+        # Parse pure class/function
+        else:
+            # Detect function with parentheses
+            if symbol.endswith('()'):
+                func_name = symbol[:-2]
+                details['functions'] = [func_name]
+            else:
+                details['classes'] = {symbol: {}}
 
         return (module_part, details)
 
@@ -237,11 +234,6 @@ class Targets:
 
     def _parse_py_file(self, file_path: str) -> ModuleStructure:
         """Analyze Python file structure using Abstract Syntax Tree.
-
-        Processes:
-        - Class definitions with methods and attributes
-        - Top-level function definitions
-        - Global variable assignments
 
         Args:
             file_path: Absolute path to Python file
