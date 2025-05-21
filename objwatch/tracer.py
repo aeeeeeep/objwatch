@@ -4,7 +4,7 @@
 import sys
 from functools import lru_cache
 from types import FunctionType, FrameType
-from typing import Optional, Any, Dict, Set, defaultdict
+from typing import Optional, Any, Dict, Set
 
 from .config import ObjWatchConfig
 from .targets import Targets, TargetsDict
@@ -12,7 +12,7 @@ from .wrappers import ABCWrapper
 from .events import EventType
 from .event_handls import EventHandls, log_sequence_types
 from .mp_handls import MPHandls
-from .utils.logger import log_error, log_debug, log_warn, log_info
+from .utils.logger import log_debug, log_warn, log_info
 from .utils.weak import WeakIdKeyDictionary
 
 
@@ -81,9 +81,9 @@ class Tracer:
     def _build_target_index(self):
         """构建快速查询索引"""
         self.module_index = set(self.targets.keys())
-        self.class_index = defaultdict(set)
-        self.function_index = defaultdict(set)
-        self.global_index = defaultdict(set)
+        self.class_index = {}
+        self.function_index = {}
+        self.global_index = {}
 
         for module, details in self.targets.items():
             for cls in details.get('classes', {}):

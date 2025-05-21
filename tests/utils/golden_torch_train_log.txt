@@ -1,6 +1,6 @@
-DEBUG:objwatch:   47 run train <- 
+DEBUG:objwatch:   47 run test_torch_train.train <- 
 DEBUG:objwatch:   48 | upd @.unittest None -> (type)module
-DEBUG:objwatch:   48 | upd @.patch None -> <function patch at 0x7f32d9c38a40>
+DEBUG:objwatch:   48 | upd @.patch None -> <function patch at 0x7f9020125d80>
 DEBUG:objwatch:   48 | upd @.torch None -> (type)module
 DEBUG:objwatch:   48 | upd @.nn None -> (type)module
 DEBUG:objwatch:   48 | upd @.optim None -> (type)module
@@ -9,7 +9,7 @@ DEBUG:objwatch:   48 | upd @.DataLoader None -> (type)type
 DEBUG:objwatch:   48 | upd @.ObjWatch None -> (type)type
 DEBUG:objwatch:   48 | upd @.TensorShapeWrapper None -> (type)ABCMeta
 DEBUG:objwatch:   48 | upd @.logging None -> (type)module
-DEBUG:objwatch:   48 | upd @.filter_func_ptr None -> <function filter_func_ptr at 0x7f320ca04400>
+DEBUG:objwatch:   48 | upd @.filter_func_ptr None -> <function filter_func_ptr at 0x7f8eb243cca0>
 DEBUG:objwatch:   48 | upd @.SimpleNet None -> (type)type
 DEBUG:objwatch:   48 | upd @.input_size None -> 784
 DEBUG:objwatch:   48 | upd @.num_classes None -> 10
@@ -22,10 +22,10 @@ DEBUG:objwatch:   48 | upd @.train_loader None -> (type)DataLoader
 DEBUG:objwatch:   48 | upd @.model None -> (type)SimpleNet
 DEBUG:objwatch:   48 | upd @.criterion None -> (type)CrossEntropyLoss
 DEBUG:objwatch:   48 | upd @.optimizer None -> (type)SGD
-DEBUG:objwatch:   48 | upd @.train None -> <function train at 0x7f320ca06480>
+DEBUG:objwatch:   48 | upd @.train None -> <function train at 0x7f8eb243f520>
 DEBUG:objwatch:   48 | upd @.TestPytorchTraining None -> (type)type
-DEBUG:objwatch:   23 | run SimpleNet.forward <- '0':(type)SimpleNet, '1':torch.Size([64, 784])
-DEBUG:objwatch:   28 | end SimpleNet.forward -> torch.Size([64, 10])
-DEBUG:objwatch:   23 | run SimpleNet.forward <- '0':(type)SimpleNet, '1':torch.Size([64, 784])
-DEBUG:objwatch:   28 | end SimpleNet.forward -> torch.Size([64, 10])
-DEBUG:objwatch:   49 end train -> None
+DEBUG:objwatch:   23 | run test_torch_train.SimpleNet.forward <- '0':(type)SimpleNet, '1':torch.Size([64, 784])
+DEBUG:objwatch:   28 | end test_torch_train.SimpleNet.forward -> torch.Size([64, 10])
+DEBUG:objwatch:   23 | run test_torch_train.SimpleNet.forward <- '0':(type)SimpleNet, '1':torch.Size([64, 784])
+DEBUG:objwatch:   28 | end test_torch_train.SimpleNet.forward -> torch.Size([64, 10])
+DEBUG:objwatch:   49 end test_torch_train.train -> None

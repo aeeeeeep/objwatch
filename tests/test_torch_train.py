@@ -88,8 +88,6 @@ class TestPytorchTraining(unittest.TestCase):
         obj_watch.stop()
 
         generated_log = '\n'.join(log.output)
-        print(generated_log)
-        exit()
         golden_log_path = 'tests/utils/golden_torch_train_log.txt'
         with open(golden_log_path, 'r') as f:
             golden_log = f.read()

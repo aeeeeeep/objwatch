@@ -3,15 +3,13 @@
 
 import ast
 import inspect
-import pkgutil
 import importlib
-from pathlib import Path
 from types import ModuleType, FunctionType
-from typing import Optional, List, Union, Dict, Set, Any
+from typing import Tuple, List, Union, Dict, Set, Any
 
 from .utils.logger import log_error, log_warn
 
-TargetsType = Optional[List[Union[str, type, ModuleType]]]
+TargetsType = List[Union[str, ModuleType]]
 ModuleStructure = Dict[str, Union[Dict[str, Any], List[str]]]
 TargetsDict = Dict[str, ModuleStructure]
 
@@ -37,16 +35,21 @@ class Targets:
           * 方法选择器：package.module:ClassName.method
           * 全局变量：package.module::global_var
         """
-        self._check_targets(targets, exclude_targets)
+        targets, exclude_targets = self._check_targets(targets, exclude_targets)
         self.filename_targets: Set = set()
         self.targets: TargetsDict = self._process_targets(targets)
         self.exclude_targets: TargetsDict = self._process_targets(exclude_targets)
         self.processed_targets: TargetsDict = self._diff_targets()
 
-    def _check_targets(self, targets: TargetsType, exclude_targets: TargetsType):
+    def _check_targets(self, targets: TargetsType, exclude_targets: TargetsType) -> Tuple[TargetsType, TargetsType]:
+        if isinstance(targets, str):
+            targets = [targets]
+        if isinstance(exclude_targets, str):
+            exclude_targets = [exclude_targets]
         for exclude_target in exclude_targets or []:
             if isinstance(exclude_target, str) and exclude_target.endswith('.py'):
                 log_error("Unsupported .py files in exclude_target")
+        return targets, exclude_targets
 
     def _process_targets(self, targets: TargetsType) -> TargetsDict:
         processed: TargetsDict = {}
