@@ -79,7 +79,21 @@ class Tracer:
         self.call_depth: int = 0
 
     def _build_target_index(self):
-        """构建快速查询索引"""
+        """Build fast lookup indexes for monitoring targets.
+
+        Creates three-level indexes:
+        - module_index: Set of monitored module names
+        - class_index: Nested mapping of modules to their classes
+        - function_index: Nested mapping of modules to their functions
+        - global_index: Nested mapping of modules to their global variables
+
+        Final structure example:
+        index_map = {
+            'class': {'module1': {'ClassA', 'ClassB'}, ...},
+            'function': {'module1': {'func1', 'func2'}, ...},
+            'global': {'module1': {'var1', 'var2'}, ...}
+        }
+        """
         self.module_index = set(self.targets.keys())
         self.class_index = {}
         self.function_index = {}
@@ -112,12 +126,28 @@ class Tracer:
 
     @lru_cache(maxsize=sys.maxsize)
     def _should_trace_module(self, module: str) -> bool:
-        """检查模块是否在监控范围"""
+        """Check if a module is within monitoring scope.
+
+        Args:
+            module (str): Full module name to check
+
+        Returns:
+            bool: True if the module is in monitoring targets
+        """
         return module in self.module_index
 
     @lru_cache(maxsize=sys.maxsize)
     def _should_trace_symbol(self, module: str, symbol_type: str, symbol: str) -> bool:
-        """检查具体符号是否需要监控"""
+        """Verify if a specific symbol requires monitoring.
+
+        Args:
+            module (str): Parent module name
+            symbol_type (str): Type of symbol (class/function/global)
+            symbol (str): Symbol name to check
+
+        Returns:
+            bool: True if the symbol should be traced
+        """
         return symbol in self.index_map[symbol_type].get(module, set())
 
     @lru_cache(maxsize=sys.maxsize)
@@ -134,17 +164,27 @@ class Tracer:
         return filename.endswith(tuple(self.filename_targets))
 
     def _should_trace_frame(self, frame: FrameType) -> bool:
-        """综合判断是否需要跟踪当前frame"""
+        """Determine if a stack frame should be traced.
+
+        Evaluation criteria:
+        1. Check if filename matches target patterns
+        2. Verify module inclusion in monitoring scope
+        3. Check class/method/global variable eligibility
+
+        Args:
+            frame (FrameType): Execution frame to evaluate
+
+        Returns:
+            bool: True if tracing should occur for this frame
+        """
         if self._filename_endswith(frame.f_code.co_filename):
             return True
 
         module = frame.f_globals.get('__name__', '')
 
-        # 基础模块检查
         if not self._should_trace_module(module):
             return False
 
-        # 具体符号检查
         if 'self' in frame.f_locals:
             cls_name = frame.f_locals['self'].__class__.__name__
             return self._should_trace_symbol(module, 'class', cls_name)
@@ -153,7 +193,14 @@ class Tracer:
         )
 
     def _check_global_changes(self, frame: FrameType) -> bool:
-        """检查全局变量变更"""
+        """Detect monitored global variables in current frame.
+
+        Args:
+            frame (FrameType): Execution frame containing globals
+
+        Returns:
+            bool: True if any tracked global variables exist
+        """
         return any(
             var in self.global_index.get(frame.f_globals.get('__name__', ''), set()) for var in frame.f_globals.keys()
         )
@@ -191,7 +238,6 @@ class Tracer:
         func_info = {}
         module = frame.f_globals.get('__name__', '')
 
-        # 构造完整调用路径
         if 'self' in frame.f_locals:
             cls = frame.f_locals['self'].__class__.__name__
             func_name = f"{cls}.{frame.f_code.co_name}"
