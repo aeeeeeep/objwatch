@@ -41,6 +41,26 @@ def set_parents(node, parent):
         set_parents(child, node)
 
 
+def deep_merge(source: dict, update: dict) -> dict:
+    """Recursively merge two dictionaries.
+
+    Args:
+        source: Base dictionary to be updated
+        update: Dictionary with update values
+
+    Returns:
+        Reference to the modified source dictionary
+    """
+    for key, val in update.items():
+        if isinstance(val, dict) and isinstance(source.get(key), dict):
+            source[key] = deep_merge(source.get(key, {}), val)
+        elif isinstance(val, list) and isinstance(source.get(key), list):
+            source[key] = list(set(source[key] + val))
+        else:
+            source[key] = val
+    return source
+
+
 class Targets:
     """
     Target processor for monitoring file changes and module structures.
@@ -104,7 +124,9 @@ class Targets:
                 self.filename_targets.add(target)
             elif isinstance(target, (str, ModuleType, FunctionType, type)):
                 module_path, details = self._parse_target(target)
-                processed.setdefault(module_path, {}).update(details)
+                # processed.setdefault(module_path, {}).update(details)
+                current = processed.setdefault(module_path, {})
+                processed[module_path] = deep_merge(current, details)
             else:
                 log_warn(f"Unsupported target type: {type(target)}")
         return processed
@@ -191,28 +213,39 @@ class Targets:
 
         # Split module path and symbol definition
         module_part, _, symbol = target.partition(':')
+        full_module = self._parse_module_by_name(module_part)
+
         if not symbol:
-            return (module_part, self._parse_module_by_name(module_part))
+            return (module_part, full_module)
 
-        details = {}
+        details = {'classes': {}, 'functions': [], 'globals': []}
+        current_symbol = symbol
 
-        # Parse class members/methods
+        # Parse class methods
         if '.' in symbol:
-            class_part, _, member = symbol.partition('.')
-            # Detect method with parentheses
-            if member.endswith('()'):
-                method_name = member[:-2]
-                details['classes'] = {class_part: {'methods': [method_name]}}
-            else:
-                details['classes'] = {class_part: {'attributes': [member]}}
-        # Parse pure class/function
+            class_part, _, member = current_symbol.partition('.')
+            if class_part in full_module['classes']:
+                class_info = full_module['classes'][class_part]
+                if member.endswith('()'):
+                    method_name = member[:-2]
+                    if method_name in class_info['methods']:
+                        details['classes'][class_part] = {
+                            'methods': [method_name],
+                        }
+                else:
+                    if member in class_info['attributes']:
+                        details['classes'][class_part] = {'attributes': [member]}
         else:
-            # Detect function with parentheses
-            if symbol.endswith('()'):
-                func_name = symbol[:-2]
-                details['functions'] = [func_name]
-            else:
-                details['classes'] = {symbol: {}}
+            if current_symbol.endswith('()'):
+                func_name = current_symbol[:-2]
+                if func_name in full_module['functions']:
+                    details['functions'].append(func_name)
+            elif current_symbol in full_module['classes']:
+                class_info = full_module['classes'][current_symbol]
+                details['classes'][current_symbol] = {
+                    'methods': class_info['methods'],
+                    'attributes': class_info['attributes'],
+                }
 
         return (module_part, details)
 
@@ -316,16 +349,29 @@ class Targets:
             exclude: Exclusion patterns to apply
 
         Returns:
-            dict: Filtered structure with excluded elements removed
+            dict: Filtered structure with empty containers preserved
         """
         diff = {}
         for key, value in target.items():
+            filtered = None
+
             if key not in exclude:
-                diff[key] = value
+                filtered = value
             else:
-                filtered = {k: v for k, v in value.items() if k not in exclude[key] or v != exclude[key][k]}
-                if filtered:
-                    diff[key] = filtered
+                if isinstance(value, dict) and isinstance(exclude[key], dict):
+                    filtered = self._diff_level(value, exclude[key])
+                elif isinstance(value, list) and isinstance(exclude[key], list):
+                    filtered = list(set(value) - set(exclude[key]))
+                elif value != exclude[key]:
+                    filtered = value
+
+            if isinstance(filtered, dict):
+                diff[key] = filtered
+            elif isinstance(filtered, list):
+                diff[key] = filtered if filtered else []
+            else:
+                diff[key] = filtered if filtered is not None else value
+
         return diff
 
     def _process_assignment(self, node: ast.Assign, result: ModuleStructure):
@@ -339,6 +385,9 @@ class Targets:
             node: AST assignment node to analyze
             result: ModuleStructure to update with found globals
         """
+        if any(isinstance(parent, ast.ClassDef) for parent in iter_parents(node)):
+            return
+
         for target in node.targets:
             if isinstance(target, ast.Name):
                 result['globals'].append(target.id)
@@ -359,7 +408,12 @@ class Targets:
         Example:
             {
                 'module.path': {
-                    'classes': {'ClassName': {'methods': [...]}},
+                    'classes': {
+                        'ClassName': {
+                            'methods': [...],
+                            'attributes': [...]
+                        }
+                    },
                     'functions': [...],
                     'globals': [...]
                 }

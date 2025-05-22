@@ -361,7 +361,6 @@ class TestCustomWrapper(unittest.TestCase):
 class TestTargetsStr(unittest.TestCase):
     def test_targets_with_submodules(self):
         processed = Targets(['importlib']).get_processed_targets()
-        print(processed)
         self.assertIn('importlib', processed)
         module_info = processed['importlib']
 
