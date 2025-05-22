@@ -186,22 +186,28 @@ ObjWatch 提供可定制的日志格式和追踪选项，适应不同项目需�
 
 ### 参数
 
-- `targets` (列表) ：要监控的文件路径，模块，类，类成员，类方法，函数，全局变量。具体语法格式如下：
-  - 模块：'package.module'
-  - 类：'package.module:ClassName'
-  - 类属性：'package.module:ClassName.attribute'
-  - 类方法：'package.module:ClassName.method()'
-  - 函数：'package.module:function()'
-  - 全局变量：'package.module::GLOBAL_VAR'
+- `targets` (列表) ：要监控的文件路径、模块、类、类成员、类方法、函数、全局变量或 Python 对象。具体语法格式如下：
+  - 模块对象：直接传入模块实例
+  - 类对象：直接传入类定义
+  - 实例方法：直接传入方法实例
+  - 函数对象：直接传入函数实例
+  - 字符串格式：
+    - 模块：'package.module'
+    - 类：'package.module:ClassName'
+    - 类属性：'package.module:ClassName.attribute'
+    - 类方法：'package.module:ClassName.method()'
+    - 函数：'package.module:function()'
+    - 全局变量：'package.module::GLOBAL_VAR'
 
-  通过这些语法规则可以精确指定要监控的目标类型，例如：
+  示例演示混合使用对象和字符串：
   ```python
+  from package.models import User
+  from package.utils import format_str
+
   with objwatch.ObjWatch([
-      'package.models',             # 监控整个模块
-      'package.utils:format_str',   # 监控特定函数
-      'package.models:User.name',   # 监控类属性
-      'package.models:User.save()', # 监控类方法
-      'package.config::DEBUG_MODE'  # 监控全局变量
+      User,                  # 直接监控类对象
+      format_str,            # 直接监控函数对象
+      'package.config::DEBUG_MODE'  # 字符串格式全局变量
   ]):
       main()
   ```
