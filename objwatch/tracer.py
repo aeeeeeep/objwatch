@@ -203,8 +203,9 @@ class Tracer:
         Returns:
             bool: True if any tracked global variables exist
         """
-        return any(
-            var in self.global_index.get(frame.f_globals.get('__name__', ''), set()) for var in frame.f_globals.keys()
+        module_name = frame.f_globals.get('__name__', '')
+        return bool(self.global_index.get(module_name)) or (
+            self.config.with_globals and any(var not in self.builtin_fields for var in frame.f_globals.keys())
         )
 
     def _update_objects_lens(self, frame: FrameType) -> None:
@@ -333,6 +334,8 @@ class Tracer:
             frame (FrameType): The current stack frame.
             lineno (int): The line number where the change occurred.
         """
+        if 'self' not in frame.f_locals:
+            return
 
         obj = frame.f_locals['self']
         class_name = obj.__class__.__name__
@@ -370,8 +373,7 @@ class Tracer:
             frame (FrameType): The current stack frame.
             lineno (int): The line number where the change occurred.
         """
-
-        if frame not in self.tracked_locals:
+        if not self.config.with_locals or frame not in self.tracked_locals:
             return
 
         old_locals = self.tracked_locals[frame]
@@ -421,8 +423,15 @@ class Tracer:
         """
 
         global_vars = frame.f_globals
+        module_name = frame.f_globals.get('__name__', '')
+        tracked_vars = self.global_index.get(module_name, set()) if self.global_index else []
+        if not tracked_vars and not self.config.with_globals:
+            return
+
         for key, current_value in global_vars.items():
-            if key in self.builtin_fields:
+            if self.global_index and key not in tracked_vars:
+                continue
+            if not self.global_index and key in self.builtin_fields:
                 continue
 
             old_value = self.tracked_globals.get(key, None)
@@ -510,14 +519,9 @@ class Tracer:
 
             elif event == "line":
                 # Handle line event (track changes at each line of code)
-                if 'self' in frame.f_locals:
-                    self._track_object_change(frame, lineno)
-
-                if self.config.with_locals:
-                    self._track_locals_change(frame, lineno)
-
-                if self.config.with_globals:
-                    self._track_globals_change(frame, lineno)
+                self._track_object_change(frame, lineno)
+                self._track_locals_change(frame, lineno)
+                self._track_globals_change(frame, lineno)
 
                 return trace_func
 
