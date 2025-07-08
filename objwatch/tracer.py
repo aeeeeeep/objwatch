@@ -2,6 +2,7 @@
 # Copyright (c) 2025 aeeeeeep
 
 import sys
+import json
 from functools import lru_cache
 from types import FunctionType, FrameType
 from typing import Optional, Any, Dict, Set
@@ -14,6 +15,29 @@ from .event_handls import EventHandls, log_sequence_types
 from .mp_handls import MPHandls
 from .utils.logger import log_debug, log_warn, log_info
 from .utils.weak import WeakIdKeyDictionary
+
+
+def serialize_object(obj, indent=2):
+    """Serialize objects that JSON cannot handle by default.
+
+    Converts sets to lists, and other objects to their __dict__ or string representation.
+
+    Args:
+        obj: The object to serialize
+        indent: Number of spaces for JSON indentation
+
+    Returns:
+        str: JSON serialized string
+    """
+
+    def default_handler(o):
+        if isinstance(o, set):
+            return list(o)
+        if hasattr(o, '__dict__'):
+            return o.__dict__
+        return str(o)
+
+    return json.dumps(obj, indent=indent, default=default_handler)
 
 
 class Tracer:
@@ -105,14 +129,16 @@ class Tracer:
         self.class_index = {}
         self.function_index = {}
         self.global_index = {}
-
         for module, details in self.targets.items():
-            for cls in details.get('classes', {}):
-                self.class_index[module].add(cls)
+            for cls, cls_info in details.get('classes', {}).items():
+                self.class_index.setdefault(module, {})[cls] = {
+                    'methods': cls_info.get('methods', []),
+                    'attributes': cls_info.get('attributes', []),
+                }
             for func in details.get('functions', []):
-                self.function_index[module].add(func)
+                self.function_index.setdefault(module, set()).add(func)
             for gvar in details.get('globals', []):
-                self.global_index[module].add(gvar)
+                self.global_index.setdefault(module, set()).add(gvar)
 
         self.index_map = {'class': self.class_index, 'function': self.function_index, 'global': self.global_index}
 
@@ -428,7 +454,7 @@ class Tracer:
         if not tracked_vars and not self.config.with_globals:
             return
 
-        for key, current_value in global_vars.items():
+        for key, current_value in list(global_vars.items()):
             if self.global_index and key not in tracked_vars:
                 continue
             if not self.global_index and key in self.builtin_fields:

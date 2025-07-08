@@ -12,7 +12,7 @@ try:
 except ImportError:
     NoneType = type(None)
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Type
 from .utils.logger import log_error, log_debug, log_warn, log_info
 from .events import EventType
 
@@ -338,7 +338,7 @@ class EventHandls:
         elif isinstance(value, log_sequence_types):
             return EventHandls.format_sequence(value)
         else:
-            return f"(type){value.__class__.__name__}"
+            return f"(type){value.__name__ if hasattr(value, '__name__') else value.__class__.__name__}"
 
     def save_xml(self) -> None:
         """

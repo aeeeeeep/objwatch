@@ -4,11 +4,12 @@
 import ast
 import inspect
 import importlib
-from types import ModuleType, FunctionType
+from types import ModuleType, MethodType, FunctionType
 from typing import Tuple, List, Union, Dict, Set, Any
 
 from .utils.logger import log_error, log_warn
 
+ClassType = type
 TargetsType = List[Union[str, ModuleType]]
 ModuleStructure = Dict[str, Union[Dict[str, Any], List[str]]]
 TargetsDict = Dict[str, ModuleStructure]
@@ -118,20 +119,21 @@ class Targets:
         Returns:
             TargetsDict: Hierarchical structure:
         """
-        processed: TargetsDict = {}
+        processed_targets: TargetsDict = {}
         for target in targets or []:
             if isinstance(target, str) and target.endswith('.py'):
                 self.filename_targets.add(target)
-            elif isinstance(target, (str, ModuleType, FunctionType, type)):
-                module_path, details = self._parse_target(target)
-                # processed.setdefault(module_path, {}).update(details)
-                current = processed.setdefault(module_path, {})
-                processed[module_path] = deep_merge(current, details)
+            elif isinstance(target, (str, ModuleType, ClassType, FunctionType, MethodType)):
+                module_path, target_details = self._parse_target(target)
+                existing_details = processed_targets.setdefault(module_path, {})
+                processed_targets[module_path] = deep_merge(existing_details, target_details)
             else:
                 log_warn(f"Unsupported target type: {type(target)}")
-        return processed
+        return processed_targets
 
-    def _parse_target(self, target: Union[str, ModuleType, type, FunctionType]) -> tuple[str, ModuleStructure]:
+    def _parse_target(
+        self, target: Union[str, ModuleType, ClassType, FunctionType, MethodType]
+    ) -> tuple[str, ModuleStructure]:
         """
         Parse different target formats into module structure.
 
@@ -143,29 +145,58 @@ class Targets:
         """
         if isinstance(target, ModuleType):
             return self._parse_module(target)
-        if isinstance(target, type):
+        if isinstance(target, ClassType):
             return self._parse_class(target)
-        if isinstance(target, FunctionType):
+        if isinstance(target, (FunctionType, MethodType)):
             return self._parse_function(target)
         return self._parse_string(target)
 
-    def _parse_function(self, func: FunctionType) -> tuple[str, ModuleStructure]:
-        """Parse function object and integrate into module structure.
+    def _parse_function(self, func: Union[FunctionType, MethodType]) -> tuple[str, ModuleStructure]:
+        """Parse function object and create module structure containing this function or method
 
         Args:
             func: Function object to parse
 
         Returns:
-            tuple: (module_path, updated_structure) with function added
+            tuple: (module name, module structure containing only this function or method)
         """
+        # Check if this is a class method (bound to class)
+        if hasattr(func, '__self__') and isinstance(func.__self__, type):
+            cls = func.__self__
+            module = inspect.getmodule(cls)
+            module_name = module.__name__ if module else ''
+            return (
+                module_name,
+                {
+                    'classes': {cls.__name__: {'methods': [func.__name__], 'attributes': []}},
+                    'functions': [],
+                    'globals': [],
+                },
+            )
+
+        # Check if this is a static/class method using qualname (e.g. 'Class.method')
+        if hasattr(func, '__qualname__') and '.' in func.__qualname__:
+            class_name, method_name = func.__qualname__.split('.', 1)
+            module = inspect.getmodule(func)
+            if module and hasattr(module, class_name):
+                cls = getattr(module, class_name)
+                if isinstance(cls, type):
+                    module_name = module.__name__ if module else ''
+                    return (
+                        module_name,
+                        {
+                            'classes': {class_name: {'methods': [method_name], 'attributes': []}},
+                            'functions': [],
+                            'globals': [],
+                        },
+                    )
+
+        # Regular function handling
         module = inspect.getmodule(func)
-        module_struct = self._parse_module(module)
-        func_name = func.__name__
-        if 'functions' not in module_struct[1]:
-            module_struct[1]['functions'] = []
-        if func_name not in module_struct[1]['functions']:
-            module_struct[1]['functions'].append(func_name)
-        return module_struct
+        module_name = module.__name__ if module else ''
+        function_name = func.__name__
+        parsed_structure = {'classes': {}, 'functions': [function_name], 'globals': []}
+        return (module_name, parsed_structure)
 
     def _parse_module(self, module: ModuleType) -> tuple[str, ModuleStructure]:
         """Parse module structure using AST analysis.
@@ -179,23 +210,26 @@ class Targets:
         file_path = inspect.getfile(module)
         return (module.__name__, self._parse_py_file(file_path))
 
-    def _parse_class(self, cls: type) -> tuple[str, ModuleStructure]:
-        """Parse class structure including methods and attributes.
+    def _parse_class(self, cls: ClassType) -> tuple[str, ModuleStructure]:
+        """Parse class object and create module structure containing this class
 
         Args:
-            cls: Class object to analyze
+            cls: Class object to parse
 
         Returns:
-            tuple: (module_path, updated_structure) with class info added
+            tuple: (module name, module structure containing only this class)
         """
         module = inspect.getmodule(cls)
-        module_struct = self._parse_module(module)
-        class_info = {
-            'methods': [m[0] for m in inspect.getmembers(cls, inspect.isfunction)],
-            'attributes': list(cls.__dict__.keys()),
+        module_name = module.__name__ if module else ''
+        class_name = cls.__name__
+        class_methods = [method[0] for method in inspect.getmembers(cls, inspect.isfunction)]
+        class_attributes = list(cls.__dict__.keys())
+        class_details = {
+            'methods': class_methods,
+            'attributes': class_attributes,
         }
-        module_struct[1]['classes'][cls.__name__] = class_info
-        return module_struct
+        parsed_structure = {'classes': {class_name: class_details}, 'functions': [], 'globals': []}
+        return (module_name, parsed_structure)
 
     def _parse_string(self, target: str) -> tuple[str, ModuleStructure]:
         """Parse string-formatted target definitions
@@ -209,19 +243,29 @@ class Targets:
         # Handle global variable syntax
         if '::' in target:
             module_part, _, global_var = target.partition('::')
-            return (module_part, {'globals': [global_var.strip()]})
+            spec = importlib.util.find_spec(module_part)
+            if spec is None:
+                log_warn(f"Module {module_part} not found")
+                return (module_part, {'globals': []})
+            resolved_module_name = spec.name
+            return (resolved_module_name, {'globals': [global_var.strip()]})
 
         # Split module path and symbol definition
         module_part, _, symbol = target.partition(':')
-        full_module = self._parse_module_by_name(module_part)
+        spec = importlib.util.find_spec(module_part)
+        if spec is None:
+            log_warn(f"Module {module_part} not found")
+            return (module_part, {'classes': {}, 'functions': [], 'globals': []})
+        resolved_module_name = spec.name
+        full_module = self._parse_module_by_name(resolved_module_name)
 
         if not symbol:
-            return (module_part, full_module)
+            return (resolved_module_name, full_module)
 
         details = {'classes': {}, 'functions': [], 'globals': []}
         current_symbol = symbol
 
-        # Parse class methods
+        # Parse class members (methods or attributes)
         if '.' in symbol:
             class_part, _, member = current_symbol.partition('.')
             if class_part in full_module['classes']:
@@ -247,7 +291,7 @@ class Targets:
                     'attributes': class_info['attributes'],
                 }
 
-        return (module_part, details)
+        return (resolved_module_name, details)
 
     def _parse_module_by_name(self, module_name: str) -> ModuleStructure:
         """Locate and parse module structure by its import name.
@@ -277,7 +321,7 @@ class Targets:
         Raises:
             Logs error on parsing failure
         """
-        result: ModuleStructure = {'classes': {}, 'functions': [], 'globals': []}
+        parsed_structure: ModuleStructure = {'classes': {}, 'functions': [], 'globals': []}
 
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
@@ -291,17 +335,17 @@ class Targets:
                         'methods': [n.name for n in node.body if isinstance(n, ast.FunctionDef)],
                         'attributes': self._extract_class_attributes(node),
                     }
-                    result['classes'][node.name] = class_info
+                    parsed_structure['classes'][node.name] = class_info
                 elif isinstance(node, ast.FunctionDef):
                     if not any(isinstance(parent, ast.ClassDef) for parent in iter_parents(node)):
-                        result['functions'].append(node.name)
+                        parsed_structure['functions'].append(node.name)
                 elif isinstance(node, ast.Assign):
-                    self._process_assignment(node, result)
+                    self._process_assignment(node, parsed_structure)
 
         except Exception as e:
             log_error(f"Failed to parse {file_path}: {str(e)}")
 
-        return result
+        return parsed_structure
 
     def _extract_class_attributes(self, class_node: ast.ClassDef) -> List[str]:
         """Extract class attributes from AST node.
@@ -326,20 +370,22 @@ class Targets:
         Returns:
             Filtered targets dictionary after applying exclusion rules
         """
-        diff: TargetsDict = {}
+        filtered_targets: TargetsDict = {}
         for module_path, target_details in self.targets.items():
             exclude_details = self.exclude_targets.get(module_path, {})
 
-            diff_details = {
+            # Calculate filtered target details
+            filtered_details = {
                 'classes': self._diff_level(target_details.get('classes', {}), exclude_details.get('classes', {})),
                 'functions': list(set(target_details.get('functions', [])) - set(exclude_details.get('functions', []))),
                 'globals': list(set(target_details.get('globals', [])) - set(exclude_details.get('globals', []))),
             }
 
-            if any([diff_details['classes'], diff_details['functions'], diff_details['globals']]):
-                diff[module_path] = diff_details
+            # Only keep targets with content
+            if any([filtered_details['classes'], filtered_details['functions'], filtered_details['globals']]):
+                filtered_targets[module_path] = filtered_details
 
-        return diff
+        return filtered_targets
 
     def _diff_level(self, target: dict, exclude: dict) -> dict:
         """Recursively filter nested structures by exclusion rules.
@@ -388,13 +434,13 @@ class Targets:
         if any(isinstance(parent, ast.ClassDef) for parent in iter_parents(node)):
             return
 
-        for target in node.targets:
-            if isinstance(target, ast.Name):
-                result['globals'].append(target.id)
-            elif isinstance(target, ast.Tuple):
-                for elt in target.elts:
-                    if isinstance(elt, ast.Name):
-                        result['globals'].append(elt.id)
+        for assign_target in node.targets:
+            if isinstance(assign_target, ast.Name):
+                result['globals'].append(assign_target.id)
+            elif isinstance(assign_target, ast.Tuple):
+                for element in assign_target.elts:
+                    if isinstance(element, ast.Name):
+                        result['globals'].append(element.id)
 
     def get_processed_targets(self) -> TargetsDict:
         """Retrieve final monitoring targets after exclusion processing.

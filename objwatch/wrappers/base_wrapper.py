@@ -75,9 +75,9 @@ class BaseWrapper(ABCWrapper):
             if formatted_sequence:
                 formatted = f"{formatted_sequence}"
             else:
-                formatted = f"(type){value.__class__.__name__}"
+                formatted = f"(type){value.__name__ if hasattr(value, '__name__') else value.__class__.__name__}"
         else:
-            formatted = f"(type){value.__class__.__name__}"
+            formatted = f"(type){value.__name__ if hasattr(value, '__name__') else value.__class__.__name__}"
 
         if is_return:
             if isinstance(value, log_sequence_types) and formatted:

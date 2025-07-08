@@ -72,13 +72,15 @@ class TestPytorchTraining(unittest.TestCase):
             targets=[
                 'tests/test_torch_train.py',
             ],
-            exclude_targets=[],
+            exclude_targets=[
+                torch.nn.Parameter.storage,
+            ],
             output=None,
             level=logging.DEBUG,
             simple=True,
             with_locals=False,
             with_globals=True,
-            with_module_path=False,
+            with_module_path=True,
             wrapper=TensorShapeWrapper,
         )
         obj_watch.start()

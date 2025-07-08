@@ -27,6 +27,7 @@ class TestTargets(unittest.TestCase):
         cls_info = processed['tests.utils.example_targets.sample_module']['classes']['SampleClass']
         self.assertIn('class_method', cls_info['methods'])
         self.assertIn('static_method', cls_info['methods'])
+        self.assertIn('method', cls_info['methods'])
         self.assertIn('class_attr', cls_info['attributes'])
 
     def test_class_attribute(self):
@@ -125,15 +126,16 @@ class TestTargets(unittest.TestCase):
     def test_object_class_methods(self):
         from tests.utils.example_targets.sample_module import SampleClass
 
-        targets = Targets([SampleClass.class_method, SampleClass.static_method])
+        targets = Targets([SampleClass.class_method, SampleClass.static_method, SampleClass.method])
         processed = targets.get_processed_targets()
 
         cls_info = processed[sample_module.__name__]['classes']['SampleClass']
         self.assertIn('class_method', cls_info['methods'])
         self.assertIn('static_method', cls_info['methods'])
+        self.assertIn('method', cls_info['methods'])
 
     def test_object_functions_and_globals(self):
-        targets = Targets([sample_module.module_function])
+        targets = Targets([sample_module.module_function, "tests.utils.example_targets.sample_module::GLOBAL_VAR"])
         processed = targets.get_processed_targets()
 
         mod_info = processed[sample_module.__name__]
