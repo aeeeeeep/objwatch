@@ -133,7 +133,7 @@ class Targets:
 
     def _parse_target(
         self, target: Union[str, ModuleType, ClassType, FunctionType, MethodType]
-    ) -> tuple[str, ModuleStructure]:
+    ) -> tuple:
         """
         Parse different target formats into module structure.
 
@@ -151,7 +151,7 @@ class Targets:
             return self._parse_function(target)
         return self._parse_string(target)
 
-    def _parse_function(self, func: Union[FunctionType, MethodType]) -> tuple[str, ModuleStructure]:
+    def _parse_function(self, func: Union[FunctionType, MethodType]) -> tuple:
         """Parse function object and create module structure containing this function or method
 
         Args:
@@ -198,7 +198,7 @@ class Targets:
         parsed_structure = {'classes': {}, 'functions': [function_name], 'globals': []}
         return (module_name, parsed_structure)
 
-    def _parse_module(self, module: ModuleType) -> tuple[str, ModuleStructure]:
+    def _parse_module(self, module: ModuleType) -> tuple:
         """Parse module structure using AST analysis.
 
         Args:
@@ -210,7 +210,7 @@ class Targets:
         file_path = inspect.getfile(module)
         return (module.__name__, self._parse_py_file(file_path))
 
-    def _parse_class(self, cls: ClassType) -> tuple[str, ModuleStructure]:
+    def _parse_class(self, cls: ClassType) -> tuple:
         """Parse class object and create module structure containing this class
 
         Args:
@@ -231,7 +231,7 @@ class Targets:
         parsed_structure = {'classes': {class_name: class_details}, 'functions': [], 'globals': []}
         return (module_name, parsed_structure)
 
-    def _parse_string(self, target: str) -> tuple[str, ModuleStructure]:
+    def _parse_string(self, target: str) -> tuple:
         """Parse string-formatted target definitions
 
         Args:
