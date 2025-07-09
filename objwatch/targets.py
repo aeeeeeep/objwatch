@@ -131,9 +131,7 @@ class Targets:
                 log_warn(f"Unsupported target type: {type(target)}")
         return processed_targets
 
-    def _parse_target(
-        self, target: Union[str, ModuleType, ClassType, FunctionType, MethodType]
-    ) -> tuple:
+    def _parse_target(self, target: Union[str, ModuleType, ClassType, FunctionType, MethodType]) -> tuple:
         """
         Parse different target formats into module structure.
 
@@ -223,7 +221,7 @@ class Targets:
         module_name = module.__name__ if module else ''
         class_name = cls.__name__
         class_methods = [method[0] for method in inspect.getmembers(cls, inspect.isfunction)]
-        class_attributes = list(cls.__dict__.keys())
+        class_attributes = [name for name, value in cls.__dict__.items() if not inspect.isfunction(value)]
         class_details = {
             'methods': class_methods,
             'attributes': class_attributes,

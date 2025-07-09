@@ -30,14 +30,14 @@ def serialize_object(obj, indent=2):
         str: JSON serialized string
     """
 
-    def default_handler(o):
+    def object_handler(o):
         if isinstance(o, set):
             return list(o)
         if hasattr(o, '__dict__'):
             return o.__dict__
         return str(o)
 
-    return json.dumps(obj, indent=indent, default=default_handler)
+    return json.dumps(obj, indent=indent, default=object_handler)
 
 
 class Tracer:
@@ -85,7 +85,7 @@ class Tracer:
         self._build_target_index()
         log_debug(
             f"\nProcessed targets:\n{'>' * 10}\n"
-            + "\n".join(self.targets)
+            + serialize_object(self.targets)
             + f"\n{'<' * 10}\n"
             + f"Filename targets:\n{'>' * 10}\n"
             + "\n".join(self.filename_targets)
@@ -127,20 +127,44 @@ class Tracer:
         """
         self.module_index = set(self.targets.keys())
         self.class_index = {}
+        self.method_index = {}
+        self.attribute_index = {}
         self.function_index = {}
         self.global_index = {}
         for module, details in self.targets.items():
-            for cls, cls_info in details.get('classes', {}).items():
-                self.class_index.setdefault(module, {})[cls] = {
-                    'methods': cls_info.get('methods', []),
-                    'attributes': cls_info.get('attributes', []),
-                }
+            # Process classes
+            classes = details.get('classes', {})
+            for cls_name, cls_info in classes.items():
+                # Add class to class index
+                self.class_index.setdefault(module, set()).add(cls_name)
+
+                # Process methods
+                methods = cls_info.get('methods', [])
+                if methods:
+                    class_methods = self.method_index.setdefault(module, {}).setdefault(cls_name, set())
+                    class_methods.update(methods)
+
+                # Process attributes
+                attributes = cls_info.get('attributes', [])
+                if attributes:
+                    class_attrs = self.attribute_index.setdefault(module, {}).setdefault(cls_name, set())
+                    class_attrs.update(attributes)
+
+            # Process functions
             for func in details.get('functions', []):
                 self.function_index.setdefault(module, set()).add(func)
+
+            # Process globals
             for gvar in details.get('globals', []):
                 self.global_index.setdefault(module, set()).add(gvar)
 
-        self.index_map = {'class': self.class_index, 'function': self.function_index, 'global': self.global_index}
+        self.index_map = {
+            'class': self.class_index,
+            'method': self.method_index,
+            'attribute': self.attribute_index,
+            'function': self.function_index,
+            'global': self.global_index,
+        }
 
     def load_wrapper(self, wrapper: Optional[ABCWrapper]) -> Optional[ABCWrapper]:
         """
@@ -181,7 +205,41 @@ class Tracer:
         Returns:
             bool: True if the symbol should be traced
         """
+        if symbol_type in ('method', 'attribute'):
+            # For methods and attributes, symbol should be in "class.symbol" format
+            if '.' not in symbol:
+                return False
+            class_name, symbol_name = symbol.split('.', 1)
+            return symbol_name in self.index_map[symbol_type].get(module, {}).get(class_name, set())
         return symbol in self.index_map[symbol_type].get(module, set())
+
+    @lru_cache(maxsize=sys.maxsize)
+    def _should_trace_method(self, module: str, class_name: str, method_name: str) -> bool:
+        """Check if a specific method should be traced.
+
+        Args:
+            module (str): Parent module name
+            class_name (str): Class name containing the method
+            method_name (str): Method name to check
+
+        Returns:
+            bool: True if the method should be traced
+        """
+        return method_name in self.method_index.get(module, {}).get(class_name, set())
+
+    @lru_cache(maxsize=sys.maxsize)
+    def _should_trace_attribute(self, module: str, class_name: str, attr_name: str) -> bool:
+        """Check if a specific attribute should be traced.
+
+        Args:
+            module (str): Parent module name
+            class_name (str): Class name containing the attribute
+            attr_name (str): Attribute name to check
+
+        Returns:
+            bool: True if the attribute should be traced
+        """
+        return attr_name in self.attribute_index.get(module, {}).get(class_name, set())
 
     @lru_cache(maxsize=sys.maxsize)
     def _filename_endswith(self, filename: str) -> bool:
@@ -215,7 +273,11 @@ class Tracer:
 
         if 'self' in frame.f_locals:
             cls_name = frame.f_locals['self'].__class__.__name__
-            return self._should_trace_symbol(module, 'class', cls_name)
+            method_name = frame.f_code.co_name
+            # Check if class is traced and method is in traced methods
+            return self._should_trace_symbol(module, 'class', cls_name) and self._should_trace_method(
+                module, cls_name, method_name
+            )
         return any(
             [self._should_trace_symbol(module, 'function', frame.f_code.co_name), self._check_global_changes(frame)]
         )
@@ -369,9 +431,13 @@ class Tracer:
         if obj in self.tracked_objects:
             old_attrs = self.tracked_objects[obj]
             old_attrs_lens = self.tracked_objects_lens[obj]
+            module_name = frame.f_globals.get('__name__', '')
             current_attrs = {k: v for k, v in obj.__dict__.items() if not callable(v)}
 
             for key, current_value in current_attrs.items():
+                # Only track attributes specified in configuration
+                if not self._should_trace_attribute(module_name, class_name, key):
+                    continue
                 old_value = old_attrs.get(key, None)
                 old_value_len = old_attrs_lens.get(key, None)
                 is_current_seq = isinstance(current_value, log_sequence_types)
