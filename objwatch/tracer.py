@@ -194,24 +194,17 @@ class Tracer:
         return module in self.module_index
 
     @lru_cache(maxsize=sys.maxsize)
-    def _should_trace_symbol(self, module: str, symbol_type: str, symbol: str) -> bool:
-        """Verify if a specific symbol requires monitoring.
+    def _should_trace_class(self, module: str, class_name: str) -> bool:
+        """Check if a specific class should be traced.
 
         Args:
             module (str): Parent module name
-            symbol_type (str): Type of symbol
-            symbol (str): Symbol name to check
+            class_name (str): Class name to check
 
         Returns:
-            bool: True if the symbol should be traced
+            bool: True if the class should be traced
         """
-        if symbol_type in ('method', 'attribute'):
-            # For methods and attributes, symbol should be in "class.symbol" format
-            if '.' not in symbol:
-                return False
-            class_name, symbol_name = symbol.split('.', 1)
-            return symbol_name in self.index_map[symbol_type].get(module, {}).get(class_name, set())
-        return symbol in self.index_map[symbol_type].get(module, set())
+        return class_name in self.class_index.get(module, set())
 
     @lru_cache(maxsize=sys.maxsize)
     def _should_trace_method(self, module: str, class_name: str, method_name: str) -> bool:
@@ -242,6 +235,32 @@ class Tracer:
         return attr_name in self.attribute_index.get(module, {}).get(class_name, set())
 
     @lru_cache(maxsize=sys.maxsize)
+    def _should_trace_function(self, module: str, func_name: str) -> bool:
+        """Check if a specific function should be traced.
+
+        Args:
+            module (str): Parent module name
+            func_name (str): Function name to check
+
+        Returns:
+            bool: True if the function should be traced
+        """
+        return func_name in self.function_index.get(module, set())
+
+    @lru_cache(maxsize=sys.maxsize)
+    def _should_trace_global(self, module: str, global_name: str) -> bool:
+        """Check if a specific global variable should be traced.
+
+        Args:
+            module (str): Parent module name
+            global_name (str): Global variable name to check
+
+        Returns:
+            bool: True if the global variable should be traced
+        """
+        return global_name in self.global_index.get(module, set())
+
+    @lru_cache(maxsize=sys.maxsize)
     def _filename_endswith(self, filename: str) -> bool:
         """
         Check if the filename does not end with any of the target extensions.
@@ -263,24 +282,45 @@ class Tracer:
         Returns:
             bool: True if tracing should occur for this frame
         """
+        # Check if file extension matches target patterns
         if self._filename_endswith(frame.f_code.co_filename):
             return True
 
         module = frame.f_globals.get('__name__', '')
 
+        # Check if module is in tracing targets
         if not self._should_trace_module(module):
             return False
 
+        # Handle class methods and attributes
         if 'self' in frame.f_locals:
             cls_name = frame.f_locals['self'].__class__.__name__
             method_name = frame.f_code.co_name
-            # Check if class is traced and method is in traced methods
-            return self._should_trace_symbol(module, 'class', cls_name) and self._should_trace_method(
-                module, cls_name, method_name
-            )
-        return any(
-            [self._should_trace_symbol(module, 'function', frame.f_code.co_name), self._check_global_changes(frame)]
-        )
+
+            # Check if class is traced and method is traced
+            class_is_traced = self._should_trace_class(module, cls_name)
+            method_is_traced = self._should_trace_method(module, cls_name, method_name)
+
+            # If method is traced, no need to check attributes
+            if class_is_traced and method_is_traced:
+                return True
+
+            # Check if any attribute is traced
+            if class_is_traced:
+                obj = frame.f_locals['self']
+                current_attrs = {k: v for k, v in obj.__dict__.items() if not callable(v)}
+                any_attr_traced = any(
+                    self._should_trace_attribute(module, cls_name, attr) for attr in current_attrs.keys()
+                )
+                return any_attr_traced
+
+            return False
+        # Handle regular functions
+        func_name = frame.f_code.co_name
+        if self._should_trace_function(module, func_name):
+            return True
+        # Check for global variable changes
+        return self._check_global_changes(frame)
 
     def _check_global_changes(self, frame: FrameType) -> bool:
         """Detect monitored global variables in current frame.
@@ -332,10 +372,10 @@ class Tracer:
         if 'self' in frame.f_locals:
             cls = frame.f_locals['self'].__class__.__name__
             func_name = f"{cls}.{frame.f_code.co_name}"
-            symbol_type = 'method' if self._should_trace_symbol(module, 'class', cls) else None
+            symbol_type = 'method' if self._should_trace_method(module, cls, func_name) else None
         else:
             func_name = frame.f_code.co_name
-            symbol_type = 'function' if self._should_trace_symbol(module, 'function', func_name) else None
+            symbol_type = 'function' if self._should_trace_function(module, func_name) else None
 
         func_info.update(
             {
@@ -427,6 +467,7 @@ class Tracer:
 
         obj = frame.f_locals['self']
         class_name = obj.__class__.__name__
+        should_trace_all_attrs = self._filename_endswith(frame.f_code.co_filename)
 
         if obj in self.tracked_objects:
             old_attrs = self.tracked_objects[obj]
@@ -435,9 +476,9 @@ class Tracer:
             current_attrs = {k: v for k, v in obj.__dict__.items() if not callable(v)}
 
             for key, current_value in current_attrs.items():
-                # Only track attributes specified in configuration
-                if not self._should_trace_attribute(module_name, class_name, key):
+                if not (should_trace_all_attrs or self._should_trace_attribute(module_name, class_name, key)):
                     continue
+
                 old_value = old_attrs.get(key, None)
                 old_value_len = old_attrs_lens.get(key, None)
                 is_current_seq = isinstance(current_value, log_sequence_types)

@@ -74,7 +74,6 @@ class EventHandls:
         Handle the 'run' event indicating the start of a function or method execution.
         """
         logger_msg = func_info['qualified_name']
-        is_method = func_info['symbol_type'] == 'method'
 
         attrib = {
             'module': func_info['module'],
