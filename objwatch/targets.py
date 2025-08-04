@@ -2,8 +2,10 @@
 # Copyright (c) 2025 aeeeeeep
 
 import ast
+import json
 import inspect
 import importlib
+import pkgutil
 from types import ModuleType, MethodType, FunctionType
 from typing import Tuple, List, Union, Dict, Set, Any
 
@@ -205,8 +207,7 @@ class Targets:
         Returns:
             tuple: (module_name, parsed_structure) pair
         """
-        file_path = inspect.getfile(module)
-        return (module.__name__, self._parse_py_file(file_path))
+        return (module.__name__, self._parse_module_by_name(module.__name__))
 
     def _parse_class(self, cls: ClassType) -> tuple:
         """Parse class object and create module structure containing this class
@@ -291,21 +292,38 @@ class Targets:
 
         return (resolved_module_name, details)
 
-    def _parse_module_by_name(self, module_name: str) -> ModuleStructure:
-        """Locate and parse module structure by its import name.
+    def _parse_module_by_name(self, module_name: str, recursive: bool = True) -> ModuleStructure:
+        """Locate and parse module structure by its import name, supporting recursive parsing.
 
         Args:
             module_name: Full dotted import path (e.g. 'package.module')
+            recursive: Whether to recursively parse submodules
 
         Returns:
-            ModuleStructure: Parsed module structure if found, otherwise
-                returns empty structure with warning logged
+            ModuleStructure: Parsed module structure with submodules if recursive=True
         """
         spec = importlib.util.find_spec(module_name)
-        if spec and spec.origin:
-            return self._parse_py_file(spec.origin)
-        log_warn(f"Module {module_name} not found")
-        return {'classes': {}, 'functions': [], 'globals': []}
+        if spec is None:
+            log_warn(f"Module {module_name} not found")
+            return {'classes': {}, 'functions': [], 'globals': []}
+
+        # Parse the current module
+        module_structure = {'classes': {}, 'functions': [], 'globals': []}
+        if spec.origin and spec.origin.endswith('.py'):
+            module_structure = self._parse_py_file(spec.origin)
+
+        # Recursively parse submodules if enabled
+        if recursive and hasattr(spec, 'submodule_search_locations') and spec.submodule_search_locations:
+            for _, submodule_name, is_pkg in pkgutil.iter_modules(spec.submodule_search_locations):
+                full_submodule_name = f"{module_name}.{submodule_name}"
+                try:
+                    submodule_structure = self._parse_module_by_name(full_submodule_name, recursive)
+                    # Add submodule structure to current module
+                    module_structure[submodule_name] = submodule_structure
+                except Exception as e:
+                    log_warn(f"Failed to parse submodule {full_submodule_name}: {str(e)}")
+
+        return module_structure
 
     def _parse_py_file(self, file_path: str) -> ModuleStructure:
         """Analyze Python file structure using Abstract Syntax Tree.
@@ -362,6 +380,31 @@ class Targets:
                 attrs.append(node.target.id)
         return attrs
 
+    def _flatten_module_structure(self, module_path: str, module_structure: dict, result: TargetsDict):
+        """Flatten nested module structure into a TargetsDict.
+
+        Args:
+            module_path: Full module path
+            module_structure: Module structure dictionary
+            result: TargetsDict to populate
+        """
+        # Extract standard sections (classes, functions, globals)
+        standard_sections = {
+            'classes': module_structure.get('classes', {}),
+            'functions': module_structure.get('functions', []),
+            'globals': module_structure.get('globals', []),
+        }
+
+        # Only add to result if there's content
+        if any([standard_sections['classes'], standard_sections['functions'], standard_sections['globals']]):
+            result[module_path] = standard_sections
+
+        # Process nested submodules
+        for key, value in module_structure.items():
+            if key not in ['classes', 'functions', 'globals'] and isinstance(value, dict):
+                submodule_path = f"{module_path}.{key}"
+                self._flatten_module_structure(submodule_path, value, result)
+
     def _diff_targets(self) -> TargetsDict:
         """Calculate effective targets by excluding specified patterns.
 
@@ -379,9 +422,17 @@ class Targets:
                 'globals': list(set(target_details.get('globals', [])) - set(exclude_details.get('globals', []))),
             }
 
-            # Only keep targets with content
-            if any([filtered_details['classes'], filtered_details['functions'], filtered_details['globals']]):
-                filtered_targets[module_path] = filtered_details
+            # Process nested submodules
+            for key, value in target_details.items():
+                if key not in ['classes', 'functions', 'globals'] and isinstance(value, dict):
+                    submodule_path = f"{module_path}.{key}"
+                    submodule_exclude = exclude_details.get(key, {})
+                    filtered_sub = self._diff_level(value, submodule_exclude)
+                    if filtered_sub:
+                        filtered_details[key] = filtered_sub
+
+            # Flatten the module structure
+            self._flatten_module_structure(module_path, filtered_details, filtered_targets)
 
         return filtered_targets
 
@@ -464,6 +515,34 @@ class Targets:
             }
         """
         return self.processed_targets
+
+    def serialize_targets(self, indent=2):
+        """Serialize objects that JSON cannot handle by default.
+
+        Converts sets to lists, and other objects to their __dict__ or string representation.
+        If the input is a dictionary with more than 8 top-level keys, only the keys are retained
+        with a placeholder value and a warning message is added.
+
+        Args:
+            indent: Number of spaces for JSON indentation
+
+        Returns:
+            str: JSON serialized string
+        """
+
+        def target_handler(o):
+            if isinstance(o, set):
+                return list(o)
+            if hasattr(o, '__dict__'):
+                return o.__dict__
+            return str(o)
+
+        if len(self.processed_targets) > 8:
+            truncated_obj = {key: "..." for key in self.processed_targets.keys()}
+            truncated_obj["Warning: too many top-level keys, only showing values like"] = "..."
+            return json.dumps(truncated_obj, indent=indent, default=target_handler)
+
+        return json.dumps(self.processed_targets, indent=indent, default=target_handler)
 
     def get_filename_targets(self) -> Set:
         """Get monitored filesystem paths.

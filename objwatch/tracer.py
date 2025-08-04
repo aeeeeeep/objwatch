@@ -2,7 +2,6 @@
 # Copyright (c) 2025 aeeeeeep
 
 import sys
-import json
 from functools import lru_cache
 from types import FunctionType, FrameType
 from typing import Optional, Any, Dict, Set
@@ -15,29 +14,6 @@ from .event_handls import EventHandls, log_sequence_types
 from .mp_handls import MPHandls
 from .utils.logger import log_debug, log_warn, log_info
 from .utils.weak import WeakIdKeyDictionary
-
-
-def serialize_object(obj, indent=2):
-    """Serialize objects that JSON cannot handle by default.
-
-    Converts sets to lists, and other objects to their __dict__ or string representation.
-
-    Args:
-        obj: The object to serialize
-        indent: Number of spaces for JSON indentation
-
-    Returns:
-        str: JSON serialized string
-    """
-
-    def object_handler(o):
-        if isinstance(o, set):
-            return list(o)
-        if hasattr(o, '__dict__'):
-            return o.__dict__
-        return str(o)
-
-    return json.dumps(obj, indent=indent, default=object_handler)
 
 
 class Tracer:
@@ -85,7 +61,7 @@ class Tracer:
         self._build_target_index()
         log_debug(
             f"\nProcessed targets:\n{'>' * 10}\n"
-            + serialize_object(self.targets)
+            + targets_cls.serialize_targets()
             + f"\n{'<' * 10}\n"
             + f"Filename targets:\n{'>' * 10}\n"
             + "\n".join(self.filename_targets)
