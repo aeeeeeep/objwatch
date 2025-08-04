@@ -234,6 +234,12 @@ class Tracer:
         Returns:
             bool: True if the global variable should be traced
         """
+        if not self.config.with_globals:
+            return False
+
+        if not self.global_index:
+            return global_name not in self.builtin_fields
+
         return global_name in self.global_index.get(module, set())
 
     @lru_cache(maxsize=sys.maxsize)
@@ -308,9 +314,14 @@ class Tracer:
             bool: True if any tracked global variables exist
         """
         module_name = frame.f_globals.get('__name__', '')
-        return bool(self.global_index.get(module_name)) or (
-            self.config.with_globals and any(var not in self.builtin_fields for var in frame.f_globals.keys())
-        )
+
+        if not self.global_index and self.config.with_globals:
+            return any(var not in self.builtin_fields for var in frame.f_globals.keys())
+
+        if not self.config.with_globals:
+            return False
+
+        return bool(self.global_index.get(module_name))
 
     def _update_objects_lens(self, frame: FrameType) -> None:
         """
@@ -533,26 +544,29 @@ class Tracer:
 
         global_vars = frame.f_globals
         module_name = frame.f_globals.get('__name__', '')
-        tracked_vars = self.global_index.get(module_name, set()) if self.global_index else []
-        if not tracked_vars and not self.config.with_globals:
+
+        if not self.config.with_globals:
             return
 
+        if module_name not in self.tracked_globals:
+            self.tracked_globals[module_name] = {}
+        if module_name not in self.tracked_globals_lens:
+            self.tracked_globals_lens[module_name] = {}
+
         for key, current_value in list(global_vars.items()):
-            if self.global_index and key not in tracked_vars:
-                continue
-            if not self.global_index and key in self.builtin_fields:
+            if not self._should_trace_global(module_name, key):
                 continue
 
-            old_value = self.tracked_globals.get(key, None)
-            old_value_len = self.tracked_globals_lens.get(key, None)
+            old_value = self.tracked_globals[module_name].get(key, None)
+            old_value_len = self.tracked_globals_lens[module_name].get(key, None)
             is_current_seq = isinstance(current_value, log_sequence_types)
             current_value_len = len(current_value) if old_value_len is not None and is_current_seq else None
 
             self._handle_change_type(lineno, "@", key, old_value, current_value, old_value_len, current_value_len)
 
-            self.tracked_globals[key] = current_value
+            self.tracked_globals[module_name][key] = current_value
             if is_current_seq:
-                self.tracked_globals_lens[key] = len(current_value)
+                self.tracked_globals_lens[module_name][key] = len(current_value)
 
     def trace_factory(self) -> FunctionType:  # noqa: C901
         """
