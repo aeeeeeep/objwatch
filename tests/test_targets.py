@@ -25,10 +25,7 @@ class TestTargets(unittest.TestCase):
         processed = targets.get_processed_targets()
 
         cls_info = processed['tests.utils.example_targets.sample_module']['classes']['SampleClass']
-        self.assertIn('class_method', cls_info['methods'])
-        self.assertIn('static_method', cls_info['methods'])
-        self.assertIn('method', cls_info['methods'])
-        self.assertIn('class_attr', cls_info['attributes'])
+        self.assertTrue(cls_info.get("track_all", False))
 
     def test_class_attribute(self):
         targets = Targets(['tests.utils.example_targets.sample_module:SampleClass.class_attr'])
