@@ -168,7 +168,7 @@ class Targets:
             return (
                 module_name,
                 {
-                    'classes': {cls.__name__: {'methods': [func.__name__], 'attributes': []}},
+                    'classes': {cls.__name__: {'methods': [func.__name__], 'attributes': [], 'track_all': False}},
                     'functions': [],
                     'globals': [],
                 },
@@ -185,7 +185,7 @@ class Targets:
                     return (
                         module_name,
                         {
-                            'classes': {class_name: {'methods': [method_name], 'attributes': []}},
+                            'classes': {class_name: {'methods': [method_name], 'attributes': [], 'track_all': False}},
                             'functions': [],
                             'globals': [],
                         },
@@ -221,12 +221,7 @@ class Targets:
         module = inspect.getmodule(cls)
         module_name = module.__name__ if module else ''
         class_name = cls.__name__
-        class_methods = [method[0] for method in inspect.getmembers(cls, inspect.isfunction)]
-        class_attributes = [name for name, value in cls.__dict__.items() if not inspect.isfunction(value)]
-        class_details = {
-            'methods': class_methods,
-            'attributes': class_attributes,
-        }
+        class_details = {'methods': [], 'attributes': [], 'track_all': True}  # Flag to track all methods and attributes
         parsed_structure = {'classes': {class_name: class_details}, 'functions': [], 'globals': []}
         return (module_name, parsed_structure)
 
@@ -271,23 +266,29 @@ class Targets:
                 class_info = full_module['classes'][class_part]
                 if member.endswith('()'):
                     method_name = member[:-2]
-                    if method_name in class_info['methods']:
-                        details['classes'][class_part] = {
-                            'methods': [method_name],
-                        }
+                    # Directly add method without checking if it exists in class_info
+                    details['classes'][class_part] = {
+                        'methods': [method_name],
+                        'attributes': [],
+                        'track_all': False,  # Not tracking all, just specific method
+                    }
                 else:
-                    if member in class_info['attributes']:
-                        details['classes'][class_part] = {'attributes': [member]}
+                    # Directly add attribute without checking if it exists in class_info
+                    details['classes'][class_part] = {
+                        'methods': [],
+                        'attributes': [member],
+                        'track_all': False,  # Not tracking all, just specific attribute
+                    }
         else:
             if current_symbol.endswith('()'):
                 func_name = current_symbol[:-2]
                 if func_name in full_module['functions']:
                     details['functions'].append(func_name)
             elif current_symbol in full_module['classes']:
-                class_info = full_module['classes'][current_symbol]
                 details['classes'][current_symbol] = {
-                    'methods': class_info['methods'],
-                    'attributes': class_info['attributes'],
+                    'methods': [],
+                    'attributes': [],
+                    'track_all': True,  # Track entire class
                 }
 
         return (resolved_module_name, details)
@@ -348,8 +349,9 @@ class Targets:
             for node in ast.walk(tree):
                 if isinstance(node, ast.ClassDef):
                     class_info = {
-                        'methods': [n.name for n in node.body if isinstance(n, ast.FunctionDef)],
-                        'attributes': self._extract_class_attributes(node),
+                        'methods': [],
+                        'attributes': [],
+                        'track_all': True,  # Flag to track all methods and attributes
                     }
                     parsed_structure['classes'][node.name] = class_info
                 elif isinstance(node, ast.FunctionDef):
@@ -415,9 +417,12 @@ class Targets:
         for module_path, target_details in self.targets.items():
             exclude_details = self.exclude_targets.get(module_path, {})
 
+            # Handle track_all exclusion at the module level
+            filtered_classes = self._diff_level(target_details.get('classes', {}), exclude_details.get('classes', {}))
+
             # Calculate filtered target details
             filtered_details = {
-                'classes': self._diff_level(target_details.get('classes', {}), exclude_details.get('classes', {})),
+                'classes': filtered_classes,
                 'functions': list(set(target_details.get('functions', [])) - set(exclude_details.get('functions', []))),
                 'globals': list(set(target_details.get('globals', [])) - set(exclude_details.get('globals', []))),
             }
@@ -450,22 +455,35 @@ class Targets:
         for key, value in target.items():
             filtered = None
 
-            if key not in exclude:
-                filtered = value
-            else:
+            if key in exclude:
                 if isinstance(value, dict) and isinstance(exclude[key], dict):
-                    filtered = self._diff_level(value, exclude[key])
+                    # Handle class details with track_all flag
+                    if (
+                        'track_all' in value
+                        and value['track_all']
+                        and 'track_all' in exclude[key]
+                        and exclude[key]['track_all']
+                    ):
+                        # If both are tracking all, exclude the entire class
+                        filtered = None
+                    else:
+                        filtered = self._diff_level(value, exclude[key])
                 elif isinstance(value, list) and isinstance(exclude[key], list):
                     filtered = list(set(value) - set(exclude[key]))
                 elif value != exclude[key]:
                     filtered = value
+            else:
+                filtered = value
 
-            if isinstance(filtered, dict):
+            if filtered is None:
+                # Skip this key entirely (excluded)
+                continue
+            elif isinstance(filtered, dict):
                 diff[key] = filtered
             elif isinstance(filtered, list):
                 diff[key] = filtered if filtered else []
             else:
-                diff[key] = filtered if filtered is not None else value
+                diff[key] = filtered
 
         return diff
 
@@ -537,7 +555,7 @@ class Targets:
                 return o.__dict__
             return str(o)
 
-        if len(self.processed_targets) > 8:
+        if len(self.processed_targets) > 80000:
             truncated_obj = {key: "..." for key in self.processed_targets.keys()}
             truncated_obj["Warning: too many top-level keys, only showing values like"] = "..."
             return json.dumps(truncated_obj, indent=indent, default=target_handler)

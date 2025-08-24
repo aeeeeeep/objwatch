@@ -29,7 +29,6 @@ class ObjWatch:
         wrapper: Optional[ABCWrapper] = None,
         with_locals: bool = False,
         with_globals: bool = False,
-        with_module_path: bool = False,
     ) -> None:
         """
         Initialize the ObjWatch instance with configuration parameters.
@@ -46,7 +45,6 @@ class ObjWatch:
             wrapper (Optional[ABCWrapper]): Custom wrapper to extend tracing and logging functionality.
             with_locals (bool): Enable tracing and logging of local variables within functions.
             with_globals (bool): Enable tracing and logging of global variables across function calls.
-            with_module_path (bool): Prepend the module path to function names in logs.
         """
         # Create configuration parameters for ObjWatch
         config = ObjWatchConfig(
@@ -61,7 +59,6 @@ class ObjWatch:
             wrapper=wrapper,
             with_locals=with_locals,
             with_globals=with_globals,
-            with_module_path=with_module_path,
         )
 
         # Create and configure the logger based on provided parameters
@@ -130,7 +127,6 @@ def watch(
     wrapper: Optional[ABCWrapper] = None,
     with_locals: bool = False,
     with_globals: bool = False,
-    with_module_path: bool = False,
 ) -> ObjWatch:
     """
     Initialize and start an ObjWatch instance.
@@ -147,7 +143,6 @@ def watch(
         wrapper (Optional[ABCWrapper]): Custom wrapper to extend tracing and logging functionality.
         with_locals (bool): Enable tracing and logging of local variables within functions.
         with_globals (bool): Enable tracing and logging of global variables across function calls.
-        with_module_path (bool): Prepend the module path to function names in logs.
 
     Returns:
         ObjWatch: The initialized and started ObjWatch instance.
@@ -165,7 +160,6 @@ def watch(
         wrapper=wrapper,
         with_locals=with_locals,
         with_globals=with_globals,
-        with_module_path=with_module_path,
     )
 
     # Start the tracing process

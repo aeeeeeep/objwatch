@@ -20,7 +20,6 @@ class TestOutputXML(unittest.TestCase):
             targets="tests/test_output_xml.py",
             output_xml=self.test_output,
             wrapper=BaseWrapper,
-            with_module_path=True,
             with_locals=True,
         )
 

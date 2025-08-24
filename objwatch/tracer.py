@@ -83,7 +83,22 @@ class Tracer:
 
         # Load the function wrapper if provided
         self.abc_wrapper: ABCWrapper = self.load_wrapper(self.config.wrapper)
-        self.call_depth: int = 0
+        self._call_depth: int = 0
+
+    @property
+    def call_depth(self) -> int:
+        return self._call_depth
+
+    @call_depth.setter
+    def call_depth(self, value: int) -> None:
+        if value < 0:
+            raise ValueError(
+                "call_depth cannot be negative. "
+                f"Received invalid value: {value}. "
+                "This indicates a potential issue in the call stack tracking logic. "
+                "Please report this issue to the developers with the traceback information."
+            )
+        self._call_depth = value
 
     def _build_target_index(self):
         """Build fast lookup indexes for monitoring targets.
@@ -107,6 +122,7 @@ class Tracer:
         self.attribute_index = {}
         self.function_index = {}
         self.global_index = {}
+        self.class_info = {}  # Store class info for track_all checking
         for module, details in self.targets.items():
             # Process classes
             classes = details.get('classes', {})
@@ -114,17 +130,22 @@ class Tracer:
                 # Add class to class index
                 self.class_index.setdefault(module, set()).add(cls_name)
 
-                # Process methods
-                methods = cls_info.get('methods', [])
-                if methods:
-                    class_methods = self.method_index.setdefault(module, {}).setdefault(cls_name, set())
-                    class_methods.update(methods)
+                # Store class info for track_all checking
+                self.class_info.setdefault(module, {})[cls_name] = cls_info
 
-                # Process attributes
-                attributes = cls_info.get('attributes', [])
-                if attributes:
-                    class_attrs = self.attribute_index.setdefault(module, {}).setdefault(cls_name, set())
-                    class_attrs.update(attributes)
+                # Process methods (only if not tracking all)
+                if not cls_info.get('track_all', False):
+                    methods = cls_info.get('methods', [])
+                    if methods:
+                        class_methods = self.method_index.setdefault(module, {}).setdefault(cls_name, set())
+                        class_methods.update(methods)
+
+                # Process attributes (only if not tracking all)
+                if not cls_info.get('track_all', False):
+                    attributes = cls_info.get('attributes', [])
+                    if attributes:
+                        class_attrs = self.attribute_index.setdefault(module, {}).setdefault(cls_name, set())
+                        class_attrs.update(attributes)
 
             # Process functions
             for func in details.get('functions', []):
@@ -194,6 +215,11 @@ class Tracer:
         Returns:
             bool: True if the method should be traced
         """
+        # Check if tracking all methods for this class
+        class_info = self.class_info.get(module, {}).get(class_name, {})
+        if class_info.get('track_all', False):
+            return True
+
         return method_name in self.method_index.get(module, {}).get(class_name, set())
 
     @lru_cache(maxsize=sys.maxsize)
@@ -208,6 +234,11 @@ class Tracer:
         Returns:
             bool: True if the attribute should be traced
         """
+        # Check if tracking all attributes for this class
+        class_info = self.class_info.get(module, {}).get(class_name, {})
+        if class_info.get('track_all', False):
+            return True
+
         return attr_name in self.attribute_index.get(module, {}).get(class_name, set())
 
     @lru_cache(maxsize=sys.maxsize)

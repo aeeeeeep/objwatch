@@ -221,7 +221,6 @@ ObjWatch offers customizable logging formats and tracing options to suit various
 - `wrapper` (ABCWrapper, optional): Custom wrapper to extend tracing and logging functionality.
 - `with_locals` (bool, optional): Enable tracing and logging of local variables within functions during their execution.
 - `with_globals` (bool, optional): Enable tracing and logging of global variables across function calls. When you input the global variables in the `targets` list, you need to enable this option.
-- `with_module_path` (bool, optional): Control whether to prepend the module path to function names in logs.
 
 ## 🪁 Advanced Usage
 

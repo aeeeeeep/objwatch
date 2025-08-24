@@ -80,7 +80,6 @@ class TestPytorchTraining(unittest.TestCase):
             simple=True,
             with_locals=False,
             with_globals=True,
-            with_module_path=True,
             wrapper=TensorShapeWrapper,
         )
         obj_watch.start()

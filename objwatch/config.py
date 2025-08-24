@@ -26,7 +26,6 @@ class ObjWatchConfig:
         wrapper (Optional[ABCWrapper]): Custom wrapper to extend tracing and logging functionality.
         with_locals (bool): Enable tracing and logging of local variables within functions.
         with_globals (bool): Enable tracing and logging of global variables across function calls.
-        with_module_path (bool): Prepend the module path to function names in logs.
     """
 
     targets: List[Union[str, ModuleType]]
@@ -40,7 +39,6 @@ class ObjWatchConfig:
     wrapper: Optional[ABCWrapper] = None
     with_locals: bool = False
     with_globals: bool = False
-    with_module_path: bool = False
 
     def __post_init__(self) -> None:
         """
@@ -48,3 +46,6 @@ class ObjWatchConfig:
         """
         if not self.targets:
             raise ValueError("At least one monitoring target must be specified")
+
+        if self.level == "force" and self.output is not None:
+            raise ValueError("output cannot be specified when level is 'force'")
