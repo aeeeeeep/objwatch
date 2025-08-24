@@ -1,4 +1,4 @@
-name: Python application
+name: Python Test Suite
 
 on:
   push:
@@ -46,6 +46,6 @@ jobs:
         # Exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 ./objwatch ./examples --count --exit-zero --max-complexity=16 --max-line-length=127 --statistics
 
-    - name: Test with unittest
+    - name: Test with pytest
       run: |
-        python -m unittest discover -s tests
+        python -m pytest tests

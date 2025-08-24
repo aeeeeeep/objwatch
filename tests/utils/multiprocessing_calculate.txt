@@ -1,4 +1,4 @@
-DEBUG:objwatch:    0 run <module> <- 
-DEBUG:objwatch:   13 | run worker <- 
-DEBUG:objwatch:   28 | end worker -> None
-DEBUG:objwatch:   39 end <module> -> None
+DEBUG:objwatch:    0 run __main__.<module> <- 
+DEBUG:objwatch:   13 | run __main__.worker <- 
+DEBUG:objwatch:   28 | end __main__.worker -> None
+DEBUG:objwatch:   39 end __main__.<module> -> None

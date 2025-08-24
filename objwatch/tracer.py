@@ -2,18 +2,17 @@
 # Copyright (c) 2025 aeeeeeep
 
 import sys
-import pkgutil
-import importlib
 from functools import lru_cache
-from types import FunctionType, FrameType, ModuleType
-from typing import Optional, Union, Any, Dict, List, Set
+from types import FunctionType, FrameType
+from typing import Optional, Any, Dict, Set
 
 from .config import ObjWatchConfig
+from .targets import Targets, TargetsDict
 from .wrappers import ABCWrapper
 from .events import EventType
 from .event_handls import EventHandls, log_sequence_types
 from .mp_handls import MPHandls
-from .utils.logger import log_error, log_debug, log_warn, log_info
+from .utils.logger import log_debug, log_warn, log_info
 from .utils.weak import WeakIdKeyDictionary
 
 
@@ -56,10 +55,19 @@ class Tracer:
             }
 
         # Process and determine the set of target files to monitor
-        self.targets: Set[str] = self._process_targets(self.config.targets) - self._process_targets(
-            self.config.exclude_targets
+        targets_cls = Targets(self.config.targets, self.config.exclude_targets)
+        self.targets: TargetsDict = targets_cls.get_processed_targets()
+        self.filename_targets: Set = targets_cls.get_filename_targets()
+        self.exclude_targets: TargetsDict = targets_cls.exclude_targets
+        self._build_target_index()
+        log_debug(
+            f"\nProcessed targets:\n{'>' * 10}\n"
+            + targets_cls.serialize_targets()
+            + f"\n{'<' * 10}\n"
+            + f"Filename targets:\n{'>' * 10}\n"
+            + "\n".join(self.filename_targets)
+            + f"\n{'<' * 10}"
         )
-        log_debug(f"Processed targets:\n{'>' * 10}\n" + "\n".join(self.targets) + f"\n{'<' * 10}")
 
         # Initialize tracking dictionaries for objects
         self.tracked_objects: WeakIdKeyDictionary = WeakIdKeyDictionary()
@@ -76,55 +84,108 @@ class Tracer:
 
         # Load the function wrapper if provided
         self.abc_wrapper: ABCWrapper = self.load_wrapper(self.config.wrapper)
-        self.call_depth: int = 0
+        self._call_depth: int = 0
 
-    def _process_targets(self, targets: Optional[List[Union[str, ModuleType]]]) -> Set[str]:
+    @property
+    def call_depth(self) -> int:
+        return self._call_depth
+
+    @call_depth.setter
+    def call_depth(self, value: int) -> None:
+        if value < 0:
+            raise ValueError(
+                "call_depth cannot be negative. "
+                f"Received invalid value: {value}. "
+                "This indicates a potential issue in the call stack tracking logic. "
+                "Please report this issue to the developers with the traceback information."
+            )
+        self._call_depth = value
+
+    def _build_target_index(self):
+        """Build fast lookup indexes for monitoring targets.
+
+        Creates three-level indexes:
+        - module_index: Set of monitored module names
+        - class_index: Nested mapping of modules to their classes
+        - function_index: Nested mapping of modules to their functions
+        - global_index: Nested mapping of modules to their global variables
+
+        Final structure example:
+        index_map = {
+            'class': {'module1': {'ClassA', 'ClassB'}, ...},
+            'function': {'module1': {'func1', 'func2'}, ...},
+            'global': {'module1': {'var1', 'var2'}, ...}
+        }
         """
-        Process the list of target modules or files to monitor.
+        self.module_index = set(self.targets.keys())
+        self.class_index = {}
+        self.method_index = {}
+        self.attribute_index = {}
+        self.function_index = {}
+        self.global_index = {}
+        self.class_info = {}  # Store class info for track_all checking
 
-        Args:
-            targets (Optional[List[Union[str, ModuleType]]): List of target modules or file paths.
+        # Build exclude indexes for track_all scenarios
+        self.exclude_method_index = {}
+        self.exclude_attribute_index = {}
+        self._build_exclude_index()
+        for module, details in self.targets.items():
+            # Process classes
+            classes = details.get('classes', {})
+            for cls_name, cls_info in classes.items():
+                # Add class to class index
+                self.class_index.setdefault(module, set()).add(cls_name)
 
-        Returns:
-            Set[str]: Set of processed file paths to monitor.
-        """
-        processed: Set[str] = set()
-        if isinstance(targets, str):
-            targets = [targets]
-        elif targets is None:
-            return processed
-        for target in targets:
-            if isinstance(target, str):
-                if target.endswith('.py'):
-                    processed.add(target)
-                    continue
-                target_name = target
-            elif isinstance(target, ModuleType):
-                target_name = target.__name__
-            else:
-                log_warn(f"Unsupported target type: {type(target)}. Only 'str' or 'ModuleType' are supported.")
-                continue
+                # Store class info for track_all checking
+                self.class_info.setdefault(module, {})[cls_name] = cls_info
 
-            spec = importlib.util.find_spec(target_name)
-            if spec and spec.origin:
-                processed.add(spec.origin)
+                # Process methods (only if not tracking all)
+                if not cls_info.get('track_all', False):
+                    methods = cls_info.get('methods', [])
+                    if methods:
+                        class_methods = self.method_index.setdefault(module, {}).setdefault(cls_name, set())
+                        class_methods.update(methods)
 
-                # Check if the module has submodules
-                if hasattr(spec, 'submodule_search_locations'):
-                    for importer, modname, ispkg in pkgutil.walk_packages(
-                        spec.submodule_search_locations, prefix=target_name + '.'
-                    ):
-                        # For each submodule, use find_spec to check its path
-                        try:
-                            sub_spec = importlib.util.find_spec(modname)
-                            if sub_spec and sub_spec.origin:
-                                processed.add(sub_spec.origin)
-                        except Exception as e:
-                            log_error(f"Submodule {modname} could not be imported. Error: {e}")
-            else:
-                log_warn(f"Module {target_name} could not be found or has no file associated.")
+                # Process attributes (only if not tracking all)
+                if not cls_info.get('track_all', False):
+                    attributes = cls_info.get('attributes', [])
+                    if attributes:
+                        class_attrs = self.attribute_index.setdefault(module, {}).setdefault(cls_name, set())
+                        class_attrs.update(attributes)
 
-        return processed
+            # Process functions
+            for func in details.get('functions', []):
+                self.function_index.setdefault(module, set()).add(func)
+
+            # Process globals
+            for gvar in details.get('globals', []):
+                self.global_index.setdefault(module, set()).add(gvar)
+
+        self.index_map = {
+            'class': self.class_index,
+            'method': self.method_index,
+            'attribute': self.attribute_index,
+            'function': self.function_index,
+            'global': self.global_index,
+        }
+
+    def _build_exclude_index(self):
+        """Build indexes for exclusion targets to handle track_all scenarios."""
+        for module, details in self.exclude_targets.items():
+            # Process classes in exclude targets
+            classes = details.get('classes', {})
+            for cls_name, cls_info in classes.items():
+                # Process excluded methods
+                methods = cls_info.get('methods', [])
+                if methods:
+                    exclude_methods = self.exclude_method_index.setdefault(module, {}).setdefault(cls_name, set())
+                    exclude_methods.update(methods)
+
+                # Process excluded attributes
+                attributes = cls_info.get('attributes', [])
+                if attributes:
+                    exclude_attrs = self.exclude_attribute_index.setdefault(module, {}).setdefault(cls_name, set())
+                    exclude_attrs.update(attributes)
 
     def load_wrapper(self, wrapper: Optional[ABCWrapper]) -> Optional[ABCWrapper]:
         """
@@ -141,43 +202,185 @@ class Tracer:
             return wrapper()
         return None
 
-    def _get_function_info(self, frame: FrameType) -> Dict[str, Any]:
-        """
-        Extract information about the currently executing function.
+    @lru_cache(maxsize=sys.maxsize)
+    def _should_trace_module(self, module: str) -> bool:
+        """Check if a module is within monitoring scope.
 
         Args:
-            frame (FrameType): The current stack frame.
+            module (str): Full module name to check
 
         Returns:
-            Dict[str, Any]: Dictionary containing function information.
+            bool: True if the module is in monitoring targets
         """
-        func_info: Dict[str, Any] = {}
-        func_name: str = frame.f_code.co_name
+        return module in self.module_index
 
-        if self.config.with_module_path:
-            module_name: str = frame.f_globals.get('__name__', '')
-            if module_name:
-                func_name = f"{module_name}.{func_name}"
+    @lru_cache(maxsize=sys.maxsize)
+    def _should_trace_class(self, module: str, class_name: str) -> bool:
+        """Check if a specific class should be traced.
 
-        func_info['function'] = func_name
-        func_info['frame'] = frame
+        Args:
+            module (str): Parent module name
+            class_name (str): Class name to check
 
+        Returns:
+            bool: True if the class should be traced
+        """
+        return class_name in self.class_index.get(module, set())
+
+    @lru_cache(maxsize=sys.maxsize)
+    def _should_trace_method(self, module: str, class_name: str, method_name: str) -> bool:
+        """Check if a specific method should be traced.
+
+        Args:
+            module (str): Parent module name
+            class_name (str): Class name containing the method
+            method_name (str): Method name to check
+
+        Returns:
+            bool: True if the method should be traced
+        """
+        # Check if tracking all methods for this class
+        class_info = self.class_info.get(module, {}).get(class_name, {})
+        if class_info.get('track_all', False):
+            # Check if this method is excluded
+            excluded_methods = self.exclude_method_index.get(module, {}).get(class_name, set())
+            return method_name not in excluded_methods
+
+        return method_name in self.method_index.get(module, {}).get(class_name, set())
+
+    @lru_cache(maxsize=sys.maxsize)
+    def _should_trace_attribute(self, module: str, class_name: str, attr_name: str) -> bool:
+        """Check if a specific attribute should be traced.
+
+        Args:
+            module (str): Parent module name
+            class_name (str): Class name containing the attribute
+            attr_name (str): Attribute name to check
+
+        Returns:
+            bool: True if the attribute should be traced
+        """
+        # Check if tracking all attributes for this class
+        class_info = self.class_info.get(module, {}).get(class_name, {})
+        if class_info.get('track_all', False):
+            # Check if this attribute is excluded
+            excluded_attrs = self.exclude_attribute_index.get(module, {}).get(class_name, set())
+            return attr_name not in excluded_attrs
+
+        return attr_name in self.attribute_index.get(module, {}).get(class_name, set())
+
+    @lru_cache(maxsize=sys.maxsize)
+    def _should_trace_function(self, module: str, func_name: str) -> bool:
+        """Check if a specific function should be traced.
+
+        Args:
+            module (str): Parent module name
+            func_name (str): Function name to check
+
+        Returns:
+            bool: True if the function should be traced
+        """
+        return func_name in self.function_index.get(module, set())
+
+    @lru_cache(maxsize=sys.maxsize)
+    def _should_trace_global(self, module: str, global_name: str) -> bool:
+        """Check if a specific global variable should be traced.
+
+        Args:
+            module (str): Parent module name
+            global_name (str): Global variable name to check
+
+        Returns:
+            bool: True if the global variable should be traced
+        """
+        if not self.config.with_globals:
+            return False
+
+        if not self.global_index:
+            return global_name not in self.builtin_fields
+
+        return global_name in self.global_index.get(module, set())
+
+    @lru_cache(maxsize=sys.maxsize)
+    def _filename_endswith(self, filename: str) -> bool:
+        """
+        Check if the filename does not end with any of the target extensions.
+
+        Args:
+            filename (str): The filename to check.
+
+        Returns:
+            bool: True if the filename does not end with the target extensions, False otherwise.
+        """
+        return filename.endswith(tuple(self.filename_targets))
+
+    def _should_trace_frame(self, frame: FrameType) -> bool:
+        """Determine if a stack frame should be traced.
+
+        Args:
+            frame (FrameType): Execution frame to evaluate
+
+        Returns:
+            bool: True if tracing should occur for this frame
+        """
+        # Check if file extension matches target patterns
+        if self._filename_endswith(frame.f_code.co_filename):
+            return True
+
+        module = frame.f_globals.get('__name__', '')
+
+        # Check if module is in tracing targets
+        if not self._should_trace_module(module):
+            return False
+
+        # Handle class methods and attributes
         if 'self' in frame.f_locals:
-            obj = frame.f_locals['self']
-            class_name: str = obj.__class__.__name__
-            try:
-                method = getattr(obj, func_name, None)
-            except Exception as e:
-                log_error(f"Error occurred while getattr '{func_name}' from class '{class_name}': {e}")
-                method = None
-            if callable(method) and hasattr(method, '__code__') and method.__code__ == frame.f_code:
-                func_info['is_method'] = True
-                func_info['class'] = class_name
+            cls_name = frame.f_locals['self'].__class__.__name__
+            method_name = frame.f_code.co_name
 
-        else:
-            func_info['is_method'] = False
+            # Check if class is traced and method is traced
+            class_is_traced = self._should_trace_class(module, cls_name)
+            method_is_traced = self._should_trace_method(module, cls_name, method_name)
 
-        return func_info
+            # If method is traced, no need to check attributes
+            if class_is_traced and method_is_traced:
+                return True
+
+            # Check if any attribute is traced
+            if class_is_traced:
+                obj = frame.f_locals['self']
+                current_attrs = {k: v for k, v in obj.__dict__.items() if not callable(v)}
+                any_attr_traced = any(
+                    self._should_trace_attribute(module, cls_name, attr) for attr in current_attrs.keys()
+                )
+                return any_attr_traced
+
+            return False
+        # Handle regular functions
+        func_name = frame.f_code.co_name
+        if self._should_trace_function(module, func_name):
+            return True
+        # Check for global variable changes
+        return self._check_global_changes(frame)
+
+    def _check_global_changes(self, frame: FrameType) -> bool:
+        """Detect monitored global variables in current frame.
+
+        Args:
+            frame (FrameType): Execution frame containing globals
+
+        Returns:
+            bool: True if any tracked global variables exist
+        """
+        module_name = frame.f_globals.get('__name__', '')
+
+        if not self.global_index and self.config.with_globals:
+            return any(var not in self.builtin_fields for var in frame.f_globals.keys())
+
+        if not self.config.with_globals:
+            return False
+
+        return bool(self.global_index.get(module_name))
 
     def _update_objects_lens(self, frame: FrameType) -> None:
         """
@@ -199,18 +402,37 @@ class Tracer:
                     if isinstance(v, log_sequence_types):
                         self.tracked_objects_lens[obj][k] = len(v)
 
-    @lru_cache(maxsize=sys.maxsize)
-    def _filename_not_endswith(self, filename: str) -> bool:
+    def _get_function_info(self, frame: FrameType) -> Dict[str, Any]:
         """
-        Check if the filename does not end with any of the target extensions.
+        Extract information about the currently executing function.
 
         Args:
-            filename (str): The filename to check.
+            frame (FrameType): The current stack frame.
 
         Returns:
-            bool: True if the filename does not end with the target extensions, False otherwise.
+            Dict[str, Any]: Dictionary containing function information.
         """
-        return not filename.endswith(tuple(self.targets))
+        func_info = {}
+        module = frame.f_globals.get('__name__', '')
+
+        if 'self' in frame.f_locals:
+            cls = frame.f_locals['self'].__class__.__name__
+            func_name = f"{cls}.{frame.f_code.co_name}"
+            symbol_type = 'method' if self._should_trace_method(module, cls, func_name) else None
+        else:
+            func_name = frame.f_code.co_name
+            symbol_type = 'function' if self._should_trace_function(module, func_name) else None
+
+        func_info.update(
+            {
+                'module': module,
+                'symbol': func_name,
+                'symbol_type': symbol_type,
+                'qualified_name': f"{module}.{func_name}" if module else func_name,
+                'frame': frame,
+            }
+        )
+        return func_info
 
     def _handle_change_type(
         self,
@@ -286,16 +508,23 @@ class Tracer:
             frame (FrameType): The current stack frame.
             lineno (int): The line number where the change occurred.
         """
+        if 'self' not in frame.f_locals:
+            return
 
         obj = frame.f_locals['self']
         class_name = obj.__class__.__name__
+        should_trace_all_attrs = self._filename_endswith(frame.f_code.co_filename)
 
         if obj in self.tracked_objects:
             old_attrs = self.tracked_objects[obj]
             old_attrs_lens = self.tracked_objects_lens[obj]
+            module_name = frame.f_globals.get('__name__', '')
             current_attrs = {k: v for k, v in obj.__dict__.items() if not callable(v)}
 
             for key, current_value in current_attrs.items():
+                if not (should_trace_all_attrs or self._should_trace_attribute(module_name, class_name, key)):
+                    continue
+
                 old_value = old_attrs.get(key, None)
                 old_value_len = old_attrs_lens.get(key, None)
                 is_current_seq = isinstance(current_value, log_sequence_types)
@@ -323,8 +552,7 @@ class Tracer:
             frame (FrameType): The current stack frame.
             lineno (int): The line number where the change occurred.
         """
-
-        if frame not in self.tracked_locals:
+        if not self.config.with_locals or frame not in self.tracked_locals:
             return
 
         old_locals = self.tracked_locals[frame]
@@ -374,20 +602,30 @@ class Tracer:
         """
 
         global_vars = frame.f_globals
-        for key, current_value in global_vars.items():
-            if key in self.builtin_fields:
+        module_name = frame.f_globals.get('__name__', '')
+
+        if not self.config.with_globals:
+            return
+
+        if module_name not in self.tracked_globals:
+            self.tracked_globals[module_name] = {}
+        if module_name not in self.tracked_globals_lens:
+            self.tracked_globals_lens[module_name] = {}
+
+        for key, current_value in list(global_vars.items()):
+            if not self._should_trace_global(module_name, key):
                 continue
 
-            old_value = self.tracked_globals.get(key, None)
-            old_value_len = self.tracked_globals_lens.get(key, None)
+            old_value = self.tracked_globals[module_name].get(key, None)
+            old_value_len = self.tracked_globals_lens[module_name].get(key, None)
             is_current_seq = isinstance(current_value, log_sequence_types)
             current_value_len = len(current_value) if old_value_len is not None and is_current_seq else None
 
             self._handle_change_type(lineno, "@", key, old_value, current_value, old_value_len, current_value_len)
 
-            self.tracked_globals[key] = current_value
+            self.tracked_globals[module_name][key] = current_value
             if is_current_seq:
-                self.tracked_globals_lens[key] = len(current_value)
+                self.tracked_globals_lens[module_name][key] = len(current_value)
 
     def trace_factory(self) -> FunctionType:  # noqa: C901
         """
@@ -412,7 +650,7 @@ class Tracer:
             """
 
             # Skip frames that do not match the filename condition
-            if self._filename_not_endswith(frame.f_code.co_filename):
+            if not self._should_trace_frame(frame):
                 return trace_func
 
             if self.current_index is None:
@@ -463,14 +701,9 @@ class Tracer:
 
             elif event == "line":
                 # Handle line event (track changes at each line of code)
-                if 'self' in frame.f_locals:
-                    self._track_object_change(frame, lineno)
-
-                if self.config.with_locals:
-                    self._track_locals_change(frame, lineno)
-
-                if self.config.with_globals:
-                    self._track_globals_change(frame, lineno)
+                self._track_object_change(frame, lineno)
+                self._track_locals_change(frame, lineno)
+                self._track_globals_change(frame, lineno)
 
                 return trace_func
 

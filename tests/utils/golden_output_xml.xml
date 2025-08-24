@@ -1,37 +1,37 @@
 <?xml version='1.0' encoding='utf-8'?>
 <ObjWatch>
-  <Function name="test_output_xml.outer_function" run_line="36" call_msg="'0':(type)TestClass" return_msg="[(list)[200, 3, 4, '... (1 more elements)']]" end_line="58">
-    <upd name="TestClass.a" line="39" old="None" new="10" />
-    <upd name="TestClass.b" line="40" old="None" new="(list)[1, 2, 3]" />
-    <apd name="TestClass.b" line="41" old="(list)(len)3" new="(list)(len)4" />
-    <pop name="TestClass.b" line="42" old="(list)(len)4" new="(list)(len)3" />
-    <upd name="TestClass.c" line="45" old="None" new="(dict)[('key1', 'value1')]" />
-    <apd name="TestClass.c" line="46" old="(dict)(len)1" new="(dict)(len)2" />
-    <pop name="TestClass.c" line="49" old="(dict)(len)2" new="(dict)(len)1" />
-    <upd name="TestClass.d" line="50" old="None" new="(set)[1, 2, 3]" />
-    <apd name="TestClass.d" line="51" old="(set)(len)3" new="(set)(len)4" />
-    <pop name="TestClass.d" line="52" old="(set)(len)4" new="(set)(len)3" />
-    <apd name="TestClass.d" line="53" old="(set)(len)3" new="(set)(len)5" />
-    <pop name="TestClass.d" line="55" old="(set)(len)5" new="(set)(len)4" />
-    <upd name="TestClass.a" line="57" old="10" new="20" />
-    <Function name="test_output_xml.inner_function" run_line="60" call_msg="'0':(type)TestClass, '1':(list)[100, 3, 4]" return_msg="[(list)[200, 3, 4, '... (1 more elements)']]" end_line="83">
-      <upd name="_.a" line="63" old="None" new="10" />
-      <upd name="_.b" line="64" old="None" new="(list)[1, 2, 3]" />
-      <apd name="_.b" line="65" old="(list)(len)3" new="(list)(len)4" />
-      <pop name="_.b" line="66" old="(list)(len)4" new="(list)(len)3" />
-      <upd name="TestClass.lst" line="69" old="None" new="(list)[100, 3, 4]" />
-      <apd name="TestClass.b" line="70" old="(list)(len)3" new="(list)(len)4" />
-      <apd name="TestClass.lst" line="70" old="(list)(len)3" new="(list)(len)4" />
-      <apd name="_.lst" line="70" old="(list)(len)3" new="(list)(len)4" />
-      <upd name="TestClass.e" line="73" old="None" new="(dict)[('inner_key1', 'inner_value1')]" />
-      <apd name="TestClass.e" line="74" old="(dict)(len)1" new="(dict)(len)2" />
-      <pop name="TestClass.e" line="77" old="(dict)(len)2" new="(dict)(len)1" />
-      <upd name="TestClass.f" line="78" old="None" new="(set)[10, 20, 30]" />
-      <apd name="TestClass.f" line="79" old="(set)(len)3" new="(set)(len)4" />
-      <pop name="TestClass.f" line="80" old="(set)(len)4" new="(set)(len)3" />
-      <apd name="TestClass.f" line="81" old="(set)(len)3" new="(set)(len)5" />
-      <pop name="TestClass.f" line="83" old="(set)(len)5" new="(set)(len)4" />
+  <Function module="tests.test_output_xml" symbol="TestClass.outer_function" symbol_type="function" run_line="35" call_msg="'0':(type)TestClass" return_msg="[(list)[200, 3, 4, '... (1 more elements)']]" end_line="57">
+    <upd name="TestClass.a" line="38" old="None" new="10" />
+    <upd name="TestClass.b" line="39" old="None" new="(list)[1, 2, 3]" />
+    <apd name="TestClass.b" line="40" old="(list)(len)3" new="(list)(len)4" />
+    <pop name="TestClass.b" line="41" old="(list)(len)4" new="(list)(len)3" />
+    <upd name="TestClass.c" line="44" old="None" new="(dict)[('key1', 'value1')]" />
+    <apd name="TestClass.c" line="45" old="(dict)(len)1" new="(dict)(len)2" />
+    <pop name="TestClass.c" line="48" old="(dict)(len)2" new="(dict)(len)1" />
+    <upd name="TestClass.d" line="49" old="None" new="(set)[1, 2, 3]" />
+    <apd name="TestClass.d" line="50" old="(set)(len)3" new="(set)(len)4" />
+    <pop name="TestClass.d" line="51" old="(set)(len)4" new="(set)(len)3" />
+    <apd name="TestClass.d" line="52" old="(set)(len)3" new="(set)(len)5" />
+    <pop name="TestClass.d" line="54" old="(set)(len)5" new="(set)(len)4" />
+    <upd name="TestClass.a" line="56" old="10" new="20" />
+    <Function module="tests.test_output_xml" symbol="TestClass.inner_function" symbol_type="function" run_line="59" call_msg="'0':(type)TestClass, '1':(list)[100, 3, 4]" return_msg="[(list)[200, 3, 4, '... (1 more elements)']]" end_line="82">
+      <upd name="_.a" line="62" old="None" new="10" />
+      <upd name="_.b" line="63" old="None" new="(list)[1, 2, 3]" />
+      <apd name="_.b" line="64" old="(list)(len)3" new="(list)(len)4" />
+      <pop name="_.b" line="65" old="(list)(len)4" new="(list)(len)3" />
+      <upd name="TestClass.lst" line="68" old="None" new="(list)[100, 3, 4]" />
+      <apd name="TestClass.b" line="69" old="(list)(len)3" new="(list)(len)4" />
+      <apd name="TestClass.lst" line="69" old="(list)(len)3" new="(list)(len)4" />
+      <apd name="_.lst" line="69" old="(list)(len)3" new="(list)(len)4" />
+      <upd name="TestClass.e" line="72" old="None" new="(dict)[('inner_key1', 'inner_value1')]" />
+      <apd name="TestClass.e" line="73" old="(dict)(len)1" new="(dict)(len)2" />
+      <pop name="TestClass.e" line="76" old="(dict)(len)2" new="(dict)(len)1" />
+      <upd name="TestClass.f" line="77" old="None" new="(set)[10, 20, 30]" />
+      <apd name="TestClass.f" line="78" old="(set)(len)3" new="(set)(len)4" />
+      <pop name="TestClass.f" line="79" old="(set)(len)4" new="(set)(len)3" />
+      <apd name="TestClass.f" line="80" old="(set)(len)3" new="(set)(len)5" />
+      <pop name="TestClass.f" line="82" old="(set)(len)5" new="(set)(len)4" />
     </Function>
-    <upd name="TestClass.a" line="58" old="20" new="(list)[200, 3, 4, '... (1 more elements)']" />
+    <upd name="TestClass.a" line="57" old="20" new="(list)[200, 3, 4, '... (1 more elements)']" />
   </Function>
 </ObjWatch>

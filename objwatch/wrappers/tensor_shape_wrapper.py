@@ -95,9 +95,15 @@ class TensorShapeWrapper(ABCWrapper):
             if formatted_sequence:
                 formatted = f"{formatted_sequence}"
             else:
-                formatted = f"(type){value.__class__.__name__}"
+                try:
+                    formatted = f"(type){value.__name__}"
+                except:
+                    formatted = f"(type){type(value).__name__}"
         else:
-            formatted = f"(type){value.__class__.__name__}"
+            try:
+                formatted = f"(type){value.__name__}"
+            except:
+                formatted = f"(type){type(value).__name__}"
 
         if is_return:
             if isinstance(value, torch.Tensor):

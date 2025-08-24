@@ -12,7 +12,7 @@ try:
 except ImportError:
     NoneType = type(None)
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Type
 from .utils.logger import log_error, log_debug, log_warn, log_info
 from .events import EventType
 
@@ -72,24 +72,18 @@ class EventHandls:
     ) -> None:
         """
         Handle the 'run' event indicating the start of a function or method execution.
-
-        Args:
-            lineno (int): The line number where the event is called.
-            func_info (Dict[str, Any]): Information about the function being executed.
-            abc_wrapper (Optional[Any]): Custom wrapper for additional processing.
-            call_depth (int): Current depth of the call stack.
-            index_info (str): Information about the index to track in a multi-process environment.
         """
-        func_name = func_info['function']
-        if func_info.get('is_method', False):
-            class_name = func_info['class']
-            logger_msg = f"{class_name}.{func_name}"
-        else:
-            logger_msg = f"{func_name}"
-        attrib = {'name': logger_msg, 'run_line': str(lineno)}
+        logger_msg = func_info['qualified_name']
+
+        attrib = {
+            'module': func_info['module'],
+            'symbol': func_info['symbol'],
+            'symbol_type': func_info['symbol_type'] or 'function',
+            'run_line': str(lineno),
+        }
 
         if abc_wrapper:
-            call_msg = abc_wrapper.wrap_call(func_name, func_info['frame'])
+            call_msg = abc_wrapper.wrap_call(func_info['symbol'], func_info.get('frame'))
             attrib['call_msg'] = call_msg
             logger_msg += ' <- ' + call_msg
 
@@ -112,25 +106,12 @@ class EventHandls:
     ) -> None:
         """
         Handle the 'end' event indicating the end of a function or method execution.
-
-        Args:
-            lineno (int): The line number where the event is called.
-            func_info (Dict[str, Any]): Information about the function that has ended.
-            abc_wrapper (Optional[Any]): Custom wrapper for additional processing.
-            call_depth (int): Current depth of the call stack.
-            index_info (str): Information about the index to track in a multi-process environment.
-            result (Any): The result returned by the function.
         """
-        func_name = func_info['function']
-        if func_info.get('is_method', False):
-            class_name = func_info['class']
-            logger_msg = f"{class_name}.{func_name}"
-        else:
-            logger_msg = f"{func_name}"
-
+        logger_msg = func_info['qualified_name']
         return_msg = ""
+
         if abc_wrapper:
-            return_msg = abc_wrapper.wrap_return(func_name, result)
+            return_msg = abc_wrapper.wrap_return(func_info['symbol'], result)
             logger_msg += ' -> ' + return_msg
 
         prefix = f"{lineno:>5} " + "| " * call_depth
@@ -139,6 +120,7 @@ class EventHandls:
         if self.output_xml and len(self.current_node) > 1:
             self.current_node[-1].set('return_msg', return_msg)
             self.current_node[-1].set('end_line', str(lineno))
+            self.current_node[-1].set('symbol_type', func_info['symbol_type'] or 'function')
             self.current_node.pop()
 
     def handle_upd(
@@ -355,7 +337,10 @@ class EventHandls:
         elif isinstance(value, log_sequence_types):
             return EventHandls.format_sequence(value)
         else:
-            return f"(type){value.__class__.__name__}"
+            try:
+                return f"(type){value.__name__}"
+            except:
+                return f"(type){type(value).__name__}"
 
     def save_xml(self) -> None:
         """

@@ -12,6 +12,7 @@ import objwatch
 from objwatch.config import ObjWatchConfig
 from objwatch.wrappers import BaseWrapper, TensorShapeWrapper, ABCWrapper
 from objwatch.core import ObjWatch
+from objwatch.targets import Targets
 from objwatch.tracer import Tracer
 from tests.util import strip_line_numbers
 
@@ -21,15 +22,15 @@ except ImportError:
     torch = None
 
 
-golden_log = """DEBUG:objwatch:    run <module>
-DEBUG:objwatch:    | run TestClass
-DEBUG:objwatch:    | end TestClass
-DEBUG:objwatch:    | run main
-DEBUG:objwatch:    | | run TestClass.method
+golden_log = """DEBUG:objwatch:    run __main__.<module>
+DEBUG:objwatch:    | run __main__.TestClass
+DEBUG:objwatch:    | end __main__.TestClass
+DEBUG:objwatch:    | run __main__.main
+DEBUG:objwatch:    | | run __main__.TestClass.method
 DEBUG:objwatch:    | | | upd TestClass.attr None -> 1
-DEBUG:objwatch:    | | end TestClass.method
-DEBUG:objwatch:    | end main
-DEBUG:objwatch:   end <module>"""
+DEBUG:objwatch:    | | end __main__.TestClass.method
+DEBUG:objwatch:    | end __main__.main
+DEBUG:objwatch:   end __main__.<module>"""
 
 
 class TestTracer(unittest.TestCase):
@@ -346,8 +347,8 @@ class TestCustomWrapper(unittest.TestCase):
         self.log_stream.seek(0)
         logs = self.log_stream.read()
 
-        self.assertIn("run custom_func <- CustomCall: custom_func called with args {'arg1': 'value1'}", logs)
-        self.assertIn("end custom_func -> CustomReturn: custom_func returned custom_result", logs)
+        self.assertIn(".custom_func <- CustomCall: custom_func called with args {'arg1': 'value1'}", logs)
+        self.assertIn(".custom_func -> CustomReturn: custom_func returned custom_result", logs)
 
     def tearDown(self):
         self.obj_watch.stop()
@@ -357,90 +358,63 @@ class TestCustomWrapper(unittest.TestCase):
             self.logger.removeHandler(handler)
 
 
-class TestTracerProcessTargetsStr(unittest.TestCase):
-    def test_process_targets_with_submodules(self):
-        config = ObjWatchConfig(targets=['importlib'])
-        tracer = Tracer(config=config)
-        processed = tracer._process_targets(['importlib'])
+class TestTargetsStr(unittest.TestCase):
+    def test_targets_with_submodules(self):
+        processed = Targets(['importlib']).get_processed_targets()
+        self.assertIn('importlib', processed)
+        module_info = processed['importlib']
 
-        main_module_file = importlib.__file__
-        self.assertIn(main_module_file, processed, "Main module file was not processed.")
+        expected_functions = ["import_module", "reload", "invalidate_caches"]
+        for func in expected_functions:
+            self.assertIn(func, module_info.get('functions', []))
 
-        submodules = [
-            'importlib/metadata/_functools.py',
-            'importlib/metadata/__init__.py',
-            'importlib/resources/simple.py',
-            'importlib/metadata/_adapters.py',
-            'importlib/resources/_adapters.py',
-            'importlib/__init__.py',
-            'importlib/resources/_legacy.py',
-            'importlib/metadata/_meta.py',
-            'importlib/simple.py',
-            'importlib/resources/__init__.py',
-            'importlib/resources/readers.py',
-            'importlib/metadata/_itertools.py',
-            'importlib/metadata/_collections.py',
-            'importlib/abc.py',
-            'importlib/_abc.py',
-            'importlib/resources/_common.py',
-            'importlib/readers.py',
-            'importlib/resources/abc.py',
-            'importlib/metadata/_text.py',
-            'importlib/resources/_itertools.py',
+        expected_globals = [
+            "_pack_uint32",
+            "level",
+            "target",
+            "pkgpath",
+            "parent",
+            "spec",
+            "__all__",
+            "name",
+            "_RELOADING",
+            "_unpack_uint32",
+            "parent_name",
         ]
+        for global_var in expected_globals:
+            self.assertIn(global_var, module_info.get('globals', []))
 
-        for submodule_path in submodules:
-            full_path = None
-            try:
-                submodule = importlib.import_module(submodule_path.replace('/', '.').rstrip('.py'))
-                if hasattr(submodule, '__file__') and submodule.__file__:
-                    full_path = submodule.__file__
-                    self.assertIn(full_path, processed, f"Submodule {submodule_path} was not processed.")
-            except ImportError:
-                pass
+        self.assertEqual(len(module_info.get('classes', {})), 0)
 
 
-class TestTracerProcessTargetsModule(unittest.TestCase):
-    def test_process_targets_with_submodules(self):
-        config = ObjWatchConfig(targets=[importlib])
-        tracer = Tracer(config=config)
-        processed = tracer._process_targets([importlib])
+class TestTargetsModule(unittest.TestCase):
+    def test_targets_with_submodules(self):
+        processed = Targets([importlib]).get_processed_targets()
 
-        main_module_file = importlib.__file__
-        self.assertIn(main_module_file, processed, "Main module file was not processed.")
+        self.assertIn('importlib', processed)
+        module_info = processed['importlib']
 
-        submodules = [
-            'importlib/metadata/_functools.py',
-            'importlib/metadata/__init__.py',
-            'importlib/resources/simple.py',
-            'importlib/metadata/_adapters.py',
-            'importlib/resources/_adapters.py',
-            'importlib/__init__.py',
-            'importlib/resources/_legacy.py',
-            'importlib/metadata/_meta.py',
-            'importlib/simple.py',
-            'importlib/resources/__init__.py',
-            'importlib/resources/readers.py',
-            'importlib/metadata/_itertools.py',
-            'importlib/metadata/_collections.py',
-            'importlib/abc.py',
-            'importlib/_abc.py',
-            'importlib/resources/_common.py',
-            'importlib/readers.py',
-            'importlib/resources/abc.py',
-            'importlib/metadata/_text.py',
-            'importlib/resources/_itertools.py',
+        expected_functions = ["import_module", "reload", "invalidate_caches"]
+        for func in expected_functions:
+            self.assertIn(func, module_info.get('functions', []))
+
+        expected_globals = [
+            "_pack_uint32",
+            "level",
+            "target",
+            "pkgpath",
+            "parent",
+            "spec",
+            "__all__",
+            "name",
+            "_RELOADING",
+            "_unpack_uint32",
+            "parent_name",
         ]
+        for global_var in expected_globals:
+            self.assertIn(global_var, module_info.get('globals', []))
 
-        for submodule_path in submodules:
-            full_path = None
-            try:
-                submodule = importlib.import_module(submodule_path.replace('/', '.').rstrip('.py'))
-                if hasattr(submodule, '__file__') and submodule.__file__:
-                    full_path = submodule.__file__
-                    self.assertIn(full_path, processed, f"Submodule {submodule_path} was not processed.")
-            except ImportError:
-                pass
+        self.assertEqual(len(module_info.get('classes', {})), 0)
 
 
 class TestLoggerForce(unittest.TestCase):

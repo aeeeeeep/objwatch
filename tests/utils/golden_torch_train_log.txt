@@ -1,16 +1,18 @@
-DEBUG:objwatch:   47 run train <- 
-DEBUG:objwatch:   48 | upd @.unittest None -> (type)module
-DEBUG:objwatch:   48 | upd @.patch None -> <function patch at 0x7f32d9c38a40>
-DEBUG:objwatch:   48 | upd @.torch None -> (type)module
-DEBUG:objwatch:   48 | upd @.nn None -> (type)module
-DEBUG:objwatch:   48 | upd @.optim None -> (type)module
-DEBUG:objwatch:   48 | upd @.TensorDataset None -> (type)type
-DEBUG:objwatch:   48 | upd @.DataLoader None -> (type)type
-DEBUG:objwatch:   48 | upd @.ObjWatch None -> (type)type
-DEBUG:objwatch:   48 | upd @.TensorShapeWrapper None -> (type)ABCMeta
-DEBUG:objwatch:   48 | upd @.logging None -> (type)module
-DEBUG:objwatch:   48 | upd @.filter_func_ptr None -> <function filter_func_ptr at 0x7f320ca04400>
-DEBUG:objwatch:   48 | upd @.SimpleNet None -> (type)type
+DEBUG:objwatch:   47 run tests.test_torch_train.train <- 
+DEBUG:objwatch:   48 | upd @.@py_builtins None -> (type)builtins
+DEBUG:objwatch:   48 | upd @.@pytest_ar None -> (type)_pytest.assertion.rewrite
+DEBUG:objwatch:   48 | upd @.unittest None -> (type)unittest
+DEBUG:objwatch:   48 | upd @.patch None -> <function patch at 0x7fab8b9c7eb0>
+DEBUG:objwatch:   48 | upd @.torch None -> (type)torch
+DEBUG:objwatch:   48 | upd @.nn None -> (type)torch.nn
+DEBUG:objwatch:   48 | upd @.optim None -> (type)torch.optim
+DEBUG:objwatch:   48 | upd @.TensorDataset None -> (type)TensorDataset
+DEBUG:objwatch:   48 | upd @.DataLoader None -> (type)DataLoader
+DEBUG:objwatch:   48 | upd @.ObjWatch None -> (type)ObjWatch
+DEBUG:objwatch:   48 | upd @.TensorShapeWrapper None -> (type)TensorShapeWrapper
+DEBUG:objwatch:   48 | upd @.logging None -> (type)logging
+DEBUG:objwatch:   48 | upd @.filter_func_ptr None -> <function filter_func_ptr at 0x7faacf9f01f0>
+DEBUG:objwatch:   48 | upd @.SimpleNet None -> (type)SimpleNet
 DEBUG:objwatch:   48 | upd @.input_size None -> 784
 DEBUG:objwatch:   48 | upd @.num_classes None -> 10
 DEBUG:objwatch:   48 | upd @.num_samples None -> 128
@@ -22,10 +24,10 @@ DEBUG:objwatch:   48 | upd @.train_loader None -> (type)DataLoader
 DEBUG:objwatch:   48 | upd @.model None -> (type)SimpleNet
 DEBUG:objwatch:   48 | upd @.criterion None -> (type)CrossEntropyLoss
 DEBUG:objwatch:   48 | upd @.optimizer None -> (type)SGD
-DEBUG:objwatch:   48 | upd @.train None -> <function train at 0x7f320ca06480>
-DEBUG:objwatch:   48 | upd @.TestPytorchTraining None -> (type)type
-DEBUG:objwatch:   23 | run SimpleNet.forward <- '0':(type)SimpleNet, '1':torch.Size([64, 784])
-DEBUG:objwatch:   28 | end SimpleNet.forward -> torch.Size([64, 10])
-DEBUG:objwatch:   23 | run SimpleNet.forward <- '0':(type)SimpleNet, '1':torch.Size([64, 784])
-DEBUG:objwatch:   28 | end SimpleNet.forward -> torch.Size([64, 10])
-DEBUG:objwatch:   49 end train -> None
+DEBUG:objwatch:   48 | upd @.train None -> <function train at 0x7faacf9f2290>
+DEBUG:objwatch:   48 | upd @.TestPytorchTraining None -> (type)TestPytorchTraining
+DEBUG:objwatch:   23 | run tests.test_torch_train.SimpleNet.forward <- '0':(type)SimpleNet, '1':torch.Size([64, 784])
+DEBUG:objwatch:   28 | end tests.test_torch_train.SimpleNet.forward -> torch.Size([64, 10])
+DEBUG:objwatch:   23 | run tests.test_torch_train.SimpleNet.forward <- '0':(type)SimpleNet, '1':torch.Size([64, 784])
+DEBUG:objwatch:   28 | end tests.test_torch_train.SimpleNet.forward -> torch.Size([64, 10])
+DEBUG:objwatch:   49 end tests.test_torch_train.train -> None
