@@ -337,7 +337,10 @@ class EventHandls:
         elif isinstance(value, log_sequence_types):
             return EventHandls.format_sequence(value)
         else:
-            return f"(type){value.__name__ if hasattr(value, '__name__') else value.__class__.__name__}"
+            try:
+                return f"(type){value.__name__}"
+            except:
+                return f"(type){type(value).__name__}"
 
     def save_xml(self) -> None:
         """
