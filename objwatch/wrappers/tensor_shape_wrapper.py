@@ -1,7 +1,6 @@
 # MIT License
 # Copyright (c) 2025 aeeeeeep
 
-import torch
 from types import FrameType
 from typing import Any, List, Optional, Tuple
 
@@ -9,6 +8,10 @@ from typing import Any, List, Optional, Tuple
 from ..event_handls import log_element_types, log_sequence_types, EventHandls
 from .abc_wrapper import ABCWrapper
 
+try:
+    import torch
+except ImportError:
+    torch = None
 
 class TensorShapeWrapper(ABCWrapper):
     """

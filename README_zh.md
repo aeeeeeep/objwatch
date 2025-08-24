@@ -1,5 +1,6 @@
 # ObjWatch
 
+[![Python Test Status](https://github.com/aeeeeeep/objwatch/actions/workflows/python-test.yaml/badge.svg)](https://github.com/aeeeeeep/objwatch/actions/workflows/python-test.yaml)
 [![Documentation](https://img.shields.io/badge/docs-latest-green.svg?style=flat)](https://objwatch.readthedocs.io)
 [![License](https://img.shields.io/github/license/aeeeeeep/objwatch)](LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/objwatch)](https://pypi.org/project/objwatch)
@@ -300,10 +301,6 @@ obj_watch = objwatch.ObjWatch(['your_module.py'], simple=False, wrapper=TensorSh
 with obj_watch:
     main()
 ```
-
-#### 使用自定义包装器的示例
-
-推荐阅读 [`tests/test_torch_train.py`](tests/test_torch_train.py) 文件。该文件包含了一个完整的 PyTorch 训练过程示例，展示了如何集成 ObjWatch 进行监控和日志记录。
 
 ## 💬 支持
 

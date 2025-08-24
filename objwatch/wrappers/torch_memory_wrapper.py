@@ -1,11 +1,14 @@
 # MIT License
 # Copyright (c) 2025 aeeeeeep
 
-import torch
 from types import FrameType
 from typing import Any, Dict, List, Tuple
 from .abc_wrapper import ABCWrapper
 
+try:
+    import torch
+except ImportError:
+    torch = None
 
 class TorchMemoryWrapper(ABCWrapper):
     """

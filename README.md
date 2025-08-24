@@ -1,5 +1,6 @@
 # ObjWatch
 
+[![Python Test Status](https://github.com/aeeeeeep/objwatch/actions/workflows/python-test.yaml/badge.svg)](https://github.com/aeeeeeep/objwatch/actions/workflows/python-test.yaml)
 [![Documentation](https://img.shields.io/badge/docs-latest-green.svg?style=flat)](https://objwatch.readthedocs.io)
 [![License](https://img.shields.io/github/license/aeeeeeep/objwatch)](LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/objwatch)](https://pypi.org/project/objwatch)
@@ -300,10 +301,6 @@ obj_watch = objwatch.ObjWatch(['your_module.py'], simple=False, wrapper=TensorSh
 with obj_watch:
     main()
 ```
-
-#### Example of Using a Custom Wrapper
-
-It is recommended to refer to the  [`tests/test_torch_train.py`](tests/test_torch_train.py)  file. This file contains a complete example of a PyTorch training process, demonstrating how to integrate ObjWatch for monitoring and logging.
 
 ## 💬 Support
 
