@@ -302,10 +302,6 @@ with obj_watch:
     main()
 ```
 
-#### Example of Using a Custom Wrapper
-
-It is recommended to refer to the  [`tests/test_torch_train.py`](tests/test_torch_train.py)  file. This file contains a complete example of a PyTorch training process, demonstrating how to integrate ObjWatch for monitoring and logging.
-
 ## 💬 Support
 
 If you encounter any issues or have questions, feel free to open an issue on the [ObjWatch GitHub repository](https://github.com/aeeeeeep/objwatch) or reach out via email at [aeeeeeep@proton.me](mailto:aeeeeeep@proton.me).

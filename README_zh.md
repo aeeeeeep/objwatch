@@ -302,10 +302,6 @@ with obj_watch:
     main()
 ```
 
-#### 使用自定义包装器的示例
-
-推荐阅读 [`tests/test_torch_train.py`](tests/test_torch_train.py) 文件。该文件包含了一个完整的 PyTorch 训练过程示例，展示了如何集成 ObjWatch 进行监控和日志记录。
-
 ## 💬 支持
 
 如果遇到任何问题或有疑问，请随时在 [ObjWatch GitHub 仓库](https://github.com/aeeeeeep/objwatch) 提交 issue，或通过电子邮件与我联系 [aeeeeeep@proton.me](mailto:aeeeeeep@proton.me)。
