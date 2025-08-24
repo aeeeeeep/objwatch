@@ -58,6 +58,7 @@ class Tracer:
         targets_cls = Targets(self.config.targets, self.config.exclude_targets)
         self.targets: TargetsDict = targets_cls.get_processed_targets()
         self.filename_targets: Set = targets_cls.get_filename_targets()
+        self.exclude_targets: TargetsDict = targets_cls.exclude_targets
         self._build_target_index()
         log_debug(
             f"\nProcessed targets:\n{'>' * 10}\n"
@@ -123,6 +124,11 @@ class Tracer:
         self.function_index = {}
         self.global_index = {}
         self.class_info = {}  # Store class info for track_all checking
+
+        # Build exclude indexes for track_all scenarios
+        self.exclude_method_index = {}
+        self.exclude_attribute_index = {}
+        self._build_exclude_index()
         for module, details in self.targets.items():
             # Process classes
             classes = details.get('classes', {})
@@ -162,6 +168,24 @@ class Tracer:
             'function': self.function_index,
             'global': self.global_index,
         }
+
+    def _build_exclude_index(self):
+        """Build indexes for exclusion targets to handle track_all scenarios."""
+        for module, details in self.exclude_targets.items():
+            # Process classes in exclude targets
+            classes = details.get('classes', {})
+            for cls_name, cls_info in classes.items():
+                # Process excluded methods
+                methods = cls_info.get('methods', [])
+                if methods:
+                    exclude_methods = self.exclude_method_index.setdefault(module, {}).setdefault(cls_name, set())
+                    exclude_methods.update(methods)
+
+                # Process excluded attributes
+                attributes = cls_info.get('attributes', [])
+                if attributes:
+                    exclude_attrs = self.exclude_attribute_index.setdefault(module, {}).setdefault(cls_name, set())
+                    exclude_attrs.update(attributes)
 
     def load_wrapper(self, wrapper: Optional[ABCWrapper]) -> Optional[ABCWrapper]:
         """
@@ -218,7 +242,9 @@ class Tracer:
         # Check if tracking all methods for this class
         class_info = self.class_info.get(module, {}).get(class_name, {})
         if class_info.get('track_all', False):
-            return True
+            # Check if this method is excluded
+            excluded_methods = self.exclude_method_index.get(module, {}).get(class_name, set())
+            return method_name not in excluded_methods
 
         return method_name in self.method_index.get(module, {}).get(class_name, set())
 
@@ -237,7 +263,9 @@ class Tracer:
         # Check if tracking all attributes for this class
         class_info = self.class_info.get(module, {}).get(class_name, {})
         if class_info.get('track_all', False):
-            return True
+            # Check if this attribute is excluded
+            excluded_attrs = self.exclude_attribute_index.get(module, {}).get(class_name, set())
+            return attr_name not in excluded_attrs
 
         return attr_name in self.attribute_index.get(module, {}).get(class_name, set())
 

@@ -555,7 +555,7 @@ class Targets:
                 return o.__dict__
             return str(o)
 
-        if len(self.processed_targets) > 80000:
+        if len(self.processed_targets) > 8:
             truncated_obj = {key: "..." for key in self.processed_targets.keys()}
             truncated_obj["Warning: too many top-level keys, only showing values like"] = "..."
             return json.dumps(truncated_obj, indent=indent, default=target_handler)

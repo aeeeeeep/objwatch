@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <ObjWatch>
-  <Function module="test_output_xml" symbol="TestClass.outer_function" symbol_type="function" run_line="35" call_msg="'0':(type)TestClass" return_msg="[(list)[200, 3, 4, '... (1 more elements)']]" end_line="57">
+  <Function module="tests.test_output_xml" symbol="TestClass.outer_function" symbol_type="function" run_line="35" call_msg="'0':(type)TestClass" return_msg="[(list)[200, 3, 4, '... (1 more elements)']]" end_line="57">
     <upd name="TestClass.a" line="38" old="None" new="10" />
     <upd name="TestClass.b" line="39" old="None" new="(list)[1, 2, 3]" />
     <apd name="TestClass.b" line="40" old="(list)(len)3" new="(list)(len)4" />
@@ -14,7 +14,7 @@
     <apd name="TestClass.d" line="52" old="(set)(len)3" new="(set)(len)5" />
     <pop name="TestClass.d" line="54" old="(set)(len)5" new="(set)(len)4" />
     <upd name="TestClass.a" line="56" old="10" new="20" />
-    <Function module="test_output_xml" symbol="TestClass.inner_function" symbol_type="function" run_line="59" call_msg="'0':(type)TestClass, '1':(list)[100, 3, 4]" return_msg="[(list)[200, 3, 4, '... (1 more elements)']]" end_line="82">
+    <Function module="tests.test_output_xml" symbol="TestClass.inner_function" symbol_type="function" run_line="59" call_msg="'0':(type)TestClass, '1':(list)[100, 3, 4]" return_msg="[(list)[200, 3, 4, '... (1 more elements)']]" end_line="82">
       <upd name="_.a" line="62" old="None" new="10" />
       <upd name="_.b" line="63" old="None" new="(list)[1, 2, 3]" />
       <apd name="_.b" line="64" old="(list)(len)3" new="(list)(len)4" />
