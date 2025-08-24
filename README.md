@@ -1,6 +1,6 @@
 # ObjWatch
 
-[![Python Test Status](https://github.com/aeeeeeep/objwatch/actions/workflows/python-test.yaml/badge.svg)](https://github.com/aeeeeeep/objwatch/actions/workflows/python-test.yaml)
+[![Python Test Status](https://github.com/aeeeeeep/objwatch/actions/workflows/python-test.yml/badge.svg)](https://github.com/aeeeeeep/objwatch/actions/workflows/python-test.yml)
 [![Documentation](https://img.shields.io/badge/docs-latest-green.svg?style=flat)](https://objwatch.readthedocs.io)
 [![License](https://img.shields.io/github/license/aeeeeeep/objwatch)](LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/objwatch)](https://pypi.org/project/objwatch)
