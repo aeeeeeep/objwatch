@@ -5,16 +5,15 @@ import ast
 import json
 import inspect
 import importlib
+import importlib.util
 import pkgutil
 from types import ModuleType, MethodType, FunctionType
-from typing import Tuple, List, Union, Dict, Set, Any
+from typing import Optional, Tuple, List, Union, Set
 
 from .utils.logger import log_error, log_warn
 
 ClassType = type
 TargetsType = List[Union[str, ModuleType]]
-ModuleStructure = Dict[str, Union[Dict[str, Any], List[str]]]
-TargetsDict = Dict[str, ModuleStructure]
 
 
 def iter_parents(node):
@@ -77,7 +76,7 @@ class Targets:
     6. Global variable: 'package.module::GLOBAL_VAR'
     """
 
-    def __init__(self, targets: TargetsType, exclude_targets: TargetsType = None):
+    def __init__(self, targets: TargetsType, exclude_targets: Optional[TargetsType] = None):
         """
         Initialize target processor.
 
@@ -87,11 +86,13 @@ class Targets:
         """
         targets, exclude_targets = self._check_targets(targets, exclude_targets)
         self.filename_targets: Set = set()
-        self.targets: TargetsDict = self._process_targets(targets)
-        self.exclude_targets: TargetsDict = self._process_targets(exclude_targets)
-        self.processed_targets: TargetsDict = self._diff_targets()
+        self.targets: dict = self._process_targets(targets)
+        self.exclude_targets: dict = self._process_targets(exclude_targets)
+        self.processed_targets: dict = self._diff_targets()
 
-    def _check_targets(self, targets: TargetsType, exclude_targets: TargetsType) -> Tuple[TargetsType, TargetsType]:
+    def _check_targets(
+        self, targets: TargetsType, exclude_targets: Optional[TargetsType]
+    ) -> Tuple[TargetsType, Optional[TargetsType]]:
         """
         Normalize and validate target inputs.
 
@@ -111,7 +112,7 @@ class Targets:
                 log_error("Unsupported .py files in exclude_target")
         return targets, exclude_targets
 
-    def _process_targets(self, targets: TargetsType) -> TargetsDict:
+    def _process_targets(self, targets: Optional[TargetsType]) -> dict:
         """
         Convert heterogeneous targets to structured data model.
 
@@ -119,9 +120,9 @@ class Targets:
             targets: List of targets
 
         Returns:
-            TargetsDict: Hierarchical structure:
+            dict: Hierarchical structure:
         """
-        processed_targets: TargetsDict = {}
+        processed_targets: dict = {}
         for target in targets or []:
             if isinstance(target, str) and target.endswith('.py'):
                 self.filename_targets.add(target)
@@ -256,14 +257,13 @@ class Targets:
         if not symbol:
             return (resolved_module_name, full_module)
 
-        details = {'classes': {}, 'functions': [], 'globals': []}
+        details: dict = {'classes': {}, 'functions': [], 'globals': []}
         current_symbol = symbol
 
         # Parse class members (methods or attributes)
         if '.' in symbol:
             class_part, _, member = current_symbol.partition('.')
             if class_part in full_module['classes']:
-                class_info = full_module['classes'][class_part]
                 if member.endswith('()'):
                     method_name = member[:-2]
                     # Directly add method without checking if it exists in class_info
@@ -293,7 +293,7 @@ class Targets:
 
         return (resolved_module_name, details)
 
-    def _parse_module_by_name(self, module_name: str, recursive: bool = True) -> ModuleStructure:
+    def _parse_module_by_name(self, module_name: str, recursive: bool = True) -> dict:
         """Locate and parse module structure by its import name, supporting recursive parsing.
 
         Args:
@@ -301,7 +301,7 @@ class Targets:
             recursive: Whether to recursively parse submodules
 
         Returns:
-            ModuleStructure: Parsed module structure with submodules if recursive=True
+            dict: Parsed module structure with submodules if recursive=True
         """
         spec = importlib.util.find_spec(module_name)
         if spec is None:
@@ -309,7 +309,7 @@ class Targets:
             return {'classes': {}, 'functions': [], 'globals': []}
 
         # Parse the current module
-        module_structure = {'classes': {}, 'functions': [], 'globals': []}
+        module_structure: dict = {'classes': {}, 'functions': [], 'globals': []}
         if spec.origin and spec.origin.endswith('.py'):
             module_structure = self._parse_py_file(spec.origin)
 
@@ -326,19 +326,19 @@ class Targets:
 
         return module_structure
 
-    def _parse_py_file(self, file_path: str) -> ModuleStructure:
+    def _parse_py_file(self, file_path: str) -> dict:
         """Analyze Python file structure using Abstract Syntax Tree.
 
         Args:
             file_path: Absolute path to Python file
 
         Returns:
-            ModuleStructure: Parsed file structure dictionary
+            dict: Parsed file structure dictionary
 
         Raises:
             Logs error on parsing failure
         """
-        parsed_structure: ModuleStructure = {'classes': {}, 'functions': [], 'globals': []}
+        parsed_structure: dict = {'classes': {}, 'functions': [], 'globals': []}
 
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
@@ -382,13 +382,13 @@ class Targets:
                 attrs.append(node.target.id)
         return attrs
 
-    def _flatten_module_structure(self, module_path: str, module_structure: dict, result: TargetsDict):
-        """Flatten nested module structure into a TargetsDict.
+    def _flatten_module_structure(self, module_path: str, module_structure: dict, result: dict):
+        """Flatten nested module structure into a dict.
 
         Args:
             module_path: Full module path
             module_structure: Module structure dictionary
-            result: TargetsDict to populate
+            result: dict to populate
         """
         # Extract standard sections (classes, functions, globals)
         standard_sections = {
@@ -407,13 +407,13 @@ class Targets:
                 submodule_path = f"{module_path}.{key}"
                 self._flatten_module_structure(submodule_path, value, result)
 
-    def _diff_targets(self) -> TargetsDict:
+    def _diff_targets(self) -> dict:
         """Calculate effective targets by excluding specified patterns.
 
         Returns:
             Filtered targets dictionary after applying exclusion rules
         """
-        filtered_targets: TargetsDict = {}
+        filtered_targets: dict = {}
         for module_path, target_details in self.targets.items():
             exclude_details = self.exclude_targets.get(module_path, {})
 
@@ -469,7 +469,7 @@ class Targets:
                     else:
                         filtered = self._diff_level(value, exclude[key])
                 elif isinstance(value, list) and isinstance(exclude[key], list):
-                    filtered = list(set(value) - set(exclude[key]))
+                    filtered = list(set(value) - set(exclude[key]))  # type: ignore
                 elif value != exclude[key]:
                     filtered = value
             else:
@@ -487,7 +487,7 @@ class Targets:
 
         return diff
 
-    def _process_assignment(self, node: ast.Assign, result: ModuleStructure):
+    def _process_assignment(self, node: ast.Assign, result: dict):
         """Extract global variables from assignment AST nodes.
 
         Handles two patterns:
@@ -496,7 +496,7 @@ class Targets:
 
         Args:
             node: AST assignment node to analyze
-            result: ModuleStructure to update with found globals
+            result: dict to update with found globals
         """
         if any(isinstance(parent, ast.ClassDef) for parent in iter_parents(node)):
             return
@@ -509,11 +509,11 @@ class Targets:
                     if isinstance(element, ast.Name):
                         result['globals'].append(element.id)
 
-    def get_processed_targets(self) -> TargetsDict:
+    def get_processed_targets(self) -> dict:
         """Retrieve final monitoring targets after exclusion processing.
 
         Returns:
-            TargetsDict: Filtered dictionary containing:
+            dict: Filtered dictionary containing:
                 - classes: Non-excluded class methods
                 - functions: Non-excluded functions
                 - globals: Non-excluded global variables

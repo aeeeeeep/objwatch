@@ -262,7 +262,7 @@ The `ABCWrapper` class defines two essential methods that must be implemented:
 
   This method is triggered when a variable is updated, receiving the old value and the current value. It can be used to log changes to variables, allowing for the tracking and debugging of variable state transitions.
 
-For more details on frame objects, refer to the [official Python documentation](https://docs.python.org/3/library/types.html#types.FrameType).
+For more details on frame objects, refer to the [official Python documentation](https://docs.python.org/3/c-api/frame.html).
 
 #### Supported Wrappers
 

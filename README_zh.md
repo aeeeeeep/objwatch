@@ -262,7 +262,7 @@ ObjWatch 提供了 `ABCWrapper` 抽象基类，允许用户创建自定义包装
 
   该方法在变量更新时触发，接收旧值和当前值。可用于记录变量的变化，分析其变化过程，从而跟踪和调试变量状态的变化。
 
-有关帧对象的更多信息，请参考 [官方 Python 文档](https://docs.python.org/3/library/types.html#types.FrameType)。
+有关帧对象的更多信息，请参考 [官方 Python 文档](https://docs.python.org/3/c-api/frame.html)。
 
 #### 支持的 Wrapper
 

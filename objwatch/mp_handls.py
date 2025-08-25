@@ -1,7 +1,7 @@
 # MIT License
 # Copyright (c) 2025 aeeeeeep
 
-from typing import Optional
+from typing import Callable, Optional, Union
 from types import FunctionType
 from .utils.logger import log_error, log_info
 
@@ -28,7 +28,7 @@ class MPHandls:
         self.framework: Optional[str] = framework
         self.initialized: bool = False
         self.index: Optional[int] = None
-        self.sync_fn: Optional[FunctionType] = None
+        self.sync_fn: Optional[Union[FunctionType, Callable]] = None
         self._check_initialized()
 
     def _check_initialized(self) -> None:

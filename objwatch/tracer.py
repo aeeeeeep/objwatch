@@ -3,23 +3,23 @@
 
 import sys
 from functools import lru_cache
-from types import FunctionType, FrameType
+from types import FrameType
 from typing import Optional, Any, Dict, Set
 
 from .config import ObjWatchConfig
-from .targets import Targets, TargetsDict
+from .targets import Targets
 from .wrappers import ABCWrapper
 from .events import EventType
 from .event_handls import EventHandls, log_sequence_types
 from .mp_handls import MPHandls
-from .utils.logger import log_debug, log_warn, log_info
+from .utils.logger import log_info, log_debug, log_warn, log_error
 from .utils.weak import WeakIdKeyDictionary
 
 
 class Tracer:
     """
     Tracer class to monitor and trace function calls, returns, and variable updates
-    within specified target modules. Supports multi-GPU environments with PyTorch.
+    within specified target modules.
     """
 
     def __init__(
@@ -36,11 +36,11 @@ class Tracer:
         self.config = config
 
         if self.config.with_locals:
-            self.tracked_locals: Dict[FrameType, Dict[str, Any]] = {}
+            self.tracked_locals: Dict[FrameType, dict] = {}
             self.tracked_locals_lens: Dict[FrameType, Dict[str, int]] = {}
 
         if self.config.with_globals:
-            self.tracked_globals: Dict[FrameType, Dict[str, Any]] = {}
+            self.tracked_globals: Dict[FrameType, dict] = {}
             self.tracked_globals_lens: Dict[FrameType, Dict[str, int]] = {}
             # List of Python built-in fields to exclude from tracking
             self.builtin_fields = set(dir(__builtins__)) | {
@@ -56,9 +56,9 @@ class Tracer:
 
         # Process and determine the set of target files to monitor
         targets_cls = Targets(self.config.targets, self.config.exclude_targets)
-        self.targets: TargetsDict = targets_cls.get_processed_targets()
+        self.targets: dict = targets_cls.get_processed_targets()
         self.filename_targets: Set = targets_cls.get_filename_targets()
-        self.exclude_targets: TargetsDict = targets_cls.exclude_targets
+        self.exclude_targets: dict = targets_cls.exclude_targets
         self._build_target_index()
         log_debug(
             f"\nProcessed targets:\n{'>' * 10}\n"
@@ -79,11 +79,11 @@ class Tracer:
         # Initialize multi-process handler with the specified framework
         self.mp_handlers: MPHandls = MPHandls(framework=self.config.framework)
         self.index_info: str = ""
-        self.current_index = None
+        self.current_index: Optional[int] = None
         self.indexes: Set[int] = set(self.config.indexes if self.config.indexes is not None else [0])
 
         # Load the function wrapper if provided
-        self.abc_wrapper: ABCWrapper = self.load_wrapper(self.config.wrapper)
+        self.abc_wrapper: Optional[ABCWrapper] = self.load_wrapper(self.config.wrapper)
         self._call_depth: int = 0
 
     @property
@@ -187,19 +187,22 @@ class Tracer:
                     exclude_attrs = self.exclude_attribute_index.setdefault(module, {}).setdefault(cls_name, set())
                     exclude_attrs.update(attributes)
 
-    def load_wrapper(self, wrapper: Optional[ABCWrapper]) -> Optional[ABCWrapper]:
+    def load_wrapper(self, wrapper):
         """
         Load a custom function wrapper if provided.
 
         Args:
-            wrapper (Optional[ABCWrapper]): The custom wrapper to load.
+            wrapper: The custom wrapper to load.
 
         Returns:
-            Optional[ABCWrapper]: The initialized wrapper or None.
+            The initialized wrapper or None.
         """
-        if wrapper and issubclass(wrapper, ABCWrapper):
-            log_warn(f"wrapper '{wrapper.__name__}' loaded")
-            return wrapper()
+        if wrapper:
+            if issubclass(wrapper, ABCWrapper):
+                log_warn(f"wrapper '{wrapper.__name__}' loaded")
+                return wrapper()
+            log_error(f"wrapper '{wrapper.__name__}' is not a subclass of ABCWrapper")
+            raise ValueError(f"wrapper '{wrapper.__name__}' is not a subclass of ABCWrapper")
         return None
 
     @lru_cache(maxsize=sys.maxsize)
@@ -393,7 +396,7 @@ class Tracer:
             obj = frame.f_locals['self']
 
             if hasattr(obj, '__dict__') and hasattr(obj.__class__, '__weakref__'):
-                attrs: Dict[str, Any] = {k: v for k, v in obj.__dict__.items() if not callable(v)}
+                attrs: dict = {k: v for k, v in obj.__dict__.items() if not callable(v)}
                 if obj not in self.tracked_objects:
                     self.tracked_objects[obj] = attrs
                 if obj not in self.tracked_objects_lens:
@@ -402,7 +405,7 @@ class Tracer:
                     if isinstance(v, log_sequence_types):
                         self.tracked_objects_lens[obj][k] = len(v)
 
-    def _get_function_info(self, frame: FrameType) -> Dict[str, Any]:
+    def _get_function_info(self, frame: FrameType) -> dict:
         """
         Extract information about the currently executing function.
 
@@ -410,7 +413,7 @@ class Tracer:
             frame (FrameType): The current stack frame.
 
         Returns:
-            Dict[str, Any]: Dictionary containing function information.
+            dict: Dictionary containing function information.
         """
         func_info = {}
         module = frame.f_globals.get('__name__', '')
@@ -457,7 +460,7 @@ class Tracer:
             current_value_len (Optional[int]): The length of the current value (if applicable).
         """
         if old_value_len is not None and current_value_len is not None:
-            change_type: EventType = (
+            change_type: Optional[EventType] = (
                 self.event_handlers.determine_change_type(old_value_len, current_value_len)
                 if old_value_len is not None
                 else EventType.UPD
@@ -627,15 +630,15 @@ class Tracer:
             if is_current_seq:
                 self.tracked_globals_lens[module_name][key] = len(current_value)
 
-    def trace_factory(self) -> FunctionType:  # noqa: C901
+    def trace_factory(self):  # noqa: C901
         """
         Create the tracing function to be used with sys.settrace.
 
         Returns:
-            FunctionType: The trace function.
+            The trace function.
         """
 
-        def trace_func(frame: FrameType, event: str, arg: Any) -> Optional[FunctionType]:
+        def trace_func(frame: FrameType, event: str, arg: Any):
             """
             This function is the actual trace function used by sys.settrace. It is called
             for every event (e.g., call, return, line) during code execution.
@@ -646,7 +649,7 @@ class Tracer:
                 arg (Any): The argument for the event (e.g., return value for 'return').
 
             Returns:
-                Optional[FunctionType]: Returns the trace function itself to continue tracing.
+                Returns the trace function itself to continue tracing.
             """
 
             # Skip frames that do not match the filename condition
@@ -672,9 +675,7 @@ class Tracer:
 
                 # Track local variables if needed
                 if self.config.with_locals:
-                    local_vars: Dict[str, Any] = {
-                        k: v for k, v in frame.f_locals.items() if k != 'self' and not callable(v)
-                    }
+                    local_vars: dict = {k: v for k, v in frame.f_locals.items() if k != 'self' and not callable(v)}
                     self.tracked_locals[frame] = local_vars
                     self.tracked_locals_lens[frame] = {}
                     for var, value in local_vars.items():

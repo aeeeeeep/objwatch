@@ -4,7 +4,6 @@
 from types import FrameType
 from typing import Any, Tuple
 
-from ..event_handls import log_element_types, log_sequence_types, EventHandls
 from .abc_wrapper import ABCWrapper
 
 
@@ -56,37 +55,3 @@ class BaseWrapper(ABCWrapper):
         old_msg = self._format_value(old_value)
         current_msg = self._format_value(current_value)
         return old_msg, current_msg
-
-    def _format_value(self, value: Any, is_return: bool = False) -> str:
-        """
-        Format a value into a string.
-
-        Args:
-            value (Any): The value to format.
-            is_return (bool): Flag indicating if the value is a return value.
-
-        Returns:
-            str: Formatted value string.
-        """
-        if isinstance(value, log_element_types):
-            formatted = f"{value}"
-        elif isinstance(value, log_sequence_types):
-            formatted_sequence = EventHandls.format_sequence(value)
-            if formatted_sequence:
-                formatted = f"{formatted_sequence}"
-            else:
-                try:
-                    formatted = f"(type){value.__name__}"
-                except:
-                    formatted = f"(type){type(value).__name__}"
-        else:
-            try:
-                formatted = f"(type){value.__name__}"
-            except:
-                formatted = f"(type){type(value).__name__}"
-
-        if is_return:
-            if isinstance(value, log_sequence_types) and formatted:
-                return f"[{formatted}]"
-            return f"{formatted}"
-        return formatted
