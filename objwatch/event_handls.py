@@ -8,7 +8,7 @@ from enum import Enum
 from types import FunctionType
 
 try:
-    from types import NoneType
+    from types import NoneType  # type: ignore
 except ImportError:
     NoneType = type(None)  # type: ignore
 
