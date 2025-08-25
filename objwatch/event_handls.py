@@ -8,9 +8,9 @@ from enum import Enum
 from types import FunctionType
 
 try:
-    from types import NoneType
+    from types import NoneType  # type: ignore
 except ImportError:
-    NoneType = type(None)
+    NoneType = type(None)  # type: ignore
 
 from typing import Any, Dict, Optional, Type
 from .utils.logger import log_error, log_debug, log_warn, log_info
@@ -68,7 +68,7 @@ class EventHandls:
                 signal.signal(signal_type, self.signal_handler)
 
     def handle_run(
-        self, lineno: int, func_info: Dict[str, Any], abc_wrapper: Optional[Any], call_depth: int, index_info: str
+        self, lineno: int, func_info: dict, abc_wrapper: Optional[Any], call_depth: int, index_info: str
     ) -> None:
         """
         Handle the 'run' event indicating the start of a function or method execution.
@@ -98,7 +98,7 @@ class EventHandls:
     def handle_end(
         self,
         lineno: int,
-        func_info: Dict[str, Any],
+        func_info: dict,
         abc_wrapper: Optional[Any],
         call_depth: int,
         index_info: str,
@@ -178,8 +178,8 @@ class EventHandls:
         class_name: str,
         key: str,
         value_type: type,
-        old_value_len: int,
-        current_value_len: int,
+        old_value_len: Optional[int],
+        current_value_len: Optional[int],
         call_depth: int,
         index_info: str,
     ) -> None:
@@ -219,8 +219,8 @@ class EventHandls:
         class_name: str,
         key: str,
         value_type: type,
-        old_value_len: int,
-        current_value_len: int,
+        old_value_len: Optional[int],
+        current_value_len: Optional[int],
         call_depth: int,
         index_info: str,
     ) -> None:
@@ -254,7 +254,7 @@ class EventHandls:
             )
             self.current_node[-1].append(pop_element)
 
-    def determine_change_type(self, old_value_len: int, current_value_len: int) -> EventType:
+    def determine_change_type(self, old_value_len: int, current_value_len: int) -> Optional[EventType]:
         """
         Determine the type of change based on the difference in lengths.
 
@@ -270,6 +270,7 @@ class EventHandls:
             return EventType.APD
         elif diff < 0:
             return EventType.POP
+        return None
 
     @staticmethod
     def format_sequence(seq: Any, max_elements: int = 3, func: Optional[FunctionType] = None) -> str:

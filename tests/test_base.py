@@ -358,6 +358,35 @@ class TestCustomWrapper(unittest.TestCase):
             self.logger.removeHandler(handler)
 
 
+class TestUnsupportWrapper(unittest.TestCase):
+
+    def setUp(self):
+
+        class UnsupportWrapper:
+            def wrap_call(self, func_name, frame):
+                return f"CustomCall: {func_name} called with args {frame.f_locals}"
+
+            def wrap_return(self, func_name, result):
+                return f"CustomReturn: {func_name} returned {result}"
+
+            def wrap_upd(self, old_value, current_value):
+                old_msg = self._format_value(old_value)
+                current_msg = self._format_value(current_value)
+                return old_msg, current_msg
+
+        self.unsupport_wrapper = UnsupportWrapper
+
+    def test_unsupport_wrapper(self):
+        with self.assertRaises(ValueError):
+            ObjWatch(
+                targets=['example_module.py'],
+                wrapper=self.unsupport_wrapper,
+                output=None,
+                level=logging.DEBUG,
+                simple=True,
+            )
+
+
 class TestTargetsStr(unittest.TestCase):
     def test_targets_with_submodules(self):
         processed = Targets(['importlib']).get_processed_targets()

@@ -11,28 +11,32 @@ from .abc_wrapper import ABCWrapper
 try:
     import torch
 except ImportError:
-    torch = None
+    torch = None  # type: ignore
+
+
+def process_tensor_item(seq: List[Any]) -> Optional[List[Any]]:
+    """
+    Process a sequence to extract tensor shapes if all items are torch.Tensor.
+
+    Args:
+        seq (List[Any]): The sequence to process.
+
+    Returns:
+        Optional[List[Any]]: List of tensor shapes or None if not applicable.
+    """
+    if torch is not None and all(isinstance(x, torch.Tensor) for x in seq):
+        return [x.shape for x in seq]
+    else:
+        return None
+
 
 class TensorShapeWrapper(ABCWrapper):
     """
     TensorShapeWrapper extends ABCWrapper to log the shapes of torch.Tensor objects.
     """
 
-    @staticmethod
-    def _process_tensor_item(seq: List[Any]) -> Optional[List[Any]]:
-        """
-        Process a sequence to extract tensor shapes if all items are torch.Tensor.
-
-        Args:
-            seq (List[Any]): The sequence to process.
-
-        Returns:
-            Optional[List[Any]]: List of tensor shapes or None if not applicable.
-        """
-        if torch is not None and all(isinstance(x, torch.Tensor) for x in seq):
-            return [x.shape for x in seq]
-        else:
-            return None
+    def __init__(self):
+        self.format_sequence_func = process_tensor_item
 
     def wrap_call(self, func_name: str, frame: FrameType) -> str:
         """
@@ -94,14 +98,11 @@ class TensorShapeWrapper(ABCWrapper):
         elif isinstance(value, log_element_types):
             formatted = f"{value}"
         elif isinstance(value, log_sequence_types):
-            formatted_sequence = EventHandls.format_sequence(value, func=TensorShapeWrapper._process_tensor_item)
+            formatted_sequence = EventHandls.format_sequence(value, func=self.format_sequence_func)
             if formatted_sequence:
                 formatted = f"{formatted_sequence}"
             else:
-                try:
-                    formatted = f"(type){value.__name__}"
-                except:
-                    formatted = f"(type){type(value).__name__}"
+                formatted = f"(type){type(value).__name__}"
         else:
             try:
                 formatted = f"(type){value.__name__}"

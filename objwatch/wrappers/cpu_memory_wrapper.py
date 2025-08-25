@@ -60,22 +60,22 @@ class CPUMemoryWrapper(ABCWrapper):
         """
         self.mem_types = set(__class__.mem_types)
 
-    def _capture_memory(self) -> Dict[str, Any]:
+    def _capture_memory(self) -> dict:
         """
         Capture the current system memory statistics.
 
         Returns:
-            Dict[str, Any]: A dictionary of memory stats from psutil.
+            dict: A dictionary of memory stats from psutil.
         """
         stats = psutil.virtual_memory()._asdict()
         return {k: stats[k] for k in self.mem_types}
 
-    def _format_memory(self, stats: Dict[str, Any]) -> str:
+    def _format_memory(self, stats: dict) -> str:
         """
         Format the memory statistics into a string.
 
         Args:
-            stats (Dict[str, Any]): The memory stats to format.
+            stats (dict): The memory stats to format.
 
         Returns:
             str: A formatted string representing the memory stats.

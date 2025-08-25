@@ -5,11 +5,18 @@ from abc import ABC, abstractmethod
 from types import FrameType
 from typing import Any, Dict, List, Tuple
 
+from ..event_handls import log_element_types, log_sequence_types, EventHandls
+
 
 class ABCWrapper(ABC):
     """
     Abstract base class for function wrappers to extend tracing and logging functionality.
     """
+
+    def __init__(self):
+        # Class attribute to specify the function for processing sequence elements
+        # Subclasses can override this to provide custom sequence processing
+        self.format_sequence_func = None
 
     @abstractmethod
     def wrap_call(self, func_name: str, frame: FrameType) -> str:
@@ -39,6 +46,7 @@ class ABCWrapper(ABC):
         """
         pass
 
+    @abstractmethod
     def wrap_upd(self, old_value: Any, current_value: Any) -> Tuple[str, str]:
         """
         Process and format the update information of a variable.
@@ -52,7 +60,7 @@ class ABCWrapper(ABC):
         """
         pass
 
-    def _extract_args_kwargs(self, frame: FrameType) -> Tuple[List[Any], Dict[str, Any]]:
+    def _extract_args_kwargs(self, frame: FrameType) -> Tuple[List[Any], dict]:
         """
         Extract positional and keyword arguments from the current frame.
 
@@ -60,10 +68,10 @@ class ABCWrapper(ABC):
             frame (FrameType): The current stack frame.
 
         Returns:
-            Tuple[List[Any], Dict[str, Any]]: Lists of positional and keyword arguments.
+            Tuple[List[Any], dict]: Lists of positional and keyword arguments.
         """
         args: List[Any] = []
-        kwargs: Dict[str, Any] = {}
+        kwargs: dict = {}
         code = frame.f_code
         arg_names = code.co_varnames[: code.co_argcount]
         for name in arg_names:
@@ -74,13 +82,13 @@ class ABCWrapper(ABC):
             kwargs = {k: v for k, v in frame.f_locals.items() if k not in arg_names and not k.startswith('_')}
         return args, kwargs
 
-    def _format_args_kwargs(self, args: List[Any], kwargs: Dict[str, Any]) -> str:
+    def _format_args_kwargs(self, args: List[Any], kwargs: dict) -> str:
         """
         Format positional and keyword arguments into a string.
 
         Args:
             args (List[Any]): List of positional arguments.
-            kwargs (Dict[str, Any]): Dictionary of keyword arguments.
+            kwargs (dict): Dictionary of keyword arguments.
 
         Returns:
             str: Formatted arguments string.
@@ -92,7 +100,7 @@ class ABCWrapper(ABC):
 
     def _format_value(self, value: Any, is_return: bool = False) -> str:
         """
-        Format a value into a string. To be implemented by subclasses.
+        Format a value into a string.
 
         Args:
             value (Any): The value to format.
@@ -101,7 +109,25 @@ class ABCWrapper(ABC):
         Returns:
             str: Formatted value string.
         """
-        pass
+        if isinstance(value, log_element_types):
+            formatted = f"{value}"
+        elif isinstance(value, log_sequence_types):
+            formatted_sequence = EventHandls.format_sequence(value, func=self.format_sequence_func)
+            if formatted_sequence:
+                formatted = f"{formatted_sequence}"
+            else:
+                formatted = f"(type){type(value).__name__}"
+        else:
+            try:
+                formatted = f"(type){value.__name__}"  # type: ignore
+            except:
+                formatted = f"(type){type(value).__name__}"
+
+        if is_return:
+            if isinstance(value, log_sequence_types) and formatted:
+                return f"[{formatted}]"
+            return f"{formatted}"
+        return formatted
 
     def _format_return(self, result: Any) -> str:
         """

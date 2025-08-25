@@ -81,18 +81,6 @@ class ObjWatch:
         log_info("Stopping ObjWatch tracing.")
         self.tracer.stop()
 
-    def load_wrapper(self, wrapper: ABCWrapper) -> ABCWrapper:
-        """
-        Load a custom wrapper into the tracer.
-
-        Args:
-            wrapper (ABCWrapper): The custom wrapper to be loaded.
-
-        Returns:
-            ABCWrapper: The result of the tracer's load_wrapper method.
-        """
-        return self.tracer.load_wrapper(wrapper)
-
     def __enter__(self) -> 'ObjWatch':
         """
         Enter the runtime context related to this object.
