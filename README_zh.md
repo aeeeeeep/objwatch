@@ -7,6 +7,7 @@
 [![Downloads](https://static.pepy.tech/badge/objwatch)](https://pepy.tech/projects/objwatch)
 [![Python Versions](https://img.shields.io/pypi/pyversions/objwatch)](https://github.com/aeeeeeep/objwatch)
 [![GitHub pull request](https://img.shields.io/badge/PRs-welcome-blue)](https://github.com/aeeeeeep/objwatch/pulls)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16986436.svg)](https://doi.org/10.5281/zenodo.16986436)
 
 \[ [English](README.md) | 中文 \]
 
