@@ -40,4 +40,3 @@ class Constants:
     # Log sequence types
     # Define sequence types for logging
     LOG_SEQUENCE_TYPES = (list, set, dict, tuple)
-    LOG_INDENT_LEVEL = 2
