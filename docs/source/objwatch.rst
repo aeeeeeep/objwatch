@@ -13,6 +13,22 @@ Subpackages
 Submodules
 ----------
 
+objwatch.config module
+----------------------
+
+.. automodule:: objwatch.config
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+objwatch.constants module
+-------------------------
+
+.. automodule:: objwatch.constants
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 objwatch.core module
 --------------------
 
@@ -33,6 +49,22 @@ objwatch.events module
 ----------------------
 
 .. automodule:: objwatch.events
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+objwatch.mp\_handls module
+--------------------------
+
+.. automodule:: objwatch.mp_handls
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+objwatch.targets module
+-----------------------
+
+.. automodule:: objwatch.targets
    :members:
    :undoc-members:
    :show-inheritance:
