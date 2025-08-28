@@ -4,8 +4,8 @@
 from types import FrameType
 from typing import Any, List, Optional, Tuple
 
-
-from ..event_handls import log_element_types, log_sequence_types, EventHandls
+from ..constants import Constants
+from ..event_handls import EventHandls
 from .abc_wrapper import ABCWrapper
 
 try:
@@ -95,9 +95,9 @@ class TensorShapeWrapper(ABCWrapper):
         """
         if torch is not None and isinstance(value, torch.Tensor):
             formatted = f"{value.shape}"
-        elif isinstance(value, log_element_types):
+        elif isinstance(value, Constants.LOG_ELEMENT_TYPES):
             formatted = f"{value}"
-        elif isinstance(value, log_sequence_types):
+        elif isinstance(value, Constants.LOG_SEQUENCE_TYPES):
             formatted_sequence = EventHandls.format_sequence(value, func=self.format_sequence_func)
             if formatted_sequence:
                 formatted = f"{formatted_sequence}"
@@ -112,7 +112,7 @@ class TensorShapeWrapper(ABCWrapper):
         if is_return:
             if isinstance(value, torch.Tensor):
                 return f"{value.shape}"
-            elif isinstance(value, log_sequence_types) and formatted:
+            elif isinstance(value, Constants.LOG_SEQUENCE_TYPES) and formatted:
                 return f"[{formatted}]"
             return f"{formatted}"
         return formatted

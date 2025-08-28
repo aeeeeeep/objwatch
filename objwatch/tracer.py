@@ -6,14 +6,15 @@ from functools import lru_cache
 from types import FrameType
 from typing import Optional, Any, Dict, Set
 
+from .constants import Constants
 from .config import ObjWatchConfig
 from .targets import Targets
 from .wrappers import ABCWrapper
 from .events import EventType
-from .event_handls import EventHandls, log_sequence_types
+from .event_handls import EventHandls
 from .mp_handls import MPHandls
-from .utils.logger import log_info, log_debug, log_warn, log_error
 from .utils.weak import WeakIdKeyDictionary
+from .utils.logger import log_info, log_debug, log_warn, log_error
 
 
 class Tracer:
@@ -402,7 +403,7 @@ class Tracer:
                 if obj not in self.tracked_objects_lens:
                     self.tracked_objects_lens[obj] = {}
                 for k, v in attrs.items():
-                    if isinstance(v, log_sequence_types):
+                    if isinstance(v, Constants.LOG_SEQUENCE_TYPES):
                         self.tracked_objects_lens[obj][k] = len(v)
 
     def _get_function_info(self, frame: FrameType) -> dict:
@@ -530,7 +531,7 @@ class Tracer:
 
                 old_value = old_attrs.get(key, None)
                 old_value_len = old_attrs_lens.get(key, None)
-                is_current_seq = isinstance(current_value, log_sequence_types)
+                is_current_seq = isinstance(current_value, Constants.LOG_SEQUENCE_TYPES)
                 current_value_len = len(current_value) if old_value_len is not None and is_current_seq else None
 
                 self._handle_change_type(
@@ -577,7 +578,7 @@ class Tracer:
                 abc_wrapper=self.abc_wrapper,
             )
 
-            if isinstance(current_local, log_sequence_types):
+            if isinstance(current_local, Constants.LOG_SEQUENCE_TYPES):
                 self.tracked_locals_lens[frame][var] = len(current_local)
 
         common_vars = set(old_locals.keys()) & set(current_locals.keys())
@@ -585,7 +586,7 @@ class Tracer:
             old_local = old_locals[var]
             old_local_len = old_locals_lens.get(var, None)
             current_local = current_locals[var]
-            is_current_seq = isinstance(current_local, log_sequence_types)
+            is_current_seq = isinstance(current_local, Constants.LOG_SEQUENCE_TYPES)
             current_local_len = len(current_local) if old_local_len is not None and is_current_seq else None
 
             self._handle_change_type(lineno, "_", var, old_local, current_local, old_local_len, current_local_len)
@@ -621,7 +622,7 @@ class Tracer:
 
             old_value = self.tracked_globals[module_name].get(key, None)
             old_value_len = self.tracked_globals_lens[module_name].get(key, None)
-            is_current_seq = isinstance(current_value, log_sequence_types)
+            is_current_seq = isinstance(current_value, Constants.LOG_SEQUENCE_TYPES)
             current_value_len = len(current_value) if old_value_len is not None and is_current_seq else None
 
             self._handle_change_type(lineno, "@", key, old_value, current_value, old_value_len, current_value_len)
@@ -679,7 +680,7 @@ class Tracer:
                     self.tracked_locals[frame] = local_vars
                     self.tracked_locals_lens[frame] = {}
                     for var, value in local_vars.items():
-                        if isinstance(value, log_sequence_types):
+                        if isinstance(value, Constants.LOG_SEQUENCE_TYPES):
                             self.tracked_locals_lens[frame][var] = len(value)
 
                 return trace_func

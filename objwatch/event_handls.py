@@ -4,32 +4,12 @@
 import signal
 import atexit
 import xml.etree.ElementTree as ET
-from enum import Enum
 from types import FunctionType
+from typing import Any, Optional
 
-try:
-    from types import NoneType  # type: ignore
-except ImportError:
-    NoneType = type(None)  # type: ignore
-
-from typing import Any, Dict, Optional, Type
-from .utils.logger import log_error, log_debug, log_warn, log_info
+from .constants import Constants
 from .events import EventType
-
-
-# Define types that are directly loggable
-log_element_types = (
-    bool,
-    int,
-    float,
-    str,
-    NoneType,
-    FunctionType,
-    Enum,
-)
-
-# Define sequence types for logging
-log_sequence_types = (list, set, dict, tuple)
+from .utils.logger import log_error, log_debug, log_warn, log_info
 
 
 class EventHandls:
@@ -273,7 +253,9 @@ class EventHandls:
         return None
 
     @staticmethod
-    def format_sequence(seq: Any, max_elements: int = 3, func: Optional[FunctionType] = None) -> str:
+    def format_sequence(
+        seq: Any, max_elements: int = Constants.MAX_SEQUENCE_ELEMENTS, func: Optional[FunctionType] = None
+    ) -> str:
         """
         Format a sequence to display a limited number of elements.
 
@@ -290,21 +272,21 @@ class EventHandls:
             return f'({type(seq).__name__})[]'
         display: Optional[list] = None
         if isinstance(seq, list):
-            if all(isinstance(x, log_element_types) for x in seq[:max_elements]):
+            if all(isinstance(x, Constants.LOG_ELEMENT_TYPES) for x in seq[:max_elements]):
                 display = seq[:max_elements]
             elif func is not None:
                 display = func(seq[:max_elements])
         elif isinstance(seq, (set, tuple)):
             seq_list = list(seq)[:max_elements]
-            if all(isinstance(x, log_element_types) for x in seq_list):
+            if all(isinstance(x, Constants.LOG_ELEMENT_TYPES) for x in seq_list):
                 display = seq_list
             elif func is not None:
                 display = func(seq_list)
         elif isinstance(seq, dict):
             seq_keys = list(seq.keys())[:max_elements]
             seq_values = list(seq.values())[:max_elements]
-            if all(isinstance(x, log_element_types) for x in seq_keys) and all(
-                isinstance(x, log_element_types) for x in seq_values
+            if all(isinstance(x, Constants.LOG_ELEMENT_TYPES) for x in seq_keys) and all(
+                isinstance(x, Constants.LOG_ELEMENT_TYPES) for x in seq_values
             ):
                 display = list(seq.items())[:max_elements]
             elif func is not None:
@@ -333,9 +315,9 @@ class EventHandls:
         Returns:
             str: The formatted value string.
         """
-        if isinstance(value, log_element_types):
+        if isinstance(value, Constants.LOG_ELEMENT_TYPES):
             return f"{value}"
-        elif isinstance(value, log_sequence_types):
+        elif isinstance(value, Constants.LOG_SEQUENCE_TYPES):
             return EventHandls.format_sequence(value)
         else:
             try:

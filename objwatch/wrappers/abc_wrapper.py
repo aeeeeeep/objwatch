@@ -1,11 +1,12 @@
 # MIT License
 # Copyright (c) 2025 aeeeeeep
 
-from abc import ABC, abstractmethod
 from types import FrameType
-from typing import Any, Dict, List, Tuple
+from typing import Any, List, Tuple
+from abc import ABC, abstractmethod
 
-from ..event_handls import log_element_types, log_sequence_types, EventHandls
+from ..constants import Constants
+from ..event_handls import EventHandls
 
 
 class ABCWrapper(ABC):
@@ -109,9 +110,9 @@ class ABCWrapper(ABC):
         Returns:
             str: Formatted value string.
         """
-        if isinstance(value, log_element_types):
+        if isinstance(value, Constants.LOG_ELEMENT_TYPES):
             formatted = f"{value}"
-        elif isinstance(value, log_sequence_types):
+        elif isinstance(value, Constants.LOG_SEQUENCE_TYPES):
             formatted_sequence = EventHandls.format_sequence(value, func=self.format_sequence_func)
             if formatted_sequence:
                 formatted = f"{formatted_sequence}"
@@ -124,7 +125,7 @@ class ABCWrapper(ABC):
                 formatted = f"(type){type(value).__name__}"
 
         if is_return:
-            if isinstance(value, log_sequence_types) and formatted:
+            if isinstance(value, Constants.LOG_SEQUENCE_TYPES) and formatted:
                 return f"[{formatted}]"
             return f"{formatted}"
         return formatted

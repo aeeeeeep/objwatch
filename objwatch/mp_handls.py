@@ -1,8 +1,9 @@
 # MIT License
 # Copyright (c) 2025 aeeeeeep
 
-from typing import Callable, Optional, Union
 from types import FunctionType
+from typing import Callable, Optional, Union
+
 from .utils.logger import log_error, log_info
 
 
