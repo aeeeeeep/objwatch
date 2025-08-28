@@ -237,7 +237,7 @@ def main():
     pass
 
 if __name__ == '__main__':
-    obj_watch = objwatch.watch(['distributed_module.py'], ranks=[0, 1, 2, 3], output='./dist.log, simple=False)
+    obj_watch = objwatch.watch(['distributed_module.py'], ranks=[0, 1, 2, 3], output='./dist.log', simple=False)
     main()
     obj_watch.stop()
 ```

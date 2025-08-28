@@ -2,7 +2,8 @@
 # Copyright (c) 2025 aeeeeeep
 
 from types import FrameType
-from typing import Any, Dict, List, Tuple
+from typing import Any, List, Tuple
+
 from .abc_wrapper import ABCWrapper
 
 try:

@@ -4,12 +4,13 @@
 import ast
 import json
 import inspect
+import pkgutil
 import importlib
 import importlib.util
-import pkgutil
 from types import ModuleType, MethodType, FunctionType
 from typing import Optional, Tuple, List, Union, Set
 
+from .constants import Constants
 from .utils.logger import log_error, log_warn
 
 ClassType = type
@@ -534,7 +535,7 @@ class Targets:
         """
         return self.processed_targets
 
-    def serialize_targets(self, indent=2):
+    def serialize_targets(self, indent=Constants.LOG_INDENT_LEVEL):
         """Serialize objects that JSON cannot handle by default.
 
         Converts sets to lists, and other objects to their __dict__ or string representation.
@@ -555,7 +556,7 @@ class Targets:
                 return o.__dict__
             return str(o)
 
-        if len(self.processed_targets) > 8:
+        if len(self.processed_targets) > Constants.MAX_TARGETS_DISPLAY:
             truncated_obj = {key: "..." for key in self.processed_targets.keys()}
             truncated_obj["Warning: too many top-level keys, only showing values like"] = "..."
             return json.dumps(truncated_obj, indent=indent, default=target_handler)
