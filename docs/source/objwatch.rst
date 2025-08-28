@@ -13,37 +13,17 @@ Subpackages
 Submodules
 ----------
 
-objwatch.core module
---------------------
+.. toctree::
+   :maxdepth: 1
 
-.. automodule:: objwatch.core
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-objwatch.event\_handls module
------------------------------
-
-.. automodule:: objwatch.event_handls
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-objwatch.events module
-----------------------
-
-.. automodule:: objwatch.events
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-objwatch.tracer module
-----------------------
-
-.. automodule:: objwatch.tracer
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   objwatch.config
+   objwatch.constants
+   objwatch.core
+   objwatch.event_handls
+   objwatch.events
+   objwatch.mp_handls
+   objwatch.targets
+   objwatch.tracer
 
 Module contents
 ---------------

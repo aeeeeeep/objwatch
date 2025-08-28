@@ -4,45 +4,14 @@ objwatch.wrappers package
 Submodules
 ----------
 
-objwatch.wrappers.abc\_wrapper module
--------------------------------------
+.. toctree::
+   :maxdepth: 1
 
-.. automodule:: objwatch.wrappers.abc_wrapper
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-objwatch.wrappers.base\_wrapper module
---------------------------------------
-
-.. automodule:: objwatch.wrappers.base_wrapper
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-objwatch.wrappers.cpu\_memory\_wrapper module
----------------------------------------------
-
-.. automodule:: objwatch.wrappers.cpu_memory_wrapper
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-objwatch.wrappers.tensor\_shape\_wrapper module
------------------------------------------------
-
-.. automodule:: objwatch.wrappers.tensor_shape_wrapper
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-objwatch.wrappers.torch\_memory\_wrapper module
------------------------------------------------
-
-.. automodule:: objwatch.wrappers.torch_memory_wrapper
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   objwatch.wrappers.abc_wrapper
+   objwatch.wrappers.base_wrapper
+   objwatch.wrappers.cpu_memory_wrapper
+   objwatch.wrappers.tensor_shape_wrapper
+   objwatch.wrappers.torch_memory_wrapper
 
 Module contents
 ---------------

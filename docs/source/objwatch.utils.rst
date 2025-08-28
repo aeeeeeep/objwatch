@@ -4,21 +4,11 @@ objwatch.utils package
 Submodules
 ----------
 
-objwatch.utils.logger module
-----------------------------
+.. toctree::
+   :maxdepth: 1
 
-.. automodule:: objwatch.utils.logger
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-objwatch.utils.weak module
---------------------------
-
-.. automodule:: objwatch.utils.weak
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   objwatch.utils.logger
+   objwatch.utils.weak
 
 Module contents
 ---------------
