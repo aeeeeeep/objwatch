@@ -33,7 +33,7 @@ ObjWatch may impact your application's performance. It is recommended to use it 
   - **`pop`**: Element removal from data structures
   
   These classifications help developers efficiently trace and debug their code by understanding the flow and state changes within their applications.
-- **🔥 Multi-GPU Support**: Seamlessly trace distributed PyTorch applications running across multiple GPUs, ensuring comprehensive monitoring in high-performance environments.
+- **🔥 Multi-Process Support**: Seamlessly trace distributed applications running across multiple processes/GPUs, ensuring comprehensive monitoring in high-performance environments.
 - **🔌 Custom Wrapper Extensions**: Extend ObjWatch's functionality with custom wrappers, allowing tailored tracing and logging to fit specific project needs.
 - **🎛️ Context Manager & API Integration**: Integrate ObjWatch effortlessly into your projects using context managers or API functions without relying on command-line interfaces.
 
@@ -184,7 +184,7 @@ examples/example_usage.py
 
 ## ⚙️ Configuration
 
-ObjWatch offers customizable logging formats and tracing options to suit various project requirements. Utilize the `simple` parameter to toggle between detailed and simplified logging outputs.
+ObjWatch offers customizable logging formats and tracing options to suit various project requirements.
 
 ### Parameters
 
@@ -226,21 +226,64 @@ ObjWatch offers customizable logging formats and tracing options to suit various
 
 ## 🪁 Advanced Usage
 
-### Multi-GPU Support
+### Multi-Process Support
 
-ObjWatch seamlessly integrates with distributed PyTorch applications, allowing you to monitor and trace operations across multiple GPUs. Specify the ranks you wish to track using the `ranks` parameter.
+ObjWatch seamlessly integrates with multi-process applications, allowing you to monitor and trace operations across multiple processes. Specify the process indexes you wish to track using the `indexes` parameter.
+
+Supported frameworks:
+- `torch.distributed`: PyTorch's distributed environment for multi-GPU support
+- `multiprocessing`: Python's built-in multiprocessing for parallel processing
+- Custom frameworks: Extend support for other multi-process frameworks
 
 ```python
 import objwatch
 
 def main():
-    # Your distributed code
+    # Your multi-process code
     pass
 
 if __name__ == '__main__':
-    obj_watch = objwatch.watch(['distributed_module.py'], ranks=[0, 1, 2, 3], output='./dist.log', simple=False)
+    obj_watch = objwatch.watch(['multi_process_module.py'], indexes=[0, 1, 2, 3], output='./mp.log', simple=False)
     main()
     obj_watch.stop()
+```
+
+#### Custom Framework Extension
+
+ObjWatch allows you to extend support for custom multi-process frameworks by adding a `_check_init_{framework_name}` method to the MPHandls class. This method should:
+
+1. Check if the framework is initialized
+2. Set `self.initialized = True` if initialized
+3. Set `self.index` to the current process index
+4. Set `self.sync_fn` to a synchronization function (or None if not needed)
+
+Example for a custom framework:
+
+```python
+class MPHandls:
+    # ... existing code ...
+    
+    def _check_init_custom_framework(self) -> None:
+        """
+        Custom framework initialization check.
+        Replace 'custom_framework' with your actual framework name.
+        """
+        try:
+            import custom_framework
+            if custom_framework.is_initialized():
+                self.initialized = True
+                self.index = custom_framework.get_current_rank()
+                self.sync_fn = custom_framework.barrier
+                log_info(f"custom_framework initialized. index: {self.index}")
+        except ImportError:
+            log_error("Custom framework not available")
+            raise ValueError("Custom framework not available")
+```
+
+To use your custom framework, specify the framework name in the configuration:
+
+```python
+obj_watch = objwatch.watch(['your_module.py'], framework='custom_framework', indexes=[0, 1])
 ```
 
 ### Custom Wrapper Extensions
@@ -249,7 +292,7 @@ ObjWatch provides the `ABCWrapper` abstract base class, enabling users to create
 
 #### ABCWrapper Class
 
-The `ABCWrapper` class defines two essential methods that must be implemented:
+The `ABCWrapper` class defines three essential methods that must be implemented:
 
 - **`wrap_call(self, func_name: str, frame: FrameType) -> str`**:
   

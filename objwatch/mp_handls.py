@@ -35,6 +35,7 @@ class MPHandls:
     def _check_initialized(self) -> None:
         """
         Verifies if the selected multi-process framework is initialized.
+        Supports built-in frameworks and allows for custom framework extensions.
         """
         if self.framework is None:
             pass
@@ -43,8 +44,14 @@ class MPHandls:
         elif self.framework == 'multiprocessing':
             self._check_init_multiprocessing()
         else:
-            log_error(f"Invalid framework: {self.framework}")
-            raise ValueError(f"Invalid framework: {self.framework}")
+            # Check for custom framework extension
+            custom_method_name = f"_check_init_{self.framework}"
+            if hasattr(self, custom_method_name):
+                custom_method = getattr(self, custom_method_name)
+                custom_method()
+            else:
+                log_error(f"Invalid framework: {self.framework}")
+                raise ValueError(f"Invalid framework: {self.framework}")
 
     def sync(self) -> None:
         """
