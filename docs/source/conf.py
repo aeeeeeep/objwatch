@@ -31,10 +31,10 @@ release = version
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon',        # Google-style docstring support
-    'sphinx.ext.intersphinx',     # Cross-referencing between projects
-    'sphinx.ext.todo',            # TODO directive support
-    'sphinx.ext.autosectionlabel', # Automatic section labels
+    'sphinx.ext.napoleon',  # Google-style docstring support
+    'sphinx.ext.intersphinx',  # Cross-referencing between projects
+    'sphinx.ext.todo',  # TODO directive support
+    'sphinx.ext.autosectionlabel',  # Automatic section labels
 ]
 
 autodoc_default_options = {
@@ -42,7 +42,7 @@ autodoc_default_options = {
     "undoc-members": True,
     "private-members": True,
     "special-members": "__init__, __call__",
-    "member-order": "bysource"
+    "member-order": "bysource",
 }
 
 templates_path = ['_templates']
