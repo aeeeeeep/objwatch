@@ -1,14 +1,13 @@
 objwatch package
 ================
 
-Subpackages
------------
+Module contents
+---------------
 
-.. toctree::
-   :maxdepth: 4
-
-   objwatch.utils
-   objwatch.wrappers
+.. automodule:: objwatch
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Submodules
 ----------
@@ -25,10 +24,11 @@ Submodules
    objwatch.targets
    objwatch.tracer
 
-Module contents
----------------
+Subpackages
+-----------
 
-.. automodule:: objwatch
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. toctree::
+   :maxdepth: 4
+
+   objwatch.utils
+   objwatch.wrappers
