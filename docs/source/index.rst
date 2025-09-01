@@ -91,8 +91,10 @@ Using the API
        # Your code
        pass
 
-   with objwatch.ObjWatch(['your_module.py']):
+   if __name__ == '__main__':
+       obj_watch = objwatch.watch(['your_module.py'])
        main()
+       obj_watch.stop()
 
 Example Usage
 --------------
