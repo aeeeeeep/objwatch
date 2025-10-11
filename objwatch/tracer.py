@@ -104,21 +104,7 @@ class Tracer:
         self._call_depth = value
 
     def _build_target_index(self):
-        """Build fast lookup indexes for monitoring targets.
-
-        Creates three-level indexes:
-        - module_index: Set of monitored module names
-        - class_index: Nested mapping of modules to their classes
-        - function_index: Nested mapping of modules to their functions
-        - global_index: Nested mapping of modules to their global variables
-
-        Final structure example:
-        index_map = {
-            'class': {'module1': {'ClassA', 'ClassB'}, ...},
-            'function': {'module1': {'func1', 'func2'}, ...},
-            'global': {'module1': {'var1', 'var2'}, ...}
-        }
-        """
+        """Build fast lookup indexes for monitoring targets."""
         self.module_index = set(self.targets.keys())
         self.class_index = {}
         self.method_index = {}
@@ -169,25 +155,7 @@ class Tracer:
         }
 
     def _build_exclude_target_index(self):
-        """Build fast lookup indexes for exclusion targets.
-
-        Creates indexes for exclusion targets similar to _build_target_index:
-        - exclude_module_index: Set of excluded module names
-        - exclude_class_index: Nested mapping of modules to their excluded classes
-        - exclude_method_index: Nested mapping of modules to their excluded methods
-        - exclude_attribute_index: Nested mapping of modules to their excluded attributes
-        - exclude_function_index: Nested mapping of modules to their excluded functions
-        - exclude_global_index: Nested mapping of modules to their excluded global variables
-
-        Final structure example:
-        exclude_index_map = {
-            'class': {'module1': {'ClassA', 'ClassB'}, ...},
-            'method': {'module1': {'ClassA': {'method1', 'method2'}, ...}, ...},
-            'attribute': {'module1': {'ClassA': {'attr1', 'attr2'}, ...}, ...},
-            'function': {'module1': {'func1', 'func2'}, ...},
-            'global': {'module1': {'var1', 'var2'}, ...}
-        }
-        """
+        """Build fast lookup indexes for exclusion targets."""
         self.exclude_module_index = set(self.exclude_targets.keys())
         self.exclude_class_index = {}
         self.exclude_method_index = {}

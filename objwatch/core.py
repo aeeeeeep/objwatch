@@ -47,19 +47,7 @@ class ObjWatch:
             with_globals (bool): Enable tracing and logging of global variables across function calls.
         """
         # Create configuration parameters for ObjWatch
-        config = ObjWatchConfig(
-            targets=targets,
-            exclude_targets=exclude_targets,
-            framework=framework,
-            indexes=indexes,
-            output=output,
-            output_xml=output_xml,
-            level=level,
-            simple=simple,
-            wrapper=wrapper,
-            with_locals=with_locals,
-            with_globals=with_globals,
-        )
+        config = ObjWatchConfig(**{k: v for k, v in locals().items() if k != 'self'})
 
         # Create and configure the logger based on provided parameters
         create_logger(output=config.output, level=config.level, simple=config.simple)
@@ -136,19 +124,7 @@ def watch(
         ObjWatch: The initialized and started ObjWatch instance.
     """
     # Instantiate the ObjWatch with the provided configuration
-    obj_watch = ObjWatch(
-        targets=targets,
-        exclude_targets=exclude_targets,
-        framework=framework,
-        indexes=indexes,
-        output=output,
-        output_xml=output_xml,
-        level=level,
-        simple=simple,
-        wrapper=wrapper,
-        with_locals=with_locals,
-        with_globals=with_globals,
-    )
+    obj_watch = ObjWatch(**locals())
 
     # Start the tracing process
     obj_watch.start()
