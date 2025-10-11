@@ -58,12 +58,12 @@ class Tracer:
         # Process and determine the set of target files to monitor
         targets_cls = Targets(self.config.targets, self.config.exclude_targets)
         self.filename_targets: Set = targets_cls.get_filename_targets()
-        self.targets: dict = targets_cls.get_processed_targets()
+        self.targets: dict = targets_cls.get_targets()
         self.exclude_targets: dict = targets_cls.get_exclude_targets()
         self._build_target_index()
         self._build_exclude_target_index()
         log_debug(
-            f"\nProcessed targets:\n{'>' * 10}\n"
+            f"\nTargets:\n{'>' * 10}\n"
             + targets_cls.serialize_targets()
             + f"\n{'<' * 10}\n"
             + f"Filename targets:\n{'>' * 10}\n"

@@ -90,7 +90,6 @@ class Targets:
         self.filename_targets: Set = set()
         self.targets: dict = self._process_targets(targets)
         self.exclude_targets: dict = self._process_targets(exclude_targets)
-        self.processed_targets: dict = self._diff_targets()
 
     def _check_targets(
         self, targets: TargetsType, exclude_targets: Optional[TargetsType]
@@ -330,7 +329,7 @@ class Targets:
                     # Add submodule structure to current module
                     module_structure[submodule_name] = submodule_structure
                 except Exception as e:
-                    log_warn(f"Failed to parse submodule {full_submodule_name}: {str(e)}")
+                    log_warn(f"Failed to parse submodule '{full_submodule_name}': {str(e)}")
 
         return module_structure
 
@@ -415,86 +414,6 @@ class Targets:
                 submodule_path = f"{module_path}.{key}"
                 self._flatten_module_structure(submodule_path, value, result)
 
-    def _diff_targets(self) -> dict:
-        """Calculate effective targets by excluding specified patterns.
-
-        Returns:
-            Filtered targets dictionary after applying exclusion rules
-        """
-        filtered_targets: dict = {}
-        for module_path, target_details in self.targets.items():
-            exclude_details = self.exclude_targets.get(module_path, {})
-
-            # Handle track_all exclusion at the module level
-            filtered_classes = self._diff_level(target_details.get('classes', {}), exclude_details.get('classes', {}))
-
-            # Calculate filtered target details
-            filtered_details = {
-                'classes': filtered_classes,
-                'functions': list(set(target_details.get('functions', [])) - set(exclude_details.get('functions', []))),
-                'globals': list(set(target_details.get('globals', [])) - set(exclude_details.get('globals', []))),
-            }
-
-            # Process nested submodules
-            for key, value in target_details.items():
-                if key not in ['classes', 'functions', 'globals'] and isinstance(value, dict):
-                    submodule_path = f"{module_path}.{key}"
-                    submodule_exclude = exclude_details.get(key, {})
-                    filtered_sub = self._diff_level(value, submodule_exclude)
-                    if filtered_sub:
-                        filtered_details[key] = filtered_sub
-
-            # Flatten the module structure
-            self._flatten_module_structure(module_path, filtered_details, filtered_targets)
-
-        return filtered_targets
-
-    def _diff_level(self, target: dict, exclude: dict) -> dict:
-        """Recursively filter nested structures by exclusion rules.
-
-        Args:
-            target: Original nested structure (dict of dicts)
-            exclude: Exclusion patterns to apply
-
-        Returns:
-            dict: Filtered structure with empty containers preserved
-        """
-        diff = {}
-        for key, value in target.items():
-            filtered = None
-
-            if key in exclude:
-                if isinstance(value, dict) and isinstance(exclude[key], dict):
-                    # Handle class details with track_all flag
-                    if (
-                        'track_all' in value
-                        and value['track_all']
-                        and 'track_all' in exclude[key]
-                        and exclude[key]['track_all']
-                    ):
-                        # If both are tracking all, exclude the entire class
-                        filtered = None
-                    else:
-                        filtered = self._diff_level(value, exclude[key])
-                elif isinstance(value, list) and isinstance(exclude[key], list):
-                    filtered = list(set(value) - set(exclude[key]))  # type: ignore
-                elif value != exclude[key]:
-                    filtered = value
-            else:
-                filtered = value
-
-            if filtered is None:
-                # Skip this key entirely (excluded)
-                continue
-            elif isinstance(filtered, dict):
-                diff[key] = filtered
-            elif isinstance(filtered, list):
-                diff[key] = filtered if filtered else []
-            else:
-                diff[key] = filtered
-
-        return diff
-
     def _process_assignment(self, node: ast.Assign, result: dict):
         """Extract global variables from assignment AST nodes.
 
@@ -506,7 +425,7 @@ class Targets:
             node: AST assignment node to analyze
             result: dict to update with found globals
         """
-        if any(isinstance(parent, ast.ClassDef) for parent in iter_parents(node)):
+        if any(isinstance(parent, (ast.ClassDef, ast.FunctionDef)) for parent in iter_parents(node)):
             return
 
         for assign_target in node.targets:
@@ -517,14 +436,14 @@ class Targets:
                     if isinstance(element, ast.Name):
                         result['globals'].append(element.id)
 
-    def get_processed_targets(self) -> dict:
-        """Retrieve final monitoring targets after exclusion processing.
+    def get_targets(self) -> dict:
+        """Retrieve targets.
 
         Returns:
-            dict: Filtered dictionary containing:
-                - classes: Non-excluded class methods
-                - functions: Non-excluded functions
-                - globals: Non-excluded global variables
+            dict: Target dictionary containing:
+                - classes: Class methods
+                - functions: Functions
+                - globals: Global variables
 
         Example:
             {
@@ -540,7 +459,7 @@ class Targets:
                 }
             }
         """
-        return self.processed_targets
+        return self.targets
 
     def get_exclude_targets(self) -> dict:
         """Retrieve excluded targets.
@@ -588,12 +507,12 @@ class Targets:
                 return o.__dict__
             return str(o)
 
-        if len(self.processed_targets) > Constants.MAX_TARGETS_DISPLAY:
-            truncated_obj = {key: "..." for key in self.processed_targets.keys()}
+        if len(self.targets) > Constants.MAX_TARGETS_DISPLAY:
+            truncated_obj = {key: "..." for key in self.targets.keys()}
             truncated_obj["Warning: too many top-level keys, only showing values like"] = "..."
             return json.dumps(truncated_obj, indent=indent, default=target_handler)
 
-        return json.dumps(self.processed_targets, indent=indent, default=target_handler)
+        return json.dumps(self.targets, indent=indent, default=target_handler)
 
     def get_filename_targets(self) -> Set:
         """Get monitored filesystem paths.
