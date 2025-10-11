@@ -7,6 +7,7 @@ import inspect
 import pkgutil
 import importlib
 import importlib.util
+from pathlib import PosixPath
 from types import ModuleType, MethodType, FunctionType
 from typing import Optional, Tuple, List, Union, Set
 
@@ -316,7 +317,13 @@ class Targets:
 
         # Recursively parse submodules if enabled
         if recursive and hasattr(spec, 'submodule_search_locations') and spec.submodule_search_locations:
-            for _, submodule_name, is_pkg in pkgutil.iter_modules(spec.submodule_search_locations):
+            submodule_locations = []
+            for submodule_location in spec.submodule_search_locations:
+                if isinstance(submodule_location, PosixPath):
+                    submodule_locations.append(str(submodule_location))
+                else:
+                    submodule_locations.append(submodule_location)
+            for _, submodule_name, is_pkg in pkgutil.iter_modules(submodule_locations):
                 full_submodule_name = f"{module_name}.{submodule_name}"
                 try:
                     submodule_structure = self._parse_module_by_name(full_submodule_name, recursive)
