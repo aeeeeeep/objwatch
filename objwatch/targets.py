@@ -542,6 +542,31 @@ class Targets:
         """
         return self.processed_targets
 
+    def get_exclude_targets(self) -> dict:
+        """Retrieve excluded targets.
+
+        Returns:
+            dict: Exclude dictionary containing:
+                - classes: Excluded class methods
+                - functions: Excluded functions
+                - globals: Excluded global variables
+
+        Example:
+            {
+                'module.path': {
+                    'classes': {
+                        'ClassName': {
+                            'methods': [...],
+                            'attributes': [...]
+                        }
+                    },
+                    'functions': [...],
+                    'globals': [...]
+                }
+            }
+        """
+        return self.exclude_targets
+
     def serialize_targets(self, indent=Constants.LOG_INDENT_LEVEL):
         """Serialize objects that JSON cannot handle by default.
 
