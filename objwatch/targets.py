@@ -330,7 +330,7 @@ class Targets:
                     # Add submodule structure to current module
                     module_structure[submodule_name] = submodule_structure
                 except Exception as e:
-                    log_warn(f"Failed to parse submodule {full_submodule_name}: {str(e)}")
+                    log_warn(f"Failed to parse submodule '{full_submodule_name}': {str(e)}")
 
         return module_structure
 
@@ -506,7 +506,7 @@ class Targets:
             node: AST assignment node to analyze
             result: dict to update with found globals
         """
-        if any(isinstance(parent, ast.ClassDef) for parent in iter_parents(node)):
+        if any(isinstance(parent, (ast.ClassDef, ast.FunctionDef)) for parent in iter_parents(node)):
             return
 
         for assign_target in node.targets:
