@@ -389,7 +389,7 @@ class TestUnsupportWrapper(unittest.TestCase):
 
 class TestTargetsStr(unittest.TestCase):
     def test_targets_with_submodules(self):
-        processed = Targets(['importlib']).get_processed_targets()
+        processed = Targets(['importlib']).get_targets()
         self.assertIn('importlib', processed)
         module_info = processed['importlib']
 
@@ -399,16 +399,9 @@ class TestTargetsStr(unittest.TestCase):
 
         expected_globals = [
             "_pack_uint32",
-            "level",
-            "target",
-            "pkgpath",
-            "parent",
-            "spec",
             "__all__",
-            "name",
             "_RELOADING",
             "_unpack_uint32",
-            "parent_name",
         ]
         for global_var in expected_globals:
             self.assertIn(global_var, module_info.get('globals', []))
@@ -418,7 +411,7 @@ class TestTargetsStr(unittest.TestCase):
 
 class TestTargetsModule(unittest.TestCase):
     def test_targets_with_submodules(self):
-        processed = Targets([importlib]).get_processed_targets()
+        processed = Targets([importlib]).get_targets()
 
         self.assertIn('importlib', processed)
         module_info = processed['importlib']
@@ -429,16 +422,9 @@ class TestTargetsModule(unittest.TestCase):
 
         expected_globals = [
             "_pack_uint32",
-            "level",
-            "target",
-            "pkgpath",
-            "parent",
-            "spec",
             "__all__",
-            "name",
             "_RELOADING",
             "_unpack_uint32",
-            "parent_name",
         ]
         for global_var in expected_globals:
             self.assertIn(global_var, module_info.get('globals', []))
