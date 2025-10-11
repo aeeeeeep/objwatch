@@ -57,10 +57,11 @@ class Tracer:
 
         # Process and determine the set of target files to monitor
         targets_cls = Targets(self.config.targets, self.config.exclude_targets)
-        self.targets: dict = targets_cls.get_processed_targets()
         self.filename_targets: Set = targets_cls.get_filename_targets()
-        self.exclude_targets: dict = targets_cls.exclude_targets
+        self.targets: dict = targets_cls.get_processed_targets()
+        self.exclude_targets: dict = targets_cls.get_exclude_targets()
         self._build_target_index()
+        self._build_exclude_target_index()
         log_debug(
             f"\nProcessed targets:\n{'>' * 10}\n"
             + targets_cls.serialize_targets()
@@ -126,10 +127,7 @@ class Tracer:
         self.global_index = {}
         self.class_info = {}  # Store class info for track_all checking
 
-        # Build exclude indexes for track_all scenarios
-        self.exclude_method_index = {}
-        self.exclude_attribute_index = {}
-        self._build_exclude_index()
+        # Build indexes for track_all scenarios
         for module, details in self.targets.items():
             # Process classes
             classes = details.get('classes', {})
@@ -170,23 +168,72 @@ class Tracer:
             'global': self.global_index,
         }
 
-    def _build_exclude_index(self):
-        """Build indexes for exclusion targets to handle track_all scenarios."""
+    def _build_exclude_target_index(self):
+        """Build fast lookup indexes for exclusion targets.
+
+        Creates indexes for exclusion targets similar to _build_target_index:
+        - exclude_module_index: Set of excluded module names
+        - exclude_class_index: Nested mapping of modules to their excluded classes
+        - exclude_method_index: Nested mapping of modules to their excluded methods
+        - exclude_attribute_index: Nested mapping of modules to their excluded attributes
+        - exclude_function_index: Nested mapping of modules to their excluded functions
+        - exclude_global_index: Nested mapping of modules to their excluded global variables
+
+        Final structure example:
+        exclude_index_map = {
+            'class': {'module1': {'ClassA', 'ClassB'}, ...},
+            'method': {'module1': {'ClassA': {'method1', 'method2'}, ...}, ...},
+            'attribute': {'module1': {'ClassA': {'attr1', 'attr2'}, ...}, ...},
+            'function': {'module1': {'func1', 'func2'}, ...},
+            'global': {'module1': {'var1', 'var2'}, ...}
+        }
+        """
+        self.exclude_module_index = set(self.exclude_targets.keys())
+        self.exclude_class_index = {}
+        self.exclude_method_index = {}
+        self.exclude_attribute_index = {}
+        self.exclude_function_index = {}
+        self.exclude_global_index = {}
+        self.exclude_class_info = {}  # Store exclude class info for track_all checking
+
+        # Build indexes for exclusion targets
         for module, details in self.exclude_targets.items():
-            # Process classes in exclude targets
+            # Process excluded classes
             classes = details.get('classes', {})
             for cls_name, cls_info in classes.items():
+                # Add class to exclude class index
+                self.exclude_class_index.setdefault(module, set()).add(cls_name)
+
+                # Store exclude class info for track_all checking
+                self.exclude_class_info.setdefault(module, {})[cls_name] = cls_info
+
                 # Process excluded methods
                 methods = cls_info.get('methods', [])
                 if methods:
-                    exclude_methods = self.exclude_method_index.setdefault(module, {}).setdefault(cls_name, set())
-                    exclude_methods.update(methods)
+                    class_methods = self.exclude_method_index.setdefault(module, {}).setdefault(cls_name, set())
+                    class_methods.update(methods)
 
                 # Process excluded attributes
                 attributes = cls_info.get('attributes', [])
                 if attributes:
-                    exclude_attrs = self.exclude_attribute_index.setdefault(module, {}).setdefault(cls_name, set())
-                    exclude_attrs.update(attributes)
+                    class_attrs = self.exclude_attribute_index.setdefault(module, {}).setdefault(cls_name, set())
+                    class_attrs.update(attributes)
+
+            # Process excluded functions
+            for func in details.get('functions', []):
+                self.exclude_function_index.setdefault(module, set()).add(func)
+
+            # Process excluded globals
+            for gvar in details.get('globals', []):
+                self.exclude_global_index.setdefault(module, set()).add(gvar)
+
+        self.exclude_index_map = {
+            'class': self.exclude_class_index,
+            'method': self.exclude_method_index,
+            'attribute': self.exclude_attribute_index,
+            'function': self.exclude_function_index,
+            'global': self.exclude_global_index,
+        }
 
     def load_wrapper(self, wrapper):
         """
@@ -216,7 +263,7 @@ class Tracer:
         Returns:
             bool: True if the module is in monitoring targets
         """
-        return module in self.module_index
+        return module in self.module_index and module not in self.exclude_module_index
 
     @lru_cache(maxsize=sys.maxsize)
     def _should_trace_class(self, module: str, class_name: str) -> bool:
@@ -229,7 +276,9 @@ class Tracer:
         Returns:
             bool: True if the class should be traced
         """
-        return class_name in self.class_index.get(module, set())
+        return class_name in self.class_index.get(module, set()) and class_name not in self.exclude_class_index.get(
+            module, set()
+        )
 
     @lru_cache(maxsize=sys.maxsize)
     def _should_trace_method(self, module: str, class_name: str, method_name: str) -> bool:
@@ -284,7 +333,9 @@ class Tracer:
         Returns:
             bool: True if the function should be traced
         """
-        return func_name in self.function_index.get(module, set())
+        return func_name in self.function_index.get(module, set()) and func_name not in self.exclude_function_index.get(
+            module, set()
+        )
 
     @lru_cache(maxsize=sys.maxsize)
     def _should_trace_global(self, module: str, global_name: str) -> bool:
@@ -303,7 +354,9 @@ class Tracer:
         if not self.global_index:
             return global_name not in self.builtin_fields
 
-        return global_name in self.global_index.get(module, set())
+        return global_name in self.global_index.get(module, set()) and global_name not in self.exclude_global_index.get(
+            module, set()
+        )
 
     @lru_cache(maxsize=sys.maxsize)
     def _filename_endswith(self, filename: str) -> bool:
@@ -569,7 +622,7 @@ class Tracer:
 
             self.event_handlers.handle_upd(
                 lineno,
-                class_name="_",
+                class_name=Constants.HANDLE_LOCALS_SYMBOL,
                 key=var,
                 old_value=None,
                 current_value=current_local,
@@ -589,7 +642,9 @@ class Tracer:
             is_current_seq = isinstance(current_local, Constants.LOG_SEQUENCE_TYPES)
             current_local_len = len(current_local) if old_local_len is not None and is_current_seq else None
 
-            self._handle_change_type(lineno, "_", var, old_local, current_local, old_local_len, current_local_len)
+            self._handle_change_type(
+                lineno, Constants.HANDLE_LOCALS_SYMBOL, var, old_local, current_local, old_local_len, current_local_len
+            )
 
             if is_current_seq:
                 self.tracked_locals_lens[frame][var] = len(current_local)
@@ -625,7 +680,9 @@ class Tracer:
             is_current_seq = isinstance(current_value, Constants.LOG_SEQUENCE_TYPES)
             current_value_len = len(current_value) if old_value_len is not None and is_current_seq else None
 
-            self._handle_change_type(lineno, "@", key, old_value, current_value, old_value_len, current_value_len)
+            self._handle_change_type(
+                lineno, Constants.HANDLE_GLOBALS_SYMBOL, key, old_value, current_value, old_value_len, current_value_len
+            )
 
             self.tracked_globals[module_name][key] = current_value
             if is_current_seq:

@@ -40,3 +40,9 @@ class Constants:
     # Log sequence types
     # Define sequence types for logging
     LOG_SEQUENCE_TYPES = (list, set, dict, tuple)
+
+    # Handle globals symbol in log message
+    HANDLE_GLOBALS_SYMBOL = "@"
+
+    # Handle locals symbol in log message
+    HANDLE_LOCALS_SYMBOL = "_"
