@@ -133,7 +133,13 @@ class Targets:
                 processed_targets[module_path] = deep_merge(existing_details, target_details)
             else:
                 log_warn(f"Unsupported target type: {type(target)}")
-        return processed_targets
+
+        flatten_targets: dict = {}
+        for module_path, target_details in processed_targets.items():
+            # Flatten the module structure
+            self._flatten_module_structure(module_path, target_details, flatten_targets)
+
+        return flatten_targets
 
     def _parse_target(self, target: Union[str, ModuleType, ClassType, FunctionType, MethodType]) -> tuple:
         """
