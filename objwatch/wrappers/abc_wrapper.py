@@ -121,7 +121,7 @@ class ABCWrapper(ABC):
         else:
             try:
                 formatted = f"(type){value.__name__}"  # type: ignore
-            except:
+            except Exception:
                 formatted = f"(type){type(value).__name__}"
 
         if is_return:

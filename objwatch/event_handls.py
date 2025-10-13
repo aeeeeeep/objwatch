@@ -322,7 +322,7 @@ class EventHandls:
         else:
             try:
                 return f"(type){value.__name__}"
-            except:
+            except Exception:
                 return f"(type){type(value).__name__}"
 
     def save_xml(self) -> None:
