@@ -106,7 +106,7 @@ class TensorShapeWrapper(ABCWrapper):
         else:
             try:
                 formatted = f"(type){value.__name__}"
-            except:
+            except Exception:
                 formatted = f"(type){type(value).__name__}"
 
         if is_return:

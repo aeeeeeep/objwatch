@@ -1,4 +1,4 @@
-name: Nightly Test Suite
+name: Nightly Test
 
 on:
   schedule:
