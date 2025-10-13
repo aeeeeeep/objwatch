@@ -1,0 +1,9 @@
+[run]
+source = objwatch
+omit =
+    objwatch/wrappers/*
+
+[report]
+show_missing = True
+skip_covered = False
+fail_under = 0
