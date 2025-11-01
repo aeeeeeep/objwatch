@@ -86,6 +86,8 @@ class Tracer:
 
         # Load the function wrapper if provided
         self.abc_wrapper: Optional[ABCWrapper] = self.load_wrapper(self.config.wrapper)
+
+        # Initialize call depth tracker
         self._call_depth: int = 0
 
     @property
@@ -380,7 +382,13 @@ class Tracer:
                 )
                 return any_attr_traced
 
+            # Check if the method has been monkey-patched
+            if not method_is_traced and not class_is_traced:
+                if self._should_trace_function(module, method_name):
+                    return True
+
             return False
+
         # Handle regular functions
         func_name = frame.f_code.co_name
         if self._should_trace_function(module, func_name):
