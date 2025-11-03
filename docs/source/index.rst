@@ -149,48 +149,49 @@ When running the above script, ObjWatch will generate logs similar to the follow
 
    .. code-block:: text
 
-         Processed targets:
+         [2025-11-03 13:18:51] [DEBUG] objwatch: 
+         Targets:
          >>>>>>>>>>
-
+         {}
          <<<<<<<<<<
          Filename targets:
          >>>>>>>>>>
          examples/example_usage.py
          <<<<<<<<<<
-         [2025-05-21 07:49:25] [WARNING] objwatch: wrapper 'BaseWrapper' loaded
-         [2025-05-21 07:49:25] [INFO] objwatch: Starting ObjWatch tracing.
-         [2025-05-21 07:49:25] [INFO] objwatch: Starting tracing.
-         [2025-05-21 07:49:25] [DEBUG] objwatch:    22 run __main__.main <- 
-         [2025-05-21 07:49:25] [DEBUG] objwatch:    10 | run __main__.SampleClass.__init__ <- '0':(type)SampleClass, '1':10
-         [2025-05-21 07:49:25] [DEBUG] objwatch:    11 | end __main__.SampleClass.__init__ -> None
-         [2025-05-21 07:49:25] [DEBUG] objwatch:    13 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-         [2025-05-21 07:49:25] [DEBUG] objwatch:    14 | | upd SampleClass.value None -> 10
-         [2025-05-21 07:49:25] [DEBUG] objwatch:    15 | | upd SampleClass.value 10 -> 11
-         [2025-05-21 07:49:25] [DEBUG] objwatch:    15 | end __main__.SampleClass.increment -> None
-         [2025-05-21 07:49:25] [DEBUG] objwatch:    13 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-         [2025-05-21 07:49:25] [DEBUG] objwatch:    15 | | upd SampleClass.value 11 -> 12
-         [2025-05-21 07:49:25] [DEBUG] objwatch:    15 | end __main__.SampleClass.increment -> None
-         [2025-05-21 07:49:25] [DEBUG] objwatch:    13 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-         [2025-05-21 07:49:25] [DEBUG] objwatch:    15 | | upd SampleClass.value 12 -> 13
-         [2025-05-21 07:49:25] [DEBUG] objwatch:    15 | end __main__.SampleClass.increment -> None
-         [2025-05-21 07:49:25] [DEBUG] objwatch:    13 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-         [2025-05-21 07:49:25] [DEBUG] objwatch:    15 | | upd SampleClass.value 13 -> 14
-         [2025-05-21 07:49:25] [DEBUG] objwatch:    15 | end __main__.SampleClass.increment -> None
-         [2025-05-21 07:49:25] [DEBUG] objwatch:    13 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-         [2025-05-21 07:49:25] [DEBUG] objwatch:    15 | | upd SampleClass.value 14 -> 15
-         [2025-05-21 07:49:26] [DEBUG] objwatch:    15 | end __main__.SampleClass.increment -> None
-         [2025-05-21 07:49:26] [DEBUG] objwatch:    17 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
-         [2025-05-21 07:49:26] [DEBUG] objwatch:    19 | | upd SampleClass.value 15 -> 14
-         [2025-05-21 07:49:26] [DEBUG] objwatch:    19 | end __main__.SampleClass.decrement -> None
-         [2025-05-21 07:49:26] [DEBUG] objwatch:    17 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
-         [2025-05-21 07:49:26] [DEBUG] objwatch:    19 | | upd SampleClass.value 14 -> 13
-         [2025-05-21 07:49:26] [DEBUG] objwatch:    19 | end __main__.SampleClass.decrement -> None
-         [2025-05-21 07:49:26] [DEBUG] objwatch:    17 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
-         [2025-05-21 07:49:26] [DEBUG] objwatch:    19 | | upd SampleClass.value 13 -> 12
-         [2025-05-21 07:49:26] [DEBUG] objwatch:    19 | end __main__.SampleClass.decrement -> None
-         [2025-05-21 07:49:26] [DEBUG] objwatch:    26 end __main__.main -> None
-         [2025-05-21 07:49:26] [INFO] objwatch: Stopping ObjWatch tracing.
-         [2025-05-21 07:49:26] [INFO] objwatch: Stopping tracing.
+         [2025-11-03 13:18:51] [WARNING] objwatch: wrapper 'BaseWrapper' loaded
+         [2025-11-03 13:18:51] [INFO] objwatch: Starting ObjWatch tracing.
+         [2025-11-03 13:18:51] [INFO] objwatch: Starting tracing.
+         [2025-11-03 13:18:51] [DEBUG] objwatch:    33 run __main__.main <- 
+         [2025-11-03 13:18:51] [DEBUG] objwatch:    23 | run __main__.SampleClass.__init__ <- '0':(type)SampleClass, '1':10
+         [2025-11-03 13:18:51] [DEBUG] objwatch:    23 | end __main__.SampleClass.__init__ -> None
+         [2025-11-03 13:18:51] [DEBUG] objwatch:    25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
+         [2025-11-03 13:18:51] [DEBUG] objwatch:    14 | | upd SampleClass.value None -> 10
+         [2025-11-03 13:18:51] [DEBUG] objwatch:    14 | | upd SampleClass.value 10 -> 11
+         [2025-11-03 13:18:51] [DEBUG] objwatch:    25 | end __main__.SampleClass.increment -> None
+         [2025-11-03 13:18:51] [DEBUG] objwatch:    25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
+         [2025-11-03 13:18:51] [DEBUG] objwatch:    14 | | upd SampleClass.value 11 -> 12
+         [2025-11-03 13:18:51] [DEBUG] objwatch:    25 | end __main__.SampleClass.increment -> None
+         [2025-11-03 13:18:51] [DEBUG] objwatch:    25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
+         [2025-11-03 13:18:51] [DEBUG] objwatch:    14 | | upd SampleClass.value 12 -> 13
+         [2025-11-03 13:18:51] [DEBUG] objwatch:    25 | end __main__.SampleClass.increment -> None
+         [2025-11-03 13:18:51] [DEBUG] objwatch:    25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
+         [2025-11-03 13:18:51] [DEBUG] objwatch:    14 | | upd SampleClass.value 13 -> 14
+         [2025-11-03 13:18:51] [DEBUG] objwatch:    25 | end __main__.SampleClass.increment -> None
+         [2025-11-03 13:18:51] [DEBUG] objwatch:    25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
+         [2025-11-03 13:18:51] [DEBUG] objwatch:    14 | | upd SampleClass.value 14 -> 15
+         [2025-11-03 13:18:52] [DEBUG] objwatch:    25 | end __main__.SampleClass.increment -> None
+         [2025-11-03 13:18:52] [DEBUG] objwatch:    27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
+         [2025-11-03 13:18:52] [DEBUG] objwatch:    18 | | upd SampleClass.value 15 -> 14
+         [2025-11-03 13:18:52] [DEBUG] objwatch:    27 | end __main__.SampleClass.decrement -> None
+         [2025-11-03 13:18:52] [DEBUG] objwatch:    27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
+         [2025-11-03 13:18:52] [DEBUG] objwatch:    18 | | upd SampleClass.value 14 -> 13
+         [2025-11-03 13:18:52] [DEBUG] objwatch:    27 | end __main__.SampleClass.decrement -> None
+         [2025-11-03 13:18:52] [DEBUG] objwatch:    27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
+         [2025-11-03 13:18:52] [DEBUG] objwatch:    18 | | upd SampleClass.value 13 -> 12
+         [2025-11-03 13:18:52] [DEBUG] objwatch:    27 | end __main__.SampleClass.decrement -> None
+         [2025-11-03 13:18:52] [DEBUG] objwatch:    33 end __main__.main -> None
+         [2025-11-03 13:18:52] [INFO] objwatch: Stopping ObjWatch tracing.
+         [2025-11-03 13:18:52] [INFO] objwatch: Stopping tracing.
 
 ⚙️ Configuration
 ================
