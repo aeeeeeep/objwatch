@@ -87,6 +87,9 @@ class Tracer:
         # Load the function wrapper if provided
         self.abc_wrapper: Optional[ABCWrapper] = self.load_wrapper(self.config.wrapper)
 
+        # Initialize last line numbers dictionary for tracking previous line in line events
+        self.last_linenos: Dict[FrameType, int] = {}
+
         # Initialize call depth tracker
         self._call_depth: int = 0
 
@@ -699,9 +702,9 @@ class Tracer:
                 # Skip tracing for processes that are not part of the tracked indexes
                 return trace_func
 
-            lineno = frame.f_lineno
             if event == "call":
                 # Handle function call event
+                lineno = frame.f_back.f_lineno if frame.f_back else frame.f_lineno
                 func_info = self._get_function_info(frame)
                 self._update_objects_lens(frame)
                 self.event_handlers.handle_run(lineno, func_info, self.abc_wrapper, self.call_depth, self.index_info)
@@ -720,6 +723,7 @@ class Tracer:
 
             elif event == "return":
                 # Handle function return event
+                lineno = frame.f_back.f_lineno if frame.f_back else frame.f_lineno
                 self.call_depth -= 1
                 func_info = self._get_function_info(frame)
                 self._update_objects_lens(frame)
@@ -732,10 +736,23 @@ class Tracer:
                     del self.tracked_locals[frame]
                     del self.tracked_locals_lens[frame]
 
+                # Clean up last lineno tracking
+                if frame in self.last_linenos:
+                    del self.last_linenos[frame]
+
                 return trace_func
 
             elif event == "line":
                 # Handle line event (track changes at each line of code)
+                # Get previous line number instead of current line
+                if frame in self.last_linenos:
+                    lineno = self.last_linenos[frame]
+                else:
+                    # First line event for this frame, use current line as fallback
+                    lineno = frame.f_lineno
+                # Update last lineno for next line event
+                self.last_linenos[frame] = frame.f_lineno
+
                 self._track_object_change(frame, lineno)
                 self._track_locals_change(frame, lineno)
                 self._track_globals_change(frame, lineno)
