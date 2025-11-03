@@ -22,14 +22,14 @@ except ImportError:
     torch = None
 
 
-golden_log = """DEBUG:objwatch:    run __main__.<module>
+golden_log = """DEBUG:objwatch:   run __main__.<module>
 DEBUG:objwatch:    | run __main__.TestClass
 DEBUG:objwatch:    | end __main__.TestClass
-DEBUG:objwatch:    | run __main__.main
+DEBUG:objwatch:   | run __main__.main
 DEBUG:objwatch:    | | run __main__.TestClass.method
 DEBUG:objwatch:    | | | upd TestClass.attr None -> 1
 DEBUG:objwatch:    | | end __main__.TestClass.method
-DEBUG:objwatch:    | end __main__.main
+DEBUG:objwatch:   | end __main__.main
 DEBUG:objwatch:   end __main__.<module>"""
 
 
@@ -334,6 +334,8 @@ class TestCustomWrapper(unittest.TestCase):
         mock_frame.f_code.co_filename = 'example_module.py'
         mock_frame.f_code.co_name = 'custom_func'
         mock_frame.f_locals = {'arg1': 'value1'}
+        mock_frame.f_back = MagicMock()
+        mock_frame.f_back.f_lineno = 3047
         mock_frame.f_lineno = 42
 
         trace_func = self.obj_watch.tracer.trace_factory()
