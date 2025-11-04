@@ -12,14 +12,6 @@ except (ImportError, FileNotFoundError):
     version = '0.0.0'
 
 
-def fetch_requirements(path):
-    with open(path, 'r') as fd:
-        return [r.strip() for r in fd.readlines()]
-
-
-install_requires = fetch_requirements('requirements/requirements.txt')
-
-
 MIN_PYTHON = (3, 8)
 MAX_PYTHON = (3, 14)
 
@@ -43,7 +35,6 @@ setup(
     author='aeeeeeep',
     author_email='aeeeeeep@proton.me',
     url='https://github.com/aeeeeeep/objwatch',
-    install_requires=install_requires,
     packages=find_packages(),
     python_requires=PYTHON_REQUIRES,
     classifiers=CLASSIFIERS,
