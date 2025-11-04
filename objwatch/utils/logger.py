@@ -30,7 +30,7 @@ def create_logger(
     if not logger.hasHandlers():
         # Define the log message format based on the simplicity flag
         if simple:
-            formatter = logging.Formatter('%(levelname)s: %(message)s')
+            formatter = logging.Formatter('%(message)s')
         else:
             formatter = logging.Formatter(
                 '[%(asctime)s] [%(levelname)s] %(name)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S'
