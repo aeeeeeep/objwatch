@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "objwatch"
+dynamic = ["version"]
+description = "A Python library to trace and monitor object attributes and method calls."
+authors = [
+  { name = "aeeeeeep", email = "aeeeeeep@proton.me" }
+]
+readme = "README.md"
+requires-python = ">=3.8,<3.15"
+dependencies = [
+  "psutil"
+]
+classifiers = [
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14"
+]
+
+[project.urls]
+Homepage = "https://github.com/aeeeeeep/objwatch"
+Documentation = "https://objwatch.readthedocs.io"
+Repository = "https://github.com/aeeeeeep/objwatch"
+"Bug Tracker" = "https://github.com/aeeeeeep/objwatch/issues"
