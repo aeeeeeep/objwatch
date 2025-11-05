@@ -10,7 +10,7 @@ FORCE: bool = False
 
 
 def create_logger(
-    name: str = 'objwatch', output: Optional[str] = None, level: Union[int, str] = logging.DEBUG, simple: bool = False
+    name: str = 'objwatch', output: Optional[str] = None, level: Union[int, str] = logging.DEBUG, simple: bool = True
 ) -> None:
     """
     Create and configure a logger.
@@ -19,7 +19,7 @@ def create_logger(
         name (str): Name of the logger.
         output (Optional[str]): Path to a file for writing logs.
         level (Union[int, str]): Logging level (e.g., logging.DEBUG, logging.INFO, "force").
-        simple (bool): Enable simple logging mode with a basic format.
+        simple (bool): Defaults to True, disable simple logging mode with the format "[{time}] [{level}] objwatch: {msg}".
     """
     if level == "force":
         global FORCE  # noqa: F824

@@ -136,7 +136,6 @@ if __name__ == '__main__':
 <summary>Expected Log Output</summary>
 
 ```
-[2025-11-03 13:18:51] [DEBUG] objwatch: 
 Targets:
 >>>>>>>>>>
 {}
@@ -145,40 +144,44 @@ Filename targets:
 >>>>>>>>>>
 examples/example_usage.py
 <<<<<<<<<<
-[2025-11-03 13:18:51] [WARNING] objwatch: wrapper 'BaseWrapper' loaded
-[2025-11-03 13:18:51] [INFO] objwatch: Starting ObjWatch tracing.
-[2025-11-03 13:18:51] [INFO] objwatch: Starting tracing.
-[2025-11-03 13:18:51] [DEBUG] objwatch:    33 run __main__.main <- 
-[2025-11-03 13:18:51] [DEBUG] objwatch:    23 | run __main__.SampleClass.__init__ <- '0':(type)SampleClass, '1':10
-[2025-11-03 13:18:51] [DEBUG] objwatch:    23 | end __main__.SampleClass.__init__ -> None
-[2025-11-03 13:18:51] [DEBUG] objwatch:    25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-[2025-11-03 13:18:51] [DEBUG] objwatch:    14 | | upd SampleClass.value None -> 10
-[2025-11-03 13:18:51] [DEBUG] objwatch:    14 | | upd SampleClass.value 10 -> 11
-[2025-11-03 13:18:51] [DEBUG] objwatch:    25 | end __main__.SampleClass.increment -> None
-[2025-11-03 13:18:51] [DEBUG] objwatch:    25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-[2025-11-03 13:18:51] [DEBUG] objwatch:    14 | | upd SampleClass.value 11 -> 12
-[2025-11-03 13:18:51] [DEBUG] objwatch:    25 | end __main__.SampleClass.increment -> None
-[2025-11-03 13:18:51] [DEBUG] objwatch:    25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-[2025-11-03 13:18:51] [DEBUG] objwatch:    14 | | upd SampleClass.value 12 -> 13
-[2025-11-03 13:18:51] [DEBUG] objwatch:    25 | end __main__.SampleClass.increment -> None
-[2025-11-03 13:18:51] [DEBUG] objwatch:    25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-[2025-11-03 13:18:51] [DEBUG] objwatch:    14 | | upd SampleClass.value 13 -> 14
-[2025-11-03 13:18:51] [DEBUG] objwatch:    25 | end __main__.SampleClass.increment -> None
-[2025-11-03 13:18:51] [DEBUG] objwatch:    25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-[2025-11-03 13:18:51] [DEBUG] objwatch:    14 | | upd SampleClass.value 14 -> 15
-[2025-11-03 13:18:52] [DEBUG] objwatch:    25 | end __main__.SampleClass.increment -> None
-[2025-11-03 13:18:52] [DEBUG] objwatch:    27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
-[2025-11-03 13:18:52] [DEBUG] objwatch:    18 | | upd SampleClass.value 15 -> 14
-[2025-11-03 13:18:52] [DEBUG] objwatch:    27 | end __main__.SampleClass.decrement -> None
-[2025-11-03 13:18:52] [DEBUG] objwatch:    27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
-[2025-11-03 13:18:52] [DEBUG] objwatch:    18 | | upd SampleClass.value 14 -> 13
-[2025-11-03 13:18:52] [DEBUG] objwatch:    27 | end __main__.SampleClass.decrement -> None
-[2025-11-03 13:18:52] [DEBUG] objwatch:    27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
-[2025-11-03 13:18:52] [DEBUG] objwatch:    18 | | upd SampleClass.value 13 -> 12
-[2025-11-03 13:18:52] [DEBUG] objwatch:    27 | end __main__.SampleClass.decrement -> None
-[2025-11-03 13:18:52] [DEBUG] objwatch:    33 end __main__.main -> None
-[2025-11-03 13:18:52] [INFO] objwatch: Stopping ObjWatch tracing.
-[2025-11-03 13:18:52] [INFO] objwatch: Stopping tracing.
+Exclude filename targets:
+>>>>>>>>>>
+
+<<<<<<<<<<
+wrapper 'BaseWrapper' loaded
+Starting ObjWatch tracing.
+Starting tracing.
+   37 run __main__.main <- 
+   23 | run __main__.SampleClass.__init__ <- '0':(type)SampleClass, '1':10
+   23 | end __main__.SampleClass.__init__ -> None
+   25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
+   14 | | upd SampleClass.value None -> 10
+   14 | | upd SampleClass.value 10 -> 11
+   25 | end __main__.SampleClass.increment -> None
+   25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
+   14 | | upd SampleClass.value 11 -> 12
+   25 | end __main__.SampleClass.increment -> None
+   25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
+   14 | | upd SampleClass.value 12 -> 13
+   25 | end __main__.SampleClass.increment -> None
+   25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
+   14 | | upd SampleClass.value 13 -> 14
+   25 | end __main__.SampleClass.increment -> None
+   25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
+   14 | | upd SampleClass.value 14 -> 15
+   25 | end __main__.SampleClass.increment -> None
+   27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
+   18 | | upd SampleClass.value 15 -> 14
+   27 | end __main__.SampleClass.decrement -> None
+   27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
+   18 | | upd SampleClass.value 14 -> 13
+   27 | end __main__.SampleClass.decrement -> None
+   27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
+   18 | | upd SampleClass.value 13 -> 12
+   27 | end __main__.SampleClass.decrement -> None
+   37 end __main__.main -> None
+Stopping ObjWatch tracing.
+Stopping tracing.
 ```
 
 </details>
@@ -220,7 +223,7 @@ ObjWatch 提供可定制的日志格式和追踪选项，适应不同项目需�
 - `output` (字符串，可选) ：写入日志的文件路径。
 - `output_xml` (字符串，可选) ：用于写入结构化日志的 XML 文件路径。如果指定，将以嵌套的 XML 格式保存追踪信息，便于浏览和分析。
 - `level` (字符串，可选) ：日志级别 (例如 `logging.DEBUG`，`logging.INFO`，`force` 等) 。为确保即使 logger 被外部库禁用或删除，日志仍然有效，可以设置 `level` 为 `"force"`，这将绕过标准的日志处理器，直接使用 `print()` 将日志消息输出到控制台，确保关键的调试信息不会丢失。
-- `simple` (布尔值，可选) ：启用简化日志模式，格式为 `"DEBUG: {msg}"`。
+- `simple` (布尔值，可选) ：默认值为 True，禁用简化日志模式，格式为 `"[{time}] [{level}] objwatch: {msg}"`。
 - `wrapper` (ABCWrapper，可选) ：自定义包装器，用于扩展追踪和日志记录功能，详见下文。
 - `with_locals` (布尔值，可选) ：启用在函数执行期间对局部变量的追踪和日志记录。
 - `with_globals` (布尔值，可选) ：启用跨函数调用的全局变量追踪和日志记录。当你输入的 `targets` 列表中包含全局变量时，需要同时启用此选项。
@@ -244,7 +247,7 @@ def main():
     pass
 
 if __name__ == '__main__':
-    obj_watch = objwatch.watch(['multi_process_module.py'], indexes=[0, 1, 2, 3], output='./mp.log', simple=False)
+    obj_watch = objwatch.watch(['multi_process_module.py'], indexes=[0, 1, 2, 3], output='./mp.log')
     main()
     obj_watch.stop()
 ```
@@ -342,7 +345,7 @@ ObjWatch 提供了 `ABCWrapper` 抽象基类，允许用户创建自定义包装
 from objwatch.wrappers import TensorShapeWrapper
 
 # 使用自定义 TensorShapeWrapper 初始化
-obj_watch = objwatch.ObjWatch(['your_module.py'], simple=False, wrapper=TensorShapeWrapper)
+obj_watch = objwatch.ObjWatch(['your_module.py'], wrapper=TensorShapeWrapper)
 with obj_watch:
     main()
 ```
