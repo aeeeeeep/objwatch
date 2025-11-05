@@ -58,6 +58,7 @@ class Tracer:
         # Process and determine the set of target files to monitor
         targets_cls = Targets(self.config.targets, self.config.exclude_targets)
         self.filename_targets: Set = targets_cls.get_filename_targets()
+        self.exclude_filename_targets: Set = targets_cls.get_exclude_filename_targets()
         self.targets: dict = targets_cls.get_targets()
         self.exclude_targets: dict = targets_cls.get_exclude_targets()
         self._build_target_index()
@@ -68,6 +69,9 @@ class Tracer:
             + f"\n{'<' * 10}\n"
             + f"Filename targets:\n{'>' * 10}\n"
             + "\n".join(self.filename_targets)
+            + f"\n{'<' * 10}\n"
+            + f"Exclude filename targets:\n{'>' * 10}\n"
+            + "\n".join(self.exclude_filename_targets)
             + f"\n{'<' * 10}"
         )
 
@@ -342,7 +346,9 @@ class Tracer:
         Returns:
             bool: True if the filename does not end with the target extensions, False otherwise.
         """
-        return filename.endswith(tuple(self.filename_targets))
+        return filename.endswith(tuple(self.filename_targets)) and not filename.endswith(
+            tuple(self.exclude_filename_targets)
+        )
 
     def _should_trace_frame(self, frame: FrameType) -> bool:
         """Determine if a stack frame should be traced.

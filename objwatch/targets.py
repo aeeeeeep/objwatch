@@ -87,9 +87,36 @@ class Targets:
             exclude_targets: Exclusion targets in same formats
         """
         targets, exclude_targets = self._check_targets(targets, exclude_targets)
-        self.filename_targets: Set = set()
-        self.targets: dict = self._process_targets(targets)
-        self.exclude_targets: dict = self._process_targets(exclude_targets)
+        self.targets, self.filename_targets = self._process_targets(targets)
+        self.exclude_targets, self.exclude_filename_targets = self._process_targets(exclude_targets)
+        self._validate_filename_targets()
+
+    def _validate_filename_targets(self):
+        """
+        Validate that no filename target ends with any exclude filename pattern.
+        Collects all validation errors and raises them at once for better diagnostics.
+        """
+        if not self.exclude_filename_targets:
+            return
+
+        # Sort exclude patterns by length (descending) for more efficient matching
+        # Longer patterns are checked first to avoid redundant checks
+        sorted_excludes = sorted(self.exclude_filename_targets, key=len, reverse=True)
+
+        # Collect all errors
+        errors = []
+
+        for target in self.filename_targets:
+            # Only process if we have a string target
+            for exclude in sorted_excludes:
+                # Only check if exclude is a string and not empty
+                if isinstance(exclude, str) and exclude and target.endswith(exclude):
+                    errors.append(f"Target '{target}' ends with excluded pattern '{exclude}'")
+                    # Break to avoid multiple matches for the same target
+                    break
+
+        if errors:
+            raise ValueError("Found multiple filename validation errors:\n" + "\n".join(errors))
 
     def _check_targets(
         self, targets: TargetsType, exclude_targets: Optional[TargetsType]
@@ -108,12 +135,9 @@ class Targets:
             targets = [targets]
         if isinstance(exclude_targets, str):
             exclude_targets = [exclude_targets]
-        for exclude_target in exclude_targets or []:
-            if isinstance(exclude_target, str) and exclude_target.endswith('.py'):
-                log_error("Unsupported .py files in exclude_target")
         return targets, exclude_targets
 
-    def _process_targets(self, targets: Optional[TargetsType]) -> dict:
+    def _process_targets(self, targets: Optional[TargetsType]) -> Tuple[dict, Set[str]]:
         """
         Convert heterogeneous targets to structured data model.
 
@@ -121,12 +145,13 @@ class Targets:
             targets: List of targets
 
         Returns:
-            dict: Hierarchical structure:
+            Tuple[dict, Set[str]]: Hierarchical structure and filename targets
         """
         processed_targets: dict = {}
+        filename_targets: Set[str] = set()
         for target in targets or []:
             if isinstance(target, str) and target.endswith('.py'):
-                self.filename_targets.add(target)
+                filename_targets.add(target)
             elif isinstance(target, (str, ModuleType, ClassType, FunctionType, MethodType)):
                 module_path, target_details = self._parse_target(target)
                 existing_details = processed_targets.setdefault(module_path, {})
@@ -139,7 +164,7 @@ class Targets:
             # Flatten the module structure
             self._flatten_module_structure(module_path, target_details, flatten_targets)
 
-        return flatten_targets
+        return flatten_targets, filename_targets
 
     def _parse_target(self, target: Union[str, ModuleType, ClassType, FunctionType, MethodType]) -> tuple:
         """
@@ -522,9 +547,18 @@ class Targets:
 
     def get_filename_targets(self) -> Set:
         """Get monitored filesystem paths.
+        Path matching is determined using string.endswith() method.
 
         Returns:
-            Set[str]: Absolute paths to Python files being monitored,
-            including both directly specified files and module origins
+            Set[str]: Paths to Python files being monitored
         """
         return self.filename_targets
+
+    def get_exclude_filename_targets(self) -> Set:
+        """Get monitored excluded filesystem paths.
+        Path matching is determined using string.endswith() method.
+
+        Returns:
+            Set[str]: Paths to Python files being excluded
+        """
+        return self.exclude_filename_targets
