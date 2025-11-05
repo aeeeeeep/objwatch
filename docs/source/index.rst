@@ -149,7 +149,6 @@ When running the above script, ObjWatch will generate logs similar to the follow
 
    .. code-block:: text
 
-         [2025-11-03 13:18:51] [DEBUG] objwatch: 
          Targets:
          >>>>>>>>>>
          {}
@@ -158,40 +157,44 @@ When running the above script, ObjWatch will generate logs similar to the follow
          >>>>>>>>>>
          examples/example_usage.py
          <<<<<<<<<<
-         [2025-11-03 13:18:51] [WARNING] objwatch: wrapper 'BaseWrapper' loaded
-         [2025-11-03 13:18:51] [INFO] objwatch: Starting ObjWatch tracing.
-         [2025-11-03 13:18:51] [INFO] objwatch: Starting tracing.
-         [2025-11-03 13:18:51] [DEBUG] objwatch:    33 run __main__.main <- 
-         [2025-11-03 13:18:51] [DEBUG] objwatch:    23 | run __main__.SampleClass.__init__ <- '0':(type)SampleClass, '1':10
-         [2025-11-03 13:18:51] [DEBUG] objwatch:    23 | end __main__.SampleClass.__init__ -> None
-         [2025-11-03 13:18:51] [DEBUG] objwatch:    25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-         [2025-11-03 13:18:51] [DEBUG] objwatch:    14 | | upd SampleClass.value None -> 10
-         [2025-11-03 13:18:51] [DEBUG] objwatch:    14 | | upd SampleClass.value 10 -> 11
-         [2025-11-03 13:18:51] [DEBUG] objwatch:    25 | end __main__.SampleClass.increment -> None
-         [2025-11-03 13:18:51] [DEBUG] objwatch:    25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-         [2025-11-03 13:18:51] [DEBUG] objwatch:    14 | | upd SampleClass.value 11 -> 12
-         [2025-11-03 13:18:51] [DEBUG] objwatch:    25 | end __main__.SampleClass.increment -> None
-         [2025-11-03 13:18:51] [DEBUG] objwatch:    25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-         [2025-11-03 13:18:51] [DEBUG] objwatch:    14 | | upd SampleClass.value 12 -> 13
-         [2025-11-03 13:18:51] [DEBUG] objwatch:    25 | end __main__.SampleClass.increment -> None
-         [2025-11-03 13:18:51] [DEBUG] objwatch:    25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-         [2025-11-03 13:18:51] [DEBUG] objwatch:    14 | | upd SampleClass.value 13 -> 14
-         [2025-11-03 13:18:51] [DEBUG] objwatch:    25 | end __main__.SampleClass.increment -> None
-         [2025-11-03 13:18:51] [DEBUG] objwatch:    25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-         [2025-11-03 13:18:51] [DEBUG] objwatch:    14 | | upd SampleClass.value 14 -> 15
-         [2025-11-03 13:18:52] [DEBUG] objwatch:    25 | end __main__.SampleClass.increment -> None
-         [2025-11-03 13:18:52] [DEBUG] objwatch:    27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
-         [2025-11-03 13:18:52] [DEBUG] objwatch:    18 | | upd SampleClass.value 15 -> 14
-         [2025-11-03 13:18:52] [DEBUG] objwatch:    27 | end __main__.SampleClass.decrement -> None
-         [2025-11-03 13:18:52] [DEBUG] objwatch:    27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
-         [2025-11-03 13:18:52] [DEBUG] objwatch:    18 | | upd SampleClass.value 14 -> 13
-         [2025-11-03 13:18:52] [DEBUG] objwatch:    27 | end __main__.SampleClass.decrement -> None
-         [2025-11-03 13:18:52] [DEBUG] objwatch:    27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
-         [2025-11-03 13:18:52] [DEBUG] objwatch:    18 | | upd SampleClass.value 13 -> 12
-         [2025-11-03 13:18:52] [DEBUG] objwatch:    27 | end __main__.SampleClass.decrement -> None
-         [2025-11-03 13:18:52] [DEBUG] objwatch:    33 end __main__.main -> None
-         [2025-11-03 13:18:52] [INFO] objwatch: Stopping ObjWatch tracing.
-         [2025-11-03 13:18:52] [INFO] objwatch: Stopping tracing.
+         Exclude filename targets:
+         >>>>>>>>>>
+
+         <<<<<<<<<<
+         wrapper 'BaseWrapper' loaded
+         Starting ObjWatch tracing.
+         Starting tracing.
+         37 run __main__.main <- 
+         23 | run __main__.SampleClass.__init__ <- '0':(type)SampleClass, '1':10
+         23 | end __main__.SampleClass.__init__ -> None
+         25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
+         14 | | upd SampleClass.value None -> 10
+         14 | | upd SampleClass.value 10 -> 11
+         25 | end __main__.SampleClass.increment -> None
+         25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
+         14 | | upd SampleClass.value 11 -> 12
+         25 | end __main__.SampleClass.increment -> None
+         25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
+         14 | | upd SampleClass.value 12 -> 13
+         25 | end __main__.SampleClass.increment -> None
+         25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
+         14 | | upd SampleClass.value 13 -> 14
+         25 | end __main__.SampleClass.increment -> None
+         25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
+         14 | | upd SampleClass.value 14 -> 15
+         25 | end __main__.SampleClass.increment -> None
+         27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
+         18 | | upd SampleClass.value 15 -> 14
+         27 | end __main__.SampleClass.decrement -> None
+         27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
+         18 | | upd SampleClass.value 14 -> 13
+         27 | end __main__.SampleClass.decrement -> None
+         27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
+         18 | | upd SampleClass.value 13 -> 12
+         27 | end __main__.SampleClass.decrement -> None
+         37 end __main__.main -> None
+         Stopping ObjWatch tracing.
+         Stopping tracing.
 
 ⚙️ Configuration
 ================
@@ -233,7 +236,7 @@ Parameters
 - `output` (str, optional): Path to a file for writing logs.
 - `output_xml` (str, optional): Path to the XML file for writing structured logs. If specified, tracing information will be saved in a nested XML format for easy browsing and analysis.
 - `level` (str, optional): Logging level (e.g., `logging.DEBUG`, `logging.INFO`, `force` etc.). To ensure logs are captured even if the logger is disabled or removed by external libraries, you can set `level` to "force", which will bypass standard logging handlers and use `print()` to output log messages directly to the console, ensuring that critical debugging information is not lost.
-- `simple` (bool, optional): Enable simple logging mode with the format `"DEBUG: {msg}"`.
+- `simple` (bool, optional): Defaults to True, disable simple logging mode with the format `"[{time}] [{level}] objwatch: {msg}"`.
 - `wrapper` (ABCWrapper, optional): Custom wrapper to extend tracing and logging functionality.
 - `with_locals` (bool, optional): Enable tracing and logging of local variables within functions during their execution.
 - `with_globals` (bool, optional): Enable tracing and logging of global variables across function calls. When you input the global variables in the `targets` list, you need to enable this option.
@@ -260,7 +263,7 @@ Supported frameworks:
        pass
 
    if __name__ == '__main__':
-       obj_watch = objwatch.watch(['multi_process_module.py'], indexes=[0, 1, 2, 3], output='./mp.log', simple=False)
+       obj_watch = objwatch.watch(['multi_process_module.py'], indexes=[0, 1, 2, 3], output='./mp.log')
        main()
        obj_watch.stop()
 
@@ -374,7 +377,7 @@ For example, the `TensorShapeWrapper` can be integrated as follows:
    from objwatch.wrappers import TensorShapeWrapper
 
    # Initialize ObjWatch with the custom TensorShapeWrapper
-   obj_watch = objwatch.ObjWatch(['your_module.py'], simple=False, wrapper=TensorShapeWrapper)
+   obj_watch = objwatch.ObjWatch(['your_module.py'], wrapper=TensorShapeWrapper)
    with obj_watch:
        main()
 
