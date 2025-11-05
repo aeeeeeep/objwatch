@@ -1,9 +1,11 @@
 # MIT License
 # Copyright (c) 2025 aeeeeeep
 
+import sys
 import signal
 import atexit
 import xml.etree.ElementTree as ET
+from functools import lru_cache
 from types import FunctionType
 from typing import Any, Optional
 
@@ -47,6 +49,92 @@ class EventHandls:
             for signal_type in signal_types:
                 signal.signal(signal_type, self.signal_handler)
 
+    @staticmethod
+    @lru_cache(maxsize=sys.maxsize)
+    def _generate_prefix(lineno: int, call_depth: int) -> str:
+        """
+        Generate a formatted prefix for logging with caching.
+
+        Args:
+            lineno (int): The line number where the event occurred.
+            call_depth (int): Current depth of the call stack.
+
+        Returns:
+            str: The formatted prefix string.
+        """
+        return f"{lineno:>5} " + "| " * call_depth
+
+    def _log_event(self, lineno: int, event_type: EventType, message: str, call_depth: int, index_info: str) -> None:
+        """
+        Log an event with consistent formatting.
+
+        Args:
+            lineno (int): The line number where the event occurred.
+            event_type (EventType): The type of event.
+            message (str): The message to log.
+            call_depth (int): Current depth of the call stack.
+            index_info (str): Information about the index to track in a multi-process environment.
+        """
+        prefix = self._generate_prefix(lineno, call_depth)
+        log_debug(f"{index_info}{prefix}{event_type.label} {message}")
+
+    def _add_xml_element(self, element_name: str, attrib: dict) -> ET.Element:
+        """
+        Create an XML element with the given attributes and add it to the current node.
+
+        Args:
+            element_name (str): Name of the XML element to create.
+            attrib (dict): Dictionary of attributes to set on the element.
+
+        Returns:
+            ET.Element: The created XML element.
+        """
+        element = ET.Element(element_name, attrib=attrib)
+        self.current_node[-1].append(element)
+        return element
+
+    def _handle_collection_change(
+        self,
+        lineno: int,
+        class_name: str,
+        key: str,
+        value_type: type,
+        old_value_len: Optional[int],
+        current_value_len: Optional[int],
+        call_depth: int,
+        index_info: str,
+        event_type: EventType,
+    ) -> None:
+        """
+        Handle collection change events (APD or POP) with a common implementation.
+
+        Args:
+            lineno (int): The line number where the event is called.
+            class_name (str): Name of the class containing the data structure.
+            key (str): Name of the data structure.
+            value_type (type): Type of the elements.
+            old_value_len (int): Previous length of the data structure.
+            current_value_len (int): New length of the data structure.
+            call_depth (int): Current depth of the call stack.
+            index_info (str): Information about the index to track in a multi-process environment.
+            event_type (EventType): The type of event (APD or POP).
+        """
+        diff_msg = f" ({value_type.__name__})(len){old_value_len} -> {current_value_len}"
+        logger_msg = f"{class_name}.{key}{diff_msg}"
+
+        self._log_event(lineno, event_type, logger_msg, call_depth, index_info)
+
+        if self.output_xml:
+            self._add_xml_element(
+                event_type.label,
+                attrib={
+                    'name': f"{class_name}.{key}",
+                    'line': str(lineno),
+                    'old': f"({value_type.__name__})(len){old_value_len}",
+                    'new': f"({value_type.__name__})(len){current_value_len}",
+                },
+            )
+
     def handle_run(
         self, lineno: int, func_info: dict, abc_wrapper: Optional[Any], call_depth: int, index_info: str
     ) -> None:
@@ -67,12 +155,10 @@ class EventHandls:
             attrib['call_msg'] = call_msg
             logger_msg += ' <- ' + call_msg
 
-        prefix = f"{lineno:>5} " + "| " * call_depth
-        log_debug(f"{index_info}{prefix}{EventType.RUN.label} {logger_msg}")
+        self._log_event(lineno, EventType.RUN, logger_msg, call_depth, index_info)
 
         if self.output_xml:
-            function_element = ET.Element('Function', attrib=attrib)
-            self.current_node[-1].append(function_element)
+            function_element = self._add_xml_element('Function', attrib)
             self.current_node.append(function_element)
 
     def handle_end(
@@ -94,8 +180,7 @@ class EventHandls:
             return_msg = abc_wrapper.wrap_return(func_info['symbol'], result)
             logger_msg += ' -> ' + return_msg
 
-        prefix = f"{lineno:>5} " + "| " * call_depth
-        log_debug(f"{index_info}{prefix}{EventType.END.label} {logger_msg}")
+        self._log_event(lineno, EventType.END, logger_msg, call_depth, index_info)
 
         if self.output_xml and len(self.current_node) > 1:
             self.current_node[-1].set('return_msg', return_msg)
@@ -137,11 +222,11 @@ class EventHandls:
 
         diff_msg = f" {old_msg} -> {current_msg}"
         logger_msg = f"{class_name}.{key}{diff_msg}"
-        prefix = f"{lineno:>5} " + "| " * call_depth
-        log_debug(f"{index_info}{prefix}{EventType.UPD.label} {logger_msg}")
+
+        self._log_event(lineno, EventType.UPD, logger_msg, call_depth, index_info)
 
         if self.output_xml:
-            upd_element = ET.Element(
+            self._add_xml_element(
                 EventType.UPD.label,
                 attrib={
                     'name': f"{class_name}.{key}",
@@ -150,7 +235,6 @@ class EventHandls:
                     'new': f"{current_msg}",
                 },
             )
-            self.current_node[-1].append(upd_element)
 
     def handle_apd(
         self,
@@ -176,22 +260,9 @@ class EventHandls:
             call_depth (int): Current depth of the call stack.
             index_info (str): Information about the index to track in a multi-process environment.
         """
-        diff_msg = f" ({value_type.__name__})(len){old_value_len} -> {current_value_len}"
-        logger_msg = f"{class_name}.{key}{diff_msg}"
-        prefix = f"{lineno:>5} " + "| " * call_depth
-        log_debug(f"{index_info}{prefix}{EventType.APD.label} {logger_msg}")
-
-        if self.output_xml:
-            apd_element = ET.Element(
-                EventType.APD.label,
-                attrib={
-                    'name': f"{class_name}.{key}",
-                    'line': str(lineno),
-                    'old': f"({value_type.__name__})(len){old_value_len}",
-                    'new': f"({value_type.__name__})(len){current_value_len}",
-                },
-            )
-            self.current_node[-1].append(apd_element)
+        self._handle_collection_change(
+            lineno, class_name, key, value_type, old_value_len, current_value_len, call_depth, index_info, EventType.APD
+        )
 
     def handle_pop(
         self,
@@ -217,22 +288,9 @@ class EventHandls:
             call_depth (int): Current depth of the call stack.
             index_info (str): Information about the index to track in a multi-process environment.
         """
-        diff_msg = f" ({value_type.__name__})(len){old_value_len} -> {current_value_len}"
-        logger_msg = f"{class_name}.{key}{diff_msg}"
-        prefix = f"{lineno:>5} " + "| " * call_depth
-        log_debug(f"{index_info}{prefix}{EventType.POP.label} {logger_msg}")
-
-        if self.output_xml:
-            pop_element = ET.Element(
-                EventType.POP.label,
-                attrib={
-                    'name': f"{class_name}.{key}",
-                    'line': str(lineno),
-                    'old': f"({value_type.__name__})(len){old_value_len}",
-                    'new': f"({value_type.__name__})(len){current_value_len}",
-                },
-            )
-            self.current_node[-1].append(pop_element)
+        self._handle_collection_change(
+            lineno, class_name, key, value_type, old_value_len, current_value_len, call_depth, index_info, EventType.POP
+        )
 
     def determine_change_type(self, old_value_len: int, current_value_len: int) -> Optional[EventType]:
         """
