@@ -137,7 +137,7 @@ class Targets:
             exclude_targets = [exclude_targets]
         return targets, exclude_targets
 
-    def _process_targets(self, targets: Optional[TargetsType]) -> tuple[dict, Set[str]]:
+    def _process_targets(self, targets: Optional[TargetsType]) -> Tuple[dict, Set[str]]:
         """
         Convert heterogeneous targets to structured data model.
 
@@ -145,7 +145,7 @@ class Targets:
             targets: List of targets
 
         Returns:
-            tuple[dict, Set[str]]: Hierarchical structure and filename targets
+            Tuple[dict, Set[str]]: Hierarchical structure and filename targets
         """
         processed_targets: dict = {}
         filename_targets: Set[str] = set()
