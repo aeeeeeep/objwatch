@@ -5,7 +5,7 @@ import time
 import importlib.metadata
 from typing import Set, Optional
 
-from ..targets import Targets
+from ..targets import Targets, TargetsType
 from ..wrappers import ABCWrapper
 from .logger import log_info
 
@@ -13,7 +13,7 @@ __version__ = importlib.metadata.version("objwatch")
 
 
 def log_metainfo_with_format(
-    targets: Targets,
+    targets: dict,
     filename_targets: Set[str],
     exclude_filename_targets: Set[str],
     wrapper: Optional[ABCWrapper] = None,
