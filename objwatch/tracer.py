@@ -14,7 +14,8 @@ from .events import EventType
 from .event_handls import EventHandls
 from .mp_handls import MPHandls
 from .utils.weak import WeakIdKeyDictionary
-from .utils.logger import log_info, log_debug, log_warn, log_error
+from .utils.logger import log_info, log_error
+from .utils.util import log_metainfo_with_format
 
 
 class Tracer:
@@ -63,17 +64,12 @@ class Tracer:
         self.exclude_targets: dict = targets_cls.get_exclude_targets()
         self._build_target_index()
         self._build_exclude_target_index()
-        log_debug(
-            f"\nTargets:\n{'>' * 10}\n"
-            + targets_cls.serialize_targets()
-            + f"\n{'<' * 10}\n"
-            + f"Filename targets:\n{'>' * 10}\n"
-            + "\n".join(self.filename_targets)
-            + f"\n{'<' * 10}\n"
-            + f"Exclude filename targets:\n{'>' * 10}\n"
-            + "\n".join(self.exclude_filename_targets)
-            + f"\n{'<' * 10}"
-        )
+
+        # Load the function wrapper if provided
+        self.abc_wrapper: Optional[ABCWrapper] = self.load_wrapper(self.config.wrapper)
+
+        # Format and logging all targets
+        log_metainfo_with_format(self.targets, self.filename_targets, self.exclude_filename_targets, self.abc_wrapper)
 
         # Initialize tracking dictionaries for objects
         self.tracked_objects: WeakIdKeyDictionary = WeakIdKeyDictionary()
@@ -87,9 +83,6 @@ class Tracer:
         self.index_info: str = ""
         self.current_index: Optional[int] = None
         self.indexes: Set[int] = set(self.config.indexes if self.config.indexes is not None else [0])
-
-        # Load the function wrapper if provided
-        self.abc_wrapper: Optional[ABCWrapper] = self.load_wrapper(self.config.wrapper)
 
         # Initialize last line numbers dictionary for tracking previous line in line events
         self.last_linenos: Dict[FrameType, int] = {}
@@ -224,7 +217,6 @@ class Tracer:
         """
         if wrapper:
             if issubclass(wrapper, ABCWrapper):
-                log_warn(f"wrapper '{wrapper.__name__}' loaded")
                 return wrapper()
             log_error(f"wrapper '{wrapper.__name__}' is not a subclass of ABCWrapper")
             raise ValueError(f"wrapper '{wrapper.__name__}' is not a subclass of ABCWrapper")
