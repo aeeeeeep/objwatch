@@ -1,14 +1,63 @@
 # MIT License
 # Copyright (c) 2025 aeeeeeep
 
+import sys
+import subprocess
+import os
+from pathlib import Path
 from setuptools import setup, find_packages
 
-try:
-    from pathlib import Path
 
-    this_dir = Path(__file__).parent
-    version = (this_dir / 'version.txt').read_text()
-except (ImportError, FileNotFoundError):
+def get_version_with_git() -> str:
+    """
+    Get package version, appending git commit hash for source installations.
+
+    Returns:
+        str: Version string from version.txt, with optional git commit hash
+             for source install scenarios.
+    """
+    try:
+        this_dir = Path(__file__).parent
+        base_version = (this_dir / 'version.txt').read_text().strip()
+    except (ImportError, FileNotFoundError):
+        base_version = '0.0.0'
+
+    # Comprehensive detection for source installation scenarios
+    def is_source_installation() -> bool:
+        """
+        Detect if this is a source installation scenario.
+
+        Returns:
+            bool: True if this appears to be a source installation.
+        """
+        # Check direct setup.py commands
+        if any(cmd in sys.argv for cmd in ['install', 'develop']):
+            return True
+
+        # Check environment variables that indicate pip/build processes
+        pip_env_vars = ['PIP_REQ_TRACKER', 'PIP_BUILD_TRACKER', 'PIP_NO_INPUT']
+        if any(os.environ.get(var) for var in pip_env_vars):
+            return True
+
+        return False
+
+    if is_source_installation():
+        try:
+            # Get short git commit hash
+            git_hash = subprocess.check_output(
+                ['git', 'rev-parse', '--short', 'HEAD'], text=True, stderr=subprocess.DEVNULL, cwd=Path(__file__).parent
+            ).strip()
+            return f"{base_version}+{git_hash}"
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            # Git not available or not in a git repository
+            pass
+
+    return base_version
+
+
+try:
+    version = get_version_with_git()
+except Exception:
     version = '0.0.0'
 
 

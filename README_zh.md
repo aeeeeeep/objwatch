@@ -136,22 +136,26 @@ if __name__ == '__main__':
 <summary>Expected Log Output</summary>
 
 ```
-Targets:
->>>>>>>>>>
-{}
-<<<<<<<<<<
-Filename targets:
->>>>>>>>>>
-examples/example_usage.py
-<<<<<<<<<<
-Exclude filename targets:
->>>>>>>>>>
+================================================================================
+# ObjWatch Log
+> Version: __version__+git_hash
+> Time:    2025-11-07 19:29:03
 
-<<<<<<<<<<
-wrapper 'BaseWrapper' loaded
+## Targets:
+{}
+
+## Filename Targets:
+* examples/example_usage.py
+
+## Exclude Filename Targets:
+* None
+
+## Wrapper:
+* BaseWrapper
+================================================================================
 Starting ObjWatch tracing.
 Starting tracing.
-   37 run __main__.main <- 
+   37 run __main__.main <-
    23 | run __main__.SampleClass.__init__ <- '0':(type)SampleClass, '1':10
    23 | end __main__.SampleClass.__init__ -> None
    25 | run __main__.SampleClass.increment <- '0':(type)SampleClass

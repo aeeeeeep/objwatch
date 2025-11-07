@@ -517,7 +517,26 @@ class Targets:
         """
         return self.exclude_targets
 
-    def serialize_targets(self, indent=Constants.LOG_INDENT_LEVEL):
+    def get_filename_targets(self) -> Set:
+        """Get monitored filesystem paths.
+        Path matching is determined using string.endswith() method.
+
+        Returns:
+            Set[str]: Paths to Python files being monitored
+        """
+        return self.filename_targets
+
+    def get_exclude_filename_targets(self) -> Set:
+        """Get monitored excluded filesystem paths.
+        Path matching is determined using string.endswith() method.
+
+        Returns:
+            Set[str]: Paths to Python files being excluded
+        """
+        return self.exclude_filename_targets
+
+    @staticmethod
+    def serialize_targets(targets: dict, indent=Constants.LOG_INDENT_LEVEL):
         """Serialize objects that JSON cannot handle by default.
 
         Converts sets to lists, and other objects to their __dict__ or string representation.
@@ -538,27 +557,9 @@ class Targets:
                 return o.__dict__
             return str(o)
 
-        if len(self.targets) > Constants.MAX_TARGETS_DISPLAY:
-            truncated_obj = {key: "..." for key in self.targets.keys()}
+        if len(targets) > Constants.MAX_TARGETS_DISPLAY:
+            truncated_obj = {key: "..." for key in targets.keys()}
             truncated_obj["Warning: too many top-level keys, only showing values like"] = "..."
             return json.dumps(truncated_obj, indent=indent, default=target_handler)
 
-        return json.dumps(self.targets, indent=indent, default=target_handler)
-
-    def get_filename_targets(self) -> Set:
-        """Get monitored filesystem paths.
-        Path matching is determined using string.endswith() method.
-
-        Returns:
-            Set[str]: Paths to Python files being monitored
-        """
-        return self.filename_targets
-
-    def get_exclude_filename_targets(self) -> Set:
-        """Get monitored excluded filesystem paths.
-        Path matching is determined using string.endswith() method.
-
-        Returns:
-            Set[str]: Paths to Python files being excluded
-        """
-        return self.exclude_filename_targets
+        return json.dumps(targets, indent=indent, default=target_handler)
