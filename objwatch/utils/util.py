@@ -5,7 +5,7 @@ import time
 import importlib.metadata
 from typing import Set, Optional
 
-from ..targets import Targets, TargetsType
+from ..targets import Targets
 from ..wrappers import ABCWrapper
 from .logger import log_info
 
