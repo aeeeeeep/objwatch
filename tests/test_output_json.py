@@ -29,7 +29,7 @@ class TestOutputJSON(unittest.TestCase):
         if os.path.exists(self.test_output):
             os.remove(self.test_output)
 
-    def test_output_xml(self):
+    def test_output_json(self):
         class TestClass:
             def outer_function(self):
                 self.a = 10

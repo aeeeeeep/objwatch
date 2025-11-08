@@ -1,10 +1,10 @@
 {
     "ObjWatch": {
         "runtime_info": {
-            "version": "0.4.3+777976a",
-            "start_time": "2025-11-08 17:12:19",
-            "system_info": "Linux-5.4.0-125-generic-x86_64-with-glibc2.35",
-            "python_version": "3.10.12"
+            "version": "",
+            "start_time": "",
+            "system_info": "",
+            "python_version": ""
         },
         "config": {
             "targets": "tests/test_output_json.py",
