@@ -7,20 +7,14 @@ import signal
 import time
 import unittest
 from unittest.mock import patch
-from tests.util import compare_xml_elements
-import xml.etree.ElementTree as ET
-
-try:
-    import torch
-except ImportError:
-    torch = None
+from tests.util import compare_json_files
 
 
 class TestForceKill(unittest.TestCase):
     def setUp(self):
         self.test_script = 'tests/test_script.py'
-        self.test_output = 'test_exit.xml'
-        self.golden_output = "tests/utils/golden_output_exit.xml"
+        self.test_output = 'test_exit.json'
+        self.golden_output = "tests/utils/golden_output_exit.json"
         with open(self.test_script, 'w') as f:
             f.write(
                 f"""
@@ -39,7 +33,7 @@ def main():
 
 if __name__ == '__main__':
     from objwatch import ObjWatch
-    obj_watch = ObjWatch(['tests/test_script.py'], output_xml='{self.test_output}')
+    obj_watch = ObjWatch(['tests/test_script.py'], output_json='{self.test_output}')
     obj_watch.start()
     main()
 """
@@ -84,19 +78,14 @@ if __name__ == '__main__':
                 os.waitpid(pid, 0)
 
                 self.assertTrue(
-                    os.path.exists(self.test_output), f"XML trace file was not generated for signal {signal_key}."
+                    os.path.exists(self.test_output), f"JSON trace file was not generated for signal {signal_key}."
                 )
 
-                generated_tree = ET.parse(self.test_output)
-                generated_root = generated_tree.getroot()
-
-                self.assertTrue(os.path.exists(self.golden_output), "Golden XML trace file does not exist.")
-                golden_tree = ET.parse(self.golden_output)
-                golden_root = golden_tree.getroot()
+                self.assertTrue(os.path.exists(self.golden_output), "Golden JSON trace file does not exist.")
 
                 self.assertTrue(
-                    compare_xml_elements(generated_root, golden_root),
-                    f"Generated XML does not match the golden XML for signal {signal_key}.",
+                    compare_json_files(self.test_output, self.golden_output),
+                    f"Generated JSON does not match the golden JSON for signal {signal_key}.",
                 )
 
                 if os.path.exists(self.test_output):

@@ -1,9 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<ObjWatch>
-  <Function module="__main__" symbol="main" symbol_type="function" run_line="19">
-    <Function module="__main__" symbol="TestClass.method" symbol_type="function" run_line="12">
-      <upd name="TestClass.attr" line="6" old="None" new="1" />
-      <upd name="TestClass.attr" line="7" old="1" new="2" />
-    </Function>
-  </Function>
-</ObjWatch>

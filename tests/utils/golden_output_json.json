@@ -1,0 +1,405 @@
+{
+    "ObjWatch": {
+        "runtime_info": {
+            "version": "",
+            "start_time": "",
+            "system_info": "",
+            "python_version": ""
+        },
+        "config": {
+            "targets": "tests/test_output_json.py",
+            "exclude_targets": null,
+            "framework": null,
+            "indexes": null,
+            "output": null,
+            "output_json": "test_trace.json",
+            "level": "DEBUG",
+            "simple": true,
+            "wrapper": "BaseWrapper",
+            "with_locals": true,
+            "with_globals": false
+        },
+        "events": [
+            {
+                "type": "Function",
+                "module": "tests.test_output_json",
+                "symbol": "TestClass.outer_function",
+                "symbol_type": "function",
+                "run_line": 87,
+                "qualified_name": "tests.test_output_json.TestClass.outer_function",
+                "events": [
+                    {
+                        "type": "upd",
+                        "name": "TestClass.a",
+                        "line": 35,
+                        "old": "None",
+                        "new": "10",
+                        "call_depth": 1
+                    },
+                    {
+                        "type": "upd",
+                        "name": "TestClass.b",
+                        "line": 37,
+                        "old": "None",
+                        "new": "(list)[1, 2, 3]",
+                        "call_depth": 1
+                    },
+                    {
+                        "type": "apd",
+                        "name": "TestClass.b",
+                        "line": 38,
+                        "old": {
+                            "type": "list",
+                            "len": 3
+                        },
+                        "new": {
+                            "type": "list",
+                            "len": 4
+                        },
+                        "call_depth": 1
+                    },
+                    {
+                        "type": "pop",
+                        "name": "TestClass.b",
+                        "line": 39,
+                        "old": {
+                            "type": "list",
+                            "len": 4
+                        },
+                        "new": {
+                            "type": "list",
+                            "len": 3
+                        },
+                        "call_depth": 1
+                    },
+                    {
+                        "type": "upd",
+                        "name": "TestClass.c",
+                        "line": 42,
+                        "old": "None",
+                        "new": "(dict)[('key1', 'value1')]",
+                        "call_depth": 1
+                    },
+                    {
+                        "type": "apd",
+                        "name": "TestClass.c",
+                        "line": 43,
+                        "old": {
+                            "type": "dict",
+                            "len": 1
+                        },
+                        "new": {
+                            "type": "dict",
+                            "len": 2
+                        },
+                        "call_depth": 1
+                    },
+                    {
+                        "type": "pop",
+                        "name": "TestClass.c",
+                        "line": 45,
+                        "old": {
+                            "type": "dict",
+                            "len": 2
+                        },
+                        "new": {
+                            "type": "dict",
+                            "len": 1
+                        },
+                        "call_depth": 1
+                    },
+                    {
+                        "type": "upd",
+                        "name": "TestClass.d",
+                        "line": 47,
+                        "old": "None",
+                        "new": "(set)[1, 2, 3]",
+                        "call_depth": 1
+                    },
+                    {
+                        "type": "apd",
+                        "name": "TestClass.d",
+                        "line": 48,
+                        "old": {
+                            "type": "set",
+                            "len": 3
+                        },
+                        "new": {
+                            "type": "set",
+                            "len": 4
+                        },
+                        "call_depth": 1
+                    },
+                    {
+                        "type": "pop",
+                        "name": "TestClass.d",
+                        "line": 49,
+                        "old": {
+                            "type": "set",
+                            "len": 4
+                        },
+                        "new": {
+                            "type": "set",
+                            "len": 3
+                        },
+                        "call_depth": 1
+                    },
+                    {
+                        "type": "apd",
+                        "name": "TestClass.d",
+                        "line": 50,
+                        "old": {
+                            "type": "set",
+                            "len": 3
+                        },
+                        "new": {
+                            "type": "set",
+                            "len": 5
+                        },
+                        "call_depth": 1
+                    },
+                    {
+                        "type": "pop",
+                        "name": "TestClass.d",
+                        "line": 51,
+                        "old": {
+                            "type": "set",
+                            "len": 5
+                        },
+                        "new": {
+                            "type": "set",
+                            "len": 4
+                        },
+                        "call_depth": 1
+                    },
+                    {
+                        "type": "upd",
+                        "name": "TestClass.a",
+                        "line": 53,
+                        "old": "10",
+                        "new": "20",
+                        "call_depth": 1
+                    },
+                    {
+                        "type": "Function",
+                        "module": "tests.test_output_json",
+                        "symbol": "TestClass.inner_function",
+                        "symbol_type": "function",
+                        "run_line": 55,
+                        "qualified_name": "tests.test_output_json.TestClass.inner_function",
+                        "events": [
+                            {
+                                "type": "upd",
+                                "name": "_.a",
+                                "line": 59,
+                                "old": "None",
+                                "new": "10",
+                                "call_depth": 2
+                            },
+                            {
+                                "type": "upd",
+                                "name": "_.b",
+                                "line": 61,
+                                "old": "None",
+                                "new": "(list)[1, 2, 3]",
+                                "call_depth": 2
+                            },
+                            {
+                                "type": "apd",
+                                "name": "_.b",
+                                "line": 62,
+                                "old": {
+                                    "type": "list",
+                                    "len": 3
+                                },
+                                "new": {
+                                    "type": "list",
+                                    "len": 4
+                                },
+                                "call_depth": 2
+                            },
+                            {
+                                "type": "pop",
+                                "name": "_.b",
+                                "line": 63,
+                                "old": {
+                                    "type": "list",
+                                    "len": 4
+                                },
+                                "new": {
+                                    "type": "list",
+                                    "len": 3
+                                },
+                                "call_depth": 2
+                            },
+                            {
+                                "type": "upd",
+                                "name": "TestClass.lst",
+                                "line": 66,
+                                "old": "None",
+                                "new": "(list)[100, 3, 4]",
+                                "call_depth": 2
+                            },
+                            {
+                                "type": "apd",
+                                "name": "TestClass.b",
+                                "line": 67,
+                                "old": {
+                                    "type": "list",
+                                    "len": 3
+                                },
+                                "new": {
+                                    "type": "list",
+                                    "len": 4
+                                },
+                                "call_depth": 2
+                            },
+                            {
+                                "type": "apd",
+                                "name": "TestClass.lst",
+                                "line": 67,
+                                "old": {
+                                    "type": "list",
+                                    "len": 3
+                                },
+                                "new": {
+                                    "type": "list",
+                                    "len": 4
+                                },
+                                "call_depth": 2
+                            },
+                            {
+                                "type": "apd",
+                                "name": "_.lst",
+                                "line": 67,
+                                "old": {
+                                    "type": "list",
+                                    "len": 3
+                                },
+                                "new": {
+                                    "type": "list",
+                                    "len": 4
+                                },
+                                "call_depth": 2
+                            },
+                            {
+                                "type": "upd",
+                                "name": "TestClass.e",
+                                "line": 70,
+                                "old": "None",
+                                "new": "(dict)[('inner_key1', 'inner_value1')]",
+                                "call_depth": 2
+                            },
+                            {
+                                "type": "apd",
+                                "name": "TestClass.e",
+                                "line": 71,
+                                "old": {
+                                    "type": "dict",
+                                    "len": 1
+                                },
+                                "new": {
+                                    "type": "dict",
+                                    "len": 2
+                                },
+                                "call_depth": 2
+                            },
+                            {
+                                "type": "pop",
+                                "name": "TestClass.e",
+                                "line": 73,
+                                "old": {
+                                    "type": "dict",
+                                    "len": 2
+                                },
+                                "new": {
+                                    "type": "dict",
+                                    "len": 1
+                                },
+                                "call_depth": 2
+                            },
+                            {
+                                "type": "upd",
+                                "name": "TestClass.f",
+                                "line": 75,
+                                "old": "None",
+                                "new": "(set)[10, 20, 30]",
+                                "call_depth": 2
+                            },
+                            {
+                                "type": "apd",
+                                "name": "TestClass.f",
+                                "line": 76,
+                                "old": {
+                                    "type": "set",
+                                    "len": 3
+                                },
+                                "new": {
+                                    "type": "set",
+                                    "len": 4
+                                },
+                                "call_depth": 2
+                            },
+                            {
+                                "type": "pop",
+                                "name": "TestClass.f",
+                                "line": 77,
+                                "old": {
+                                    "type": "set",
+                                    "len": 4
+                                },
+                                "new": {
+                                    "type": "set",
+                                    "len": 3
+                                },
+                                "call_depth": 2
+                            },
+                            {
+                                "type": "apd",
+                                "name": "TestClass.f",
+                                "line": 78,
+                                "old": {
+                                    "type": "set",
+                                    "len": 3
+                                },
+                                "new": {
+                                    "type": "set",
+                                    "len": 5
+                                },
+                                "call_depth": 2
+                            },
+                            {
+                                "type": "pop",
+                                "name": "TestClass.f",
+                                "line": 79,
+                                "old": {
+                                    "type": "set",
+                                    "len": 5
+                                },
+                                "new": {
+                                    "type": "set",
+                                    "len": 4
+                                },
+                                "call_depth": 2
+                            }
+                        ],
+                        "call_msg": "'0':(type)TestClass, '1':(list)[100, 3, 4]",
+                        "return_msg": "[(list)[200, 3, 4, '... (1 more elements)']]",
+                        "end_line": 55
+                    },
+                    {
+                        "type": "upd",
+                        "name": "TestClass.a",
+                        "line": 55,
+                        "old": "20",
+                        "new": "(list)[200, 3, 4, '... (1 more elements)']",
+                        "call_depth": 1
+                    }
+                ],
+                "call_msg": "'0':(type)TestClass",
+                "return_msg": "[(list)[200, 3, 4, '... (1 more elements)']]",
+                "end_line": 87
+            }
+        ]
+    }
+}

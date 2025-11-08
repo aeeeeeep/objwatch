@@ -21,6 +21,7 @@ Submodules
    objwatch.event_handls
    objwatch.events
    objwatch.mp_handls
+   objwatch.runtime_info
    objwatch.targets
    objwatch.tracer
 

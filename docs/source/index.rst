@@ -36,7 +36,7 @@ ObjWatch may impact your application's performance. It is recommended to use it 
   - **`pop`**: Element removal from data structures
   
   These classifications help developers efficiently trace and debug their code by understanding the flow and state changes within their applications.
-- **🔥 Multi-Process Support: Seamlessly trace distributed applications running across multiple processes/GPUs, ensuring comprehensive monitoring in high-performance environments.
+- **🔥 Multi-Process Support**: Seamlessly trace distributed applications running across multiple processes/GPUs, ensuring comprehensive monitoring in high-performance environments.
 - **🔌 Custom Wrapper Extensions**: Extend ObjWatch's functionality with custom wrappers, allowing tailored tracing and logging to fit specific project needs.
 - **🎛️ Context Manager & API Integration**: Integrate ObjWatch effortlessly into your projects using context managers or API functions without relying on command-line interfaces.
 
@@ -151,8 +151,24 @@ When running the above script, ObjWatch will generate logs similar to the follow
 
          ================================================================================
          # ObjWatch Log
-         > Version: __version__+git_hash
-         > Time:    2025-11-07 19:29:03
+         > Version:        /
+         > Start Time:     /
+         > System Info:    /
+         > Python Version: /
+
+         ## Config:
+         * targets:
+         - examples/example_usage.py
+         * exclude_targets: None
+         * framework: None
+         * indexes: None
+         * output: ./objwatch.log
+         * output_json: None
+         * level: DEBUG
+         * simple: True
+         * wrapper: BaseWrapper
+         * with_locals: False
+         * with_globals: False
 
          ## Targets:
          {}
@@ -162,13 +178,8 @@ When running the above script, ObjWatch will generate logs similar to the follow
 
          ## Exclude Filename Targets:
          * None
-
-         ## Wrapper:
-         * BaseWrapper
          ================================================================================
-         Starting ObjWatch tracing.
-         Starting tracing.
-         37 run __main__.main <-
+         37 run __main__.main <- 
          23 | run __main__.SampleClass.__init__ <- '0':(type)SampleClass, '1':10
          23 | end __main__.SampleClass.__init__ -> None
          25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
@@ -198,7 +209,6 @@ When running the above script, ObjWatch will generate logs similar to the follow
          27 | end __main__.SampleClass.decrement -> None
          37 end __main__.main -> None
          Stopping ObjWatch tracing.
-         Stopping tracing.
 
 ⚙️ Configuration
 ================
@@ -238,7 +248,7 @@ Parameters
 - `framework` (str, optional): The multi-process framework module to use.
 - `indexes` (list, optional): The indexes to track in a multi-process environment.
 - `output` (str, optional): Path to a file for writing logs.
-- `output_xml` (str, optional): Path to the XML file for writing structured logs. If specified, tracing information will be saved in a nested XML format for easy browsing and analysis.
+- `output_json` (str, optional): Path to the JSON file for writing structured logs. If specified, tracing information will be saved in a nested JSON format for easy analysis.
 - `level` (str, optional): Logging level (e.g., `logging.DEBUG`, `logging.INFO`, `force` etc.). To ensure logs are captured even if the logger is disabled or removed by external libraries, you can set `level` to "force", which will bypass standard logging handlers and use `print()` to output log messages directly to the console, ensuring that critical debugging information is not lost.
 - `simple` (bool, optional): Defaults to True, disable simple logging mode with the format `"[{time}] [{level}] objwatch: {msg}"`.
 - `wrapper` (ABCWrapper, optional): Custom wrapper to extend tracing and logging functionality.
@@ -339,21 +349,20 @@ Supported Wrappers
 
 The following table outlines the currently supported wrappers, each offering specialized functionality for different tracing and logging needs:
 
-+------------------------------------------+----------------------------------------------------------------------------------------------+
-| **Wrapper**                              | **Description**                                                                              |
-+------------------------------------------+----------------------------------------------------------------------------------------------+
-| `BaseWrapper`                            | Implements basic logging functionality for monitoring function calls and returns.            |
-+------------------------------------------+----------------------------------------------------------------------------------------------+
-| `CPUMemoryWrapper`                       | Uses `psutil.virtual_memory()` to retrieve CPU memory statistics. Allows selection of      |
-|                                          | specific metrics for monitoring CPU memory usage during function execution.                  |
-+------------------------------------------+----------------------------------------------------------------------------------------------+
-| `TensorShapeWrapper`                     | Logs the shapes of `torch.Tensor` objects, useful for machine learning and deep learning   |
-|                                          | workflows.                                                                                   |
-+------------------------------------------+----------------------------------------------------------------------------------------------+
-| `TorchMemoryWrapper`                     | Uses `torch.cuda.memory_stats()` to retrieve GPU memory statistics. Allows selection of    |
-|                                          | specific metrics for monitoring GPU memory usage, including allocation, reservation, and     |
-|                                          | freeing of memory.                                                                           |
-+------------------------------------------+----------------------------------------------------------------------------------------------+
+.. list-table:: Supported Wrappers
+   :widths: 30 70
+   :header-rows: 1
+
+   * - **Wrapper**
+     - **Description**
+   * - `BaseWrapper`
+     - Implements basic logging functionality for monitoring function calls and returns.
+   * - `CPUMemoryWrapper`
+     - Uses `psutil.virtual_memory()` to retrieve CPU memory statistics. Allows selection of specific metrics for monitoring CPU memory usage during function execution.
+   * - `TensorShapeWrapper`
+     - Logs the shapes of `torch.Tensor` objects, useful for machine learning and deep learning workflows.
+   * - `TorchMemoryWrapper`
+     - Uses `torch.cuda.memory_stats()` to retrieve GPU memory statistics. Allows selection of specific metrics for monitoring GPU memory usage, including allocation, reservation, and freeing of memory.
 
 TensorShapeWrapper
 ^^^^^^^^^^^^^^^^^^^

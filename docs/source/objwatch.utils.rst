@@ -8,6 +8,7 @@ Submodules
    :maxdepth: 1
 
    objwatch.utils.logger
+   objwatch.utils.util
    objwatch.utils.weak
 
 Module contents
