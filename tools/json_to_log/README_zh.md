@@ -1,6 +1,6 @@
 # JSON到日志转换器（ObjWatch）
 
-\[ [English](README_zh.md) | 中文 \]
+\[ [English](README.md) | 中文 \]
 
 此工具将ObjWatch生成的JSON输出文件转换为人类可读的日志格式，使分析和理解追踪结果更加容易。
 
