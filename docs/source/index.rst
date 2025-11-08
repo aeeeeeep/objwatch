@@ -36,7 +36,7 @@ ObjWatch may impact your application's performance. It is recommended to use it 
   - **`pop`**: Element removal from data structures
   
   These classifications help developers efficiently trace and debug their code by understanding the flow and state changes within their applications.
-- **🔥 Multi-Process Support: Seamlessly trace distributed applications running across multiple processes/GPUs, ensuring comprehensive monitoring in high-performance environments.
+- **🔥 Multi-Process Support**: Seamlessly trace distributed applications running across multiple processes/GPUs, ensuring comprehensive monitoring in high-performance environments.
 - **🔌 Custom Wrapper Extensions**: Extend ObjWatch's functionality with custom wrappers, allowing tailored tracing and logging to fit specific project needs.
 - **🎛️ Context Manager & API Integration**: Integrate ObjWatch effortlessly into your projects using context managers or API functions without relying on command-line interfaces.
 
@@ -349,21 +349,20 @@ Supported Wrappers
 
 The following table outlines the currently supported wrappers, each offering specialized functionality for different tracing and logging needs:
 
-+------------------------------------------+----------------------------------------------------------------------------------------------+
-| **Wrapper**                              | **Description**                                                                              |
-+------------------------------------------+----------------------------------------------------------------------------------------------+
-| `BaseWrapper`                            | Implements basic logging functionality for monitoring function calls and returns.            |
-+------------------------------------------+----------------------------------------------------------------------------------------------+
-| `CPUMemoryWrapper`                       | Uses `psutil.virtual_memory()` to retrieve CPU memory statistics. Allows selection of      |
-|                                          | specific metrics for monitoring CPU memory usage during function execution.                  |
-+------------------------------------------+----------------------------------------------------------------------------------------------+
-| `TensorShapeWrapper`                     | Logs the shapes of `torch.Tensor` objects, useful for machine learning and deep learning   |
-|                                          | workflows.                                                                                   |
-+------------------------------------------+----------------------------------------------------------------------------------------------+
-| `TorchMemoryWrapper`                     | Uses `torch.cuda.memory_stats()` to retrieve GPU memory statistics. Allows selection of    |
-|                                          | specific metrics for monitoring GPU memory usage, including allocation, reservation, and     |
-|                                          | freeing of memory.                                                                           |
-+------------------------------------------+----------------------------------------------------------------------------------------------+
+.. list-table:: Supported Wrappers
+   :widths: 30 70
+   :header-rows: 1
+
+   * - **Wrapper**
+     - **Description**
+   * - `BaseWrapper`
+     - Implements basic logging functionality for monitoring function calls and returns.
+   * - `CPUMemoryWrapper`
+     - Uses `psutil.virtual_memory()` to retrieve CPU memory statistics. Allows selection of specific metrics for monitoring CPU memory usage during function execution.
+   * - `TensorShapeWrapper`
+     - Logs the shapes of `torch.Tensor` objects, useful for machine learning and deep learning workflows.
+   * - `TorchMemoryWrapper`
+     - Uses `torch.cuda.memory_stats()` to retrieve GPU memory statistics. Allows selection of specific metrics for monitoring GPU memory usage, including allocation, reservation, and freeing of memory.
 
 TensorShapeWrapper
 ^^^^^^^^^^^^^^^^^^^
