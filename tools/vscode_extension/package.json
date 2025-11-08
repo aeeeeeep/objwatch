@@ -1,0 +1,131 @@
+{
+    "name": "objwatch-log-viewer",
+    "displayName": "ObjWatch Log Viewer",
+    "description": "Enhanced viewer for ObjWatch debugging logs with syntax highlighting and folding support",
+    "version": "0.1.0",
+    "engines": {
+        "vscode": "^1.80.0"
+    },
+    "categories": [
+        "Programming Languages",
+        "Debuggers",
+        "Formatters",
+        "Visualization"
+    ],
+    "icon": "images/objwatch-logo.png",
+    "publisher": "aeeeeeep",
+    "author": {
+        "name": "aeeeeeep",
+        "email": "aeeeeeep@proton.me"
+    },
+    "contributes": {
+        "languages": [
+            {
+                "id": "objwatch",
+                "aliases": [
+                    "ObjWatch Log",
+                    "objwatch"
+                ],
+                "extensions": [
+                    ".objwatch"
+                ],
+                "configuration": "./src/languages/objwatch.configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "objwatch",
+                "scopeName": "source.objwatch",
+                "path": "./src/syntaxes/objwatch.tmLanguage.json"
+            }
+        ],
+        "configuration": {
+            "title": "ObjWatch Log Viewer",
+            "properties": {
+                "objwatch-log-viewer.enableFolding": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable code folding for ObjWatch logs"
+                },
+                "objwatch-log-viewer.enableIndentRainbow": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable indentation rainbow highlighting for ObjWatch logs"
+                },
+                "objwatch-log-viewer.indentRainbowColors": {
+                    "type": "array",
+                    "default": [
+                        "rgba(255,255,64,0.07)",
+                        "rgba(127,255,127,0.07)",
+                        "rgba(255,127,255,0.07)",
+                        "rgba(79,236,236,0.07)"
+                    ],
+                    "description": "Colors used for indentation highlighting"
+                },
+                "objwatch-log-viewer.indentRainbowErrorColor": {
+                    "type": "string",
+                    "default": "rgba(128,32,32,0.3)",
+                    "description": "Color used to highlight indentation errors"
+                },
+                "objwatch-log-viewer.indentRainbowIndicatorStyle": {
+                    "type": "string",
+                    "enum": [
+                        "classic",
+                        "light"
+                    ],
+                    "default": "classic",
+                    "description": "Style of indentation indicators"
+                }
+            }
+        }
+    },
+    "activationEvents": [
+        "onCommand:objwatch-log-viewer.toggleFolding",
+        "onCommand:objwatch-log-viewer.formatLog"
+    ],
+    "main": "./src/extension.js",
+    "scripts": {
+        "test": "node ./test/runTest.js",
+        "package": "vsce package",
+        "package:clean": "rm -f *.vsix && vsce package",
+        "compile": "tsc -p ./",
+        "lint": "eslint src --ext .js,.jsx,.ts,.tsx"
+    },
+    "devDependencies": {
+        "@types/node": "^20.18.1",
+        "@types/vscode": "^1.80.0",
+        "@vscode/vsce": "^3.7.0",
+        "typescript": "^5.3.0",
+        "eslint": "^8.56.0"
+    },
+    "dependencies": {},
+    "qna": "https://github.com/aeeeeeep/objwatch/issues",
+    "homepage": "https://github.com/aeeeeeep/objwatch/blob/main/tools/vscode_extension/README.md",
+    "bugs": {
+        "url": "https://github.com/aeeeeeep/objwatch/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/aeeeeeep/objwatch.git",
+        "directory": "tools/vscode_extension"
+    },
+    "license": "MIT",
+    "keywords": [
+        "objwatch",
+        "debug",
+        "log",
+        "viewer",
+        "trace",
+        "debugging",
+        "visualization",
+        "python",
+        "indentation",
+        "syntax-highlighting",
+        "code-folding",
+        "debugging-tools"
+    ],
+    "preview": false,
+    "sponsor": {
+        "url": "https://github.com/aeeeeeep/objwatch"
+    }
+}

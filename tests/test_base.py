@@ -23,13 +23,13 @@ except ImportError:
 
 
 golden_log = """DEBUG:objwatch:   run __main__.<module>
-DEBUG:objwatch:    | run __main__.TestClass
-DEBUG:objwatch:    | end __main__.TestClass
-DEBUG:objwatch:   | run __main__.main
-DEBUG:objwatch:    | | run __main__.TestClass.method
-DEBUG:objwatch:    | | | upd TestClass.attr None -> 1
-DEBUG:objwatch:    | | end __main__.TestClass.method
-DEBUG:objwatch:   | end __main__.main
+DEBUG:objwatch:    run __main__.TestClass
+DEBUG:objwatch:    end __main__.TestClass
+DEBUG:objwatch:   run __main__.main
+DEBUG:objwatch:    run __main__.TestClass.method
+DEBUG:objwatch:    upd TestClass.attr None -> 1
+DEBUG:objwatch:    end __main__.TestClass.method
+DEBUG:objwatch:   end __main__.main
 DEBUG:objwatch:   end __main__.<module>"""
 
 

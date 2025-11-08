@@ -29,10 +29,12 @@ def main():
 
 if __name__ == '__main__':
     # Using ObjWatch as a context manager
-    with objwatch.ObjWatch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseWrapper):
+    with objwatch.ObjWatch(
+        ['examples/example_usage.py'], output='./log.objwatch', output_json='./objwatch.json', wrapper=BaseWrapper
+    ):
         main()
 
     # Using the watch function
-    obj_watch = objwatch.watch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseWrapper)
+    obj_watch = objwatch.watch(['examples/example_usage.py'], output='./log.objwatch', wrapper=BaseWrapper)
     main()
     obj_watch.stop()

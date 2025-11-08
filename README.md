@@ -121,11 +121,11 @@ def main():
 
 if __name__ == '__main__':
     # Using ObjWatch as a context manager
-    with objwatch.ObjWatch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseWrapper):
+    with objwatch.ObjWatch(['examples/example_usage.py'], output='./log.objwatch', wrapper=BaseWrapper):
         main()
 
     # Using the watch function
-    obj_watch = objwatch.watch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseWrapper)
+    obj_watch = objwatch.watch(['examples/example_usage.py'], output='./log.objwatch', wrapper=BaseWrapper)
     main()
     obj_watch.stop()
 
@@ -138,6 +138,7 @@ When running the above script, ObjWatch will generate logs similar to the follow
 <summary>Expected Log Output</summary>
 
 ```
+Starting ObjWatch tracing.
 ================================================================================
 # ObjWatch Log
 > Version:        /
@@ -151,8 +152,8 @@ When running the above script, ObjWatch will generate logs similar to the follow
 * exclude_targets: None
 * framework: None
 * indexes: None
-* output: ./objwatch.log
-* output_json: None
+* output: ./log.objwatch
+* output_json: ./objwatch.json
 * level: DEBUG
 * simple: True
 * wrapper: BaseWrapper
@@ -168,35 +169,35 @@ When running the above script, ObjWatch will generate logs similar to the follow
 ## Exclude Filename Targets:
 * None
 ================================================================================
-   37 run __main__.main <- 
-   23 | run __main__.SampleClass.__init__ <- '0':(type)SampleClass, '1':10
-   23 | end __main__.SampleClass.__init__ -> None
-   25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-   14 | | upd SampleClass.value None -> 10
-   14 | | upd SampleClass.value 10 -> 11
-   25 | end __main__.SampleClass.increment -> None
-   25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-   14 | | upd SampleClass.value 11 -> 12
-   25 | end __main__.SampleClass.increment -> None
-   25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-   14 | | upd SampleClass.value 12 -> 13
-   25 | end __main__.SampleClass.increment -> None
-   25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-   14 | | upd SampleClass.value 13 -> 14
-   25 | end __main__.SampleClass.increment -> None
-   25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-   14 | | upd SampleClass.value 14 -> 15
-   25 | end __main__.SampleClass.increment -> None
-   27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
-   18 | | upd SampleClass.value 15 -> 14
-   27 | end __main__.SampleClass.decrement -> None
-   27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
-   18 | | upd SampleClass.value 14 -> 13
-   27 | end __main__.SampleClass.decrement -> None
-   27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
-   18 | | upd SampleClass.value 13 -> 12
-   27 | end __main__.SampleClass.decrement -> None
-   37 end __main__.main -> None
+   35 run __main__.main <- 
+   23   run __main__.SampleClass.__init__ <- '0':(type)SampleClass, '1':10
+   23   end __main__.SampleClass.__init__ -> None
+   25   run __main__.SampleClass.increment <- '0':(type)SampleClass
+   14     upd SampleClass.value None -> 10
+   14     upd SampleClass.value 10 -> 11
+   25   end __main__.SampleClass.increment -> None
+   25   run __main__.SampleClass.increment <- '0':(type)SampleClass
+   14     upd SampleClass.value 11 -> 12
+   25   end __main__.SampleClass.increment -> None
+   25   run __main__.SampleClass.increment <- '0':(type)SampleClass
+   14     upd SampleClass.value 12 -> 13
+   25   end __main__.SampleClass.increment -> None
+   25   run __main__.SampleClass.increment <- '0':(type)SampleClass
+   14     upd SampleClass.value 13 -> 14
+   25   end __main__.SampleClass.increment -> None
+   25   run __main__.SampleClass.increment <- '0':(type)SampleClass
+   14     upd SampleClass.value 14 -> 15
+   25   end __main__.SampleClass.increment -> None
+   27   run __main__.SampleClass.decrement <- '0':(type)SampleClass
+   18     upd SampleClass.value 15 -> 14
+   27   end __main__.SampleClass.decrement -> None
+   27   run __main__.SampleClass.decrement <- '0':(type)SampleClass
+   18     upd SampleClass.value 14 -> 13
+   27   end __main__.SampleClass.decrement -> None
+   27   run __main__.SampleClass.decrement <- '0':(type)SampleClass
+   18     upd SampleClass.value 13 -> 12
+   27   end __main__.SampleClass.decrement -> None
+   35 end __main__.main -> None
 Stopping ObjWatch tracing.
 ```
 
@@ -263,7 +264,7 @@ def main():
     pass
 
 if __name__ == '__main__':
-    obj_watch = objwatch.watch(['multi_process_module.py'], indexes=[0, 1, 2, 3], output='./mp.log')
+    obj_watch = objwatch.watch(['multi_process_module.py'], indexes=[0, 1, 2, 3], output='./mp.objwatch')
     main()
     obj_watch.stop()
 ```

@@ -1,10 +1,10 @@
 {
     "ObjWatch": {
         "runtime_info": {
-            "version": "",
-            "start_time": "",
-            "system_info": "",
-            "python_version": ""
+            "version": "/",
+            "start_time": "/",
+            "system_info": "/",
+            "python_version": "/"
         },
         "config": {
             "targets": "tests/test_output_json.py",
@@ -21,6 +21,7 @@
         },
         "events": [
             {
+                "id": 1,
                 "type": "Function",
                 "module": "tests.test_output_json",
                 "symbol": "TestClass.outer_function",
@@ -29,6 +30,7 @@
                 "qualified_name": "tests.test_output_json.TestClass.outer_function",
                 "events": [
                     {
+                        "id": 2,
                         "type": "upd",
                         "name": "TestClass.a",
                         "line": 35,
@@ -37,6 +39,7 @@
                         "call_depth": 1
                     },
                     {
+                        "id": 3,
                         "type": "upd",
                         "name": "TestClass.b",
                         "line": 37,
@@ -45,6 +48,7 @@
                         "call_depth": 1
                     },
                     {
+                        "id": 4,
                         "type": "apd",
                         "name": "TestClass.b",
                         "line": 38,
@@ -59,6 +63,7 @@
                         "call_depth": 1
                     },
                     {
+                        "id": 5,
                         "type": "pop",
                         "name": "TestClass.b",
                         "line": 39,
@@ -73,6 +78,7 @@
                         "call_depth": 1
                     },
                     {
+                        "id": 6,
                         "type": "upd",
                         "name": "TestClass.c",
                         "line": 42,
@@ -81,6 +87,7 @@
                         "call_depth": 1
                     },
                     {
+                        "id": 7,
                         "type": "apd",
                         "name": "TestClass.c",
                         "line": 43,
@@ -95,6 +102,7 @@
                         "call_depth": 1
                     },
                     {
+                        "id": 8,
                         "type": "pop",
                         "name": "TestClass.c",
                         "line": 45,
@@ -109,6 +117,7 @@
                         "call_depth": 1
                     },
                     {
+                        "id": 9,
                         "type": "upd",
                         "name": "TestClass.d",
                         "line": 47,
@@ -117,6 +126,7 @@
                         "call_depth": 1
                     },
                     {
+                        "id": 10,
                         "type": "apd",
                         "name": "TestClass.d",
                         "line": 48,
@@ -131,6 +141,7 @@
                         "call_depth": 1
                     },
                     {
+                        "id": 11,
                         "type": "pop",
                         "name": "TestClass.d",
                         "line": 49,
@@ -145,6 +156,7 @@
                         "call_depth": 1
                     },
                     {
+                        "id": 12,
                         "type": "apd",
                         "name": "TestClass.d",
                         "line": 50,
@@ -159,6 +171,7 @@
                         "call_depth": 1
                     },
                     {
+                        "id": 13,
                         "type": "pop",
                         "name": "TestClass.d",
                         "line": 51,
@@ -173,6 +186,7 @@
                         "call_depth": 1
                     },
                     {
+                        "id": 14,
                         "type": "upd",
                         "name": "TestClass.a",
                         "line": 53,
@@ -181,6 +195,7 @@
                         "call_depth": 1
                     },
                     {
+                        "id": 15,
                         "type": "Function",
                         "module": "tests.test_output_json",
                         "symbol": "TestClass.inner_function",
@@ -189,6 +204,7 @@
                         "qualified_name": "tests.test_output_json.TestClass.inner_function",
                         "events": [
                             {
+                                "id": 16,
                                 "type": "upd",
                                 "name": "_.a",
                                 "line": 59,
@@ -197,6 +213,7 @@
                                 "call_depth": 2
                             },
                             {
+                                "id": 17,
                                 "type": "upd",
                                 "name": "_.b",
                                 "line": 61,
@@ -205,6 +222,7 @@
                                 "call_depth": 2
                             },
                             {
+                                "id": 18,
                                 "type": "apd",
                                 "name": "_.b",
                                 "line": 62,
@@ -219,6 +237,7 @@
                                 "call_depth": 2
                             },
                             {
+                                "id": 19,
                                 "type": "pop",
                                 "name": "_.b",
                                 "line": 63,
@@ -233,6 +252,7 @@
                                 "call_depth": 2
                             },
                             {
+                                "id": 20,
                                 "type": "upd",
                                 "name": "TestClass.lst",
                                 "line": 66,
@@ -241,6 +261,7 @@
                                 "call_depth": 2
                             },
                             {
+                                "id": 21,
                                 "type": "apd",
                                 "name": "TestClass.b",
                                 "line": 67,
@@ -255,6 +276,7 @@
                                 "call_depth": 2
                             },
                             {
+                                "id": 22,
                                 "type": "apd",
                                 "name": "TestClass.lst",
                                 "line": 67,
@@ -269,6 +291,7 @@
                                 "call_depth": 2
                             },
                             {
+                                "id": 23,
                                 "type": "apd",
                                 "name": "_.lst",
                                 "line": 67,
@@ -283,6 +306,7 @@
                                 "call_depth": 2
                             },
                             {
+                                "id": 24,
                                 "type": "upd",
                                 "name": "TestClass.e",
                                 "line": 70,
@@ -291,6 +315,7 @@
                                 "call_depth": 2
                             },
                             {
+                                "id": 25,
                                 "type": "apd",
                                 "name": "TestClass.e",
                                 "line": 71,
@@ -305,6 +330,7 @@
                                 "call_depth": 2
                             },
                             {
+                                "id": 26,
                                 "type": "pop",
                                 "name": "TestClass.e",
                                 "line": 73,
@@ -319,6 +345,7 @@
                                 "call_depth": 2
                             },
                             {
+                                "id": 27,
                                 "type": "upd",
                                 "name": "TestClass.f",
                                 "line": 75,
@@ -327,6 +354,7 @@
                                 "call_depth": 2
                             },
                             {
+                                "id": 28,
                                 "type": "apd",
                                 "name": "TestClass.f",
                                 "line": 76,
@@ -341,6 +369,7 @@
                                 "call_depth": 2
                             },
                             {
+                                "id": 29,
                                 "type": "pop",
                                 "name": "TestClass.f",
                                 "line": 77,
@@ -355,6 +384,7 @@
                                 "call_depth": 2
                             },
                             {
+                                "id": 30,
                                 "type": "apd",
                                 "name": "TestClass.f",
                                 "line": 78,
@@ -369,6 +399,7 @@
                                 "call_depth": 2
                             },
                             {
+                                "id": 31,
                                 "type": "pop",
                                 "name": "TestClass.f",
                                 "line": 79,
@@ -388,6 +419,7 @@
                         "end_line": 55
                     },
                     {
+                        "id": 32,
                         "type": "upd",
                         "name": "TestClass.a",
                         "line": 55,

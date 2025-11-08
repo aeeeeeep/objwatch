@@ -20,16 +20,18 @@ class JSONToLogConverter:
     @staticmethod
     def _generate_prefix(lineno: int, call_depth: int) -> str:
         """
-        Generate a formatted prefix for logging.
+        Generate a formatted prefix for logging with indentation instead of '  ' characters.
 
         Args:
             lineno (int): The line number where the event occurred.
             call_depth (int): Current depth of the call stack.
 
         Returns:
-            str: The formatted prefix string.
+            str: The formatted prefix string with proper indentation.
         """
-        return f"{lineno:>5} " + "| " * call_depth
+        # Use 2 spaces per indentation level
+        indent = "  " * call_depth
+        return f"{lineno:>5} {indent}"
 
     @staticmethod
     def _format_config(config: Dict[str, Any]) -> str:
@@ -81,7 +83,7 @@ class JSONToLogConverter:
                     log_lines.extend(nested_lines)
 
                 # Handle function end event
-                end_prefix = JSONToLogConverter._generate_prefix(event['end_line'], call_depth)
+                end_prefix = JSONToLogConverter._generate_prefix(event['end_line'] if 'end_line' in event else event['run_line'], call_depth)
                 end_msg = f"{end_prefix}end {event['qualified_name']}"
                 if 'return_msg' in event:
                     end_msg += f" -> {event['return_msg']}"
@@ -126,6 +128,7 @@ class JSONToLogConverter:
 
         # Generate log content
         log_lines = []
+
         log_lines.append("=" * 80)
         log_lines.append("# ObjWatch Log")
         log_lines.append(f"> Version:        {runtime_info.get('version', 'Unknown')}")
@@ -133,13 +136,10 @@ class JSONToLogConverter:
         log_lines.append(f"> System Info:    {runtime_info.get('system_info', 'Unknown')}")
         log_lines.append(f"> Python Version: {runtime_info.get('python_version', 'Unknown')}")
         log_lines.append("")
-
         # Add config section
         log_lines.append(self._format_config(config))
         log_lines.append("")
-
         # Skip Targets, Filename Targets, and Exclude Filename Targets sections as requested
-
         log_lines.append("=" * 80)
 
         # Process events
@@ -166,9 +166,9 @@ def main():
     if args.output:
         output_path = args.output
     else:
-        # Default output path: replace .json extension with .log
+        # Default output path: replace .json extension with .objwatch
         base_name = os.path.splitext(args.json_file)[0]
-        output_path = f"{base_name}.log"
+        output_path = f"{base_name}.objwatch"
 
     # Validate input file
     if not os.path.exists(args.json_file):
