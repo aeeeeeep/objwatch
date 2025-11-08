@@ -138,8 +138,24 @@ if __name__ == '__main__':
 ```
 ================================================================================
 # ObjWatch Log
-> Version: __version__+git_hash
-> Time:    2025-11-07 19:29:03
+> Version:        /
+> Start Time:     /
+> System Info:    /
+> Python Version: /
+
+## Config:
+* targets:
+  - examples/example_usage.py
+* exclude_targets: None
+* framework: None
+* indexes: None
+* output: ./objwatch.log
+* output_json: None
+* level: DEBUG
+* simple: True
+* wrapper: BaseWrapper
+* with_locals: False
+* with_globals: False
 
 ## Targets:
 {}
@@ -149,13 +165,8 @@ if __name__ == '__main__':
 
 ## Exclude Filename Targets:
 * None
-
-## Wrapper:
-* BaseWrapper
 ================================================================================
-Starting ObjWatch tracing.
-Starting tracing.
-   37 run __main__.main <-
+   37 run __main__.main <- 
    23 | run __main__.SampleClass.__init__ <- '0':(type)SampleClass, '1':10
    23 | end __main__.SampleClass.__init__ -> None
    25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
@@ -185,7 +196,6 @@ Starting tracing.
    27 | end __main__.SampleClass.decrement -> None
    37 end __main__.main -> None
 Stopping ObjWatch tracing.
-Stopping tracing.
 ```
 
 </details>
@@ -225,7 +235,7 @@ ObjWatch 提供可定制的日志格式和追踪选项，适应不同项目需�
 - `framework` (字符串，可选)：需要使用的多进程框架模块。
 - `indexes` (列表，可选)：需要在多进程环境中跟踪的 ids。
 - `output` (字符串，可选) ：写入日志的文件路径。
-- `output_xml` (字符串，可选) ：用于写入结构化日志的 XML 文件路径。如果指定，将以嵌套的 XML 格式保存追踪信息，便于浏览和分析。
+- `output_json` (字符串，可选) ：用于写入结构化日志的 JSON 文件路径。如果指定，将以嵌套的 JSON 格式保存追踪信息，便于后续分析工作。
 - `level` (字符串，可选) ：日志级别 (例如 `logging.DEBUG`，`logging.INFO`，`force` 等) 。为确保即使 logger 被外部库禁用或删除，日志仍然有效，可以设置 `level` 为 `"force"`，这将绕过标准的日志处理器，直接使用 `print()` 将日志消息输出到控制台，确保关键的调试信息不会丢失。
 - `simple` (布尔值，可选) ：默认值为 True，禁用简化日志模式，格式为 `"[{time}] [{level}] objwatch: {msg}"`。
 - `wrapper` (ABCWrapper，可选) ：自定义包装器，用于扩展追踪和日志记录功能，详见下文。

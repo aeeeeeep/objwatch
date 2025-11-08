@@ -4,21 +4,20 @@
 import os
 import unittest
 from unittest.mock import patch
-import xml.etree.ElementTree as ET
 from objwatch.config import ObjWatchConfig
 from objwatch.tracer import Tracer
 from objwatch.wrappers import BaseWrapper
-from tests.util import compare_xml_elements
+from tests.util import compare_json_files
 
 
-class TestOutputXML(unittest.TestCase):
+class TestOutputJSON(unittest.TestCase):
     def setUp(self):
-        self.test_output = "test_trace.xml"
-        self.golden_output = "tests/utils/golden_output_xml.xml"
+        self.test_output = "test_trace.json"
+        self.golden_output = "tests/utils/golden_output_json.json"
 
         config = ObjWatchConfig(
-            targets="tests/test_output_xml.py",
-            output_xml=self.test_output,
+            targets="tests/test_output_json.py",
+            output_json=self.test_output,
             wrapper=BaseWrapper,
             with_locals=True,
         )
@@ -89,17 +88,12 @@ class TestOutputXML(unittest.TestCase):
             finally:
                 self.tracer.stop()
 
-        self.assertTrue(os.path.exists(self.test_output), "XML trace file was not generated.")
+        self.assertTrue(os.path.exists(self.test_output), "JSON trace file was not generated.")
 
-        generated_tree = ET.parse(self.test_output)
-        generated_root = generated_tree.getroot()
-
-        self.assertTrue(os.path.exists(self.golden_output), "Golden XML trace file does not exist.")
-        golden_tree = ET.parse(self.golden_output)
-        golden_root = golden_tree.getroot()
+        self.assertTrue(os.path.exists(self.golden_output), "Golden JSON trace file does not exist.")
 
         self.assertTrue(
-            compare_xml_elements(generated_root, golden_root), "Generated XML does not match the golden XML."
+            compare_json_files(self.test_output, self.golden_output), "Generated JSON does not match the golden JSON."
         )
 
 

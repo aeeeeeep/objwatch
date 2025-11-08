@@ -9,6 +9,7 @@ from .config import ObjWatchConfig
 from .tracer import Tracer
 from .wrappers import ABCWrapper
 from .utils.logger import create_logger, log_info
+from .runtime_info import runtime_info
 
 
 class ObjWatch:
@@ -23,7 +24,7 @@ class ObjWatch:
         framework: Optional[str] = None,
         indexes: Optional[List[int]] = None,
         output: Optional[str] = None,
-        output_xml: Optional[str] = None,
+        output_json: Optional[str] = None,
         level: int = logging.DEBUG,
         simple: bool = True,
         wrapper: Optional[ABCWrapper] = None,
@@ -39,7 +40,7 @@ class ObjWatch:
             framework (Optional[str]): The multi-process framework module to use.
             indexes (Optional[List[int]]): The indexes to track in a multi-process environment.
             output (Optional[str]): Path to a file for writing logs.
-            output_xml (Optional[str]): Path to the XML file for writing structured logs.
+            output_json (Optional[str]): Path to the JSON file for writing structured logs.
             level (int): Logging level (e.g., logging.DEBUG, logging.INFO).
             simple (bool): Defaults to True, disable simple logging mode with the format "[{time}] [{level}] objwatch: {msg}".
             wrapper (Optional[ABCWrapper]): Custom wrapper to extend tracing and logging functionality.
@@ -60,6 +61,7 @@ class ObjWatch:
         Start the ObjWatch tracing process.
         """
         log_info("Starting ObjWatch tracing.")
+        runtime_info.update()
         self.tracer.start()
 
     def stop(self) -> None:
@@ -97,7 +99,7 @@ def watch(
     framework: Optional[str] = None,
     indexes: Optional[List[int]] = None,
     output: Optional[str] = None,
-    output_xml: Optional[str] = None,
+    output_json: Optional[str] = None,
     level: int = logging.DEBUG,
     simple: bool = True,
     wrapper: Optional[ABCWrapper] = None,
@@ -113,7 +115,7 @@ def watch(
         framework (Optional[str]): The multi-process framework module to use.
         indexes (Optional[List[int]]): The indexes to track in a multi-process environment.
         output (Optional[str]): Path to a file for writing logs.
-        output_xml (Optional[str]): Path to the XML file for writing structured logs.
+        output_json (Optional[str]): Path to the JSON file for writing structured logs.
         level (int): Logging level (e.g., logging.DEBUG, logging.INFO).
         simple (bool): Defaults to True, disable simple logging mode with the format "[{time}] [{level}] objwatch: {msg}".
         wrapper (Optional[ABCWrapper]): Custom wrapper to extend tracing and logging functionality.

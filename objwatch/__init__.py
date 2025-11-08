@@ -12,6 +12,6 @@ Exports:
 """
 
 from .core import ObjWatch, watch
-from .utils.util import __version__
+from .runtime_info import __version__
 
 __all__ = ['ObjWatch', 'watch', '__version__']

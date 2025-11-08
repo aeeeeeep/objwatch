@@ -2,38 +2,49 @@
 # Copyright (c) 2025 aeeeeeep
 
 import sys
+import json
 import signal
 import atexit
-import xml.etree.ElementTree as ET
 from functools import lru_cache
 from types import FunctionType
-from typing import Any, Optional
+from typing import Any, Optional, Dict, List
 
+from .config import ObjWatchConfig
 from .constants import Constants
 from .events import EventType
-from .utils.logger import log_error, log_debug, log_warn, log_info
+from .utils.util import target_handler
+from .utils.logger import log_error, log_debug, log_info
+from .runtime_info import runtime_info
 
 
 class EventHandls:
     """
     Handles various events for ObjWatch, including function execution and variable updates.
-    Optionally saves the events in an XML format.
+    Optionally saves the events in a JSON format.
     """
 
-    def __init__(self, output_xml: Optional[str] = None) -> None:
+    def __init__(self, config: ObjWatchConfig) -> None:
         """
-        Initialize the EventHandls with optional XML output configuration.
+        Initialize the EventHandls with optional JSON output.
 
         Args:
-            output_xml (Optional[str]): Path to the XML file for writing structured logs.
+            config (ObjWatchConfig): The configuration object to include in the JSON output.
         """
-        self.output_xml = output_xml
-        if self.output_xml:
-            self.is_xml_saved: bool = False
-            self.stack_root: ET.Element = ET.Element('ObjWatch')
-            self.current_node: list = [self.stack_root]
+        self.config = config
+        self.output_json = self.config.output_json
+        if self.output_json:
+            self.is_json_saved: bool = False
+            # JSON structure with runtime info, config and events stack
+            self.stack_root: Dict[str, Any] = {
+                'ObjWatch': {
+                    'runtime_info': runtime_info.get_info_dict(),
+                    'config': config.to_dict(),
+                    'events': [],
+                }
+            }
+            self.current_node: List[Any] = [self.stack_root['ObjWatch']['events']]
             # Register for normal exit handling
-            atexit.register(self.save_xml)
+            atexit.register(self.save_json)
             # Register signal handlers for abnormal exits
             signal_types = [
                 signal.SIGTERM,  # Termination signal (default)
@@ -78,20 +89,20 @@ class EventHandls:
         prefix = self._generate_prefix(lineno, call_depth)
         log_debug(f"{index_info}{prefix}{event_type.label} {message}")
 
-    def _add_xml_element(self, element_name: str, attrib: dict) -> ET.Element:
+    def _add_json_event(self, event_type: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Create an XML element with the given attributes and add it to the current node.
+        Create a JSON event object with the given data and add it to the current node.
 
         Args:
-            element_name (str): Name of the XML element to create.
-            attrib (dict): Dictionary of attributes to set on the element.
+            event_type (str): Type of the event to create.
+            data (dict): Dictionary of data to include in the event.
 
         Returns:
-            ET.Element: The created XML element.
+            dict: The created event dictionary.
         """
-        element = ET.Element(element_name, attrib=attrib)
-        self.current_node[-1].append(element)
-        return element
+        event = {'type': event_type, **data}
+        self.current_node[-1].append(event)
+        return event
 
     def _handle_collection_change(
         self,
@@ -124,14 +135,15 @@ class EventHandls:
 
         self._log_event(lineno, event_type, logger_msg, call_depth, index_info)
 
-        if self.output_xml:
-            self._add_xml_element(
+        if self.output_json:
+            self._add_json_event(
                 event_type.label,
-                attrib={
+                {
                     'name': f"{class_name}.{key}",
-                    'line': str(lineno),
-                    'old': f"({value_type.__name__})(len){old_value_len}",
-                    'new': f"({value_type.__name__})(len){current_value_len}",
+                    'line': lineno,
+                    'old': {'type': value_type.__name__, 'len': old_value_len},
+                    'new': {'type': value_type.__name__, 'len': current_value_len},
+                    'call_depth': call_depth,
                 },
             )
 
@@ -143,23 +155,26 @@ class EventHandls:
         """
         logger_msg = func_info['qualified_name']
 
-        attrib = {
+        func_data = {
             'module': func_info['module'],
             'symbol': func_info['symbol'],
             'symbol_type': func_info['symbol_type'] or 'function',
-            'run_line': str(lineno),
+            'run_line': lineno,
+            'qualified_name': func_info['qualified_name'],
+            'events': [],
         }
 
         if abc_wrapper:
             call_msg = abc_wrapper.wrap_call(func_info['symbol'], func_info.get('frame'))
-            attrib['call_msg'] = call_msg
+            func_data['call_msg'] = call_msg
             logger_msg += ' <- ' + call_msg
 
         self._log_event(lineno, EventType.RUN, logger_msg, call_depth, index_info)
 
-        if self.output_xml:
-            function_element = self._add_xml_element('Function', attrib)
-            self.current_node.append(function_element)
+        if self.output_json:
+            function_event = self._add_json_event('Function', func_data)
+            # Push the function's events list to the stack to maintain hierarchy
+            self.current_node.append(function_event['events'])
 
     def handle_end(
         self,
@@ -182,10 +197,16 @@ class EventHandls:
 
         self._log_event(lineno, EventType.END, logger_msg, call_depth, index_info)
 
-        if self.output_xml and len(self.current_node) > 1:
-            self.current_node[-1].set('return_msg', return_msg)
-            self.current_node[-1].set('end_line', str(lineno))
-            self.current_node[-1].set('symbol_type', func_info['symbol_type'] or 'function')
+        if self.output_json and len(self.current_node) > 1:
+            # Find the corresponding function event in the parent node
+            parent_node = self.current_node[-2]
+            # Assuming the last event in the parent node is the current function
+            for event in reversed(parent_node):
+                if event.get('type') == 'Function' and event.get('symbol') == func_info['symbol']:
+                    event['return_msg'] = return_msg
+                    event['end_line'] = lineno
+                    break
+            # Pop the function's events list from the stack
             self.current_node.pop()
 
     def handle_upd(
@@ -225,14 +246,15 @@ class EventHandls:
 
         self._log_event(lineno, EventType.UPD, logger_msg, call_depth, index_info)
 
-        if self.output_xml:
-            self._add_xml_element(
+        if self.output_json:
+            self._add_json_event(
                 EventType.UPD.label,
-                attrib={
+                {
                     'name': f"{class_name}.{key}",
-                    'line': str(lineno),
-                    'old': f"{old_msg}",
-                    'new': f"{current_msg}",
+                    'line': lineno,
+                    'old': old_msg,
+                    'new': current_msg,
+                    'call_depth': call_depth,
                 },
             )
 
@@ -383,36 +405,31 @@ class EventHandls:
             except Exception:
                 return f"(type){type(value).__name__}"
 
-    def save_xml(self) -> None:
+    def save_json(self) -> None:
         """
-        Save the accumulated events to an XML file upon program exit.
+        Save the accumulated events to a JSON file upon program exit with optimized size.
         """
-        if self.output_xml and not self.is_xml_saved:
-            log_info("Starting XML formatting.")
-            tree = ET.ElementTree(self.stack_root)
-            if hasattr(ET, 'indent'):
-                ET.indent(tree)
-            else:
-                log_warn(
-                    "Current Python version not support `xml.etree.ElementTree.indent`. XML formatting is skipped."
+        if self.output_json and not self.is_json_saved:
+            log_info(f"Starting to save JSON to {self.output_json}.")
+            # Use compact JSON format to reduce file size
+            with open(self.output_json, 'w', encoding='utf-8') as f:
+                json.dump(
+                    self.stack_root, f, ensure_ascii=False, indent=None, separators=(',', ':'), default=target_handler
                 )
+            log_info(f"JSON saved successfully to {self.output_json}.")
 
-            log_info(f"Starting to save XML to {self.output_xml}.")
-            tree.write(self.output_xml, encoding='utf-8', xml_declaration=True)
-            log_info(f"XML saved successfully to {self.output_xml}.")
-
-            self.is_xml_saved = True
+            self.is_json_saved = True
 
     def signal_handler(self, signum, frame):
         """
         Signal handler for abnormal program termination.
-        Calls save_xml when a termination signal is received.
+        Calls save_json when a termination signal is received.
 
         Args:
             signum (int): The signal number.
             frame (frame): The current stack frame.
         """
-        if not self.is_xml_saved:
-            log_error(f"Received signal {signum}, saving XML before exiting.")
-            self.save_xml()
+        if not self.is_json_saved:
+            log_error(f"Received signal {signum}, saving JSON before exiting.")
+            self.save_json()
             exit(1)  # Ensure the program exits after handling the signal

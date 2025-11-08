@@ -15,7 +15,7 @@ from .event_handls import EventHandls
 from .mp_handls import MPHandls
 from .utils.weak import WeakIdKeyDictionary
 from .utils.logger import log_info, log_error
-from .utils.util import log_metainfo_with_format
+from .runtime_info import runtime_info
 
 
 class Tracer:
@@ -68,21 +68,22 @@ class Tracer:
         # Load the function wrapper if provided
         self.abc_wrapper: Optional[ABCWrapper] = self.load_wrapper(self.config.wrapper)
 
-        # Format and logging all targets
-        log_metainfo_with_format(self.targets, self.filename_targets, self.exclude_filename_targets, self.abc_wrapper)
-
-        # Initialize tracking dictionaries for objects
-        self.tracked_objects: WeakIdKeyDictionary = WeakIdKeyDictionary()
-        self.tracked_objects_lens: WeakIdKeyDictionary = WeakIdKeyDictionary()
-
-        # Initialize event handlers with optional XML output
-        self.event_handlers: EventHandls = EventHandls(output_xml=self.config.output_xml)
-
         # Initialize multi-process handler with the specified framework
         self.mp_handlers: MPHandls = MPHandls(framework=self.config.framework)
         self.index_info: str = ""
         self.current_index: Optional[int] = None
         self.indexes: Set[int] = set(self.config.indexes if self.config.indexes is not None else [0])
+
+    def _initialize_tracking_state(self) -> None:
+        """
+        Initialize all tracking state including dictionaries, handlers, and counters.
+        """
+        # Initialize event handlers with optional JSON output
+        self.event_handlers: EventHandls = EventHandls(config=self.config)
+
+        # Initialize tracking dictionaries for objects
+        self.tracked_objects: WeakIdKeyDictionary = WeakIdKeyDictionary()
+        self.tracked_objects_lens: WeakIdKeyDictionary = WeakIdKeyDictionary()
 
         # Initialize last line numbers dictionary for tracking previous line in line events
         self.last_linenos: Dict[FrameType, int] = {}
@@ -761,18 +762,80 @@ class Tracer:
 
         return trace_func
 
+    def log_metainfo_with_format(self) -> None:
+        """Log metainfo in formatted view."""
+
+        # Table header with version information
+        header = [
+            "=" * 80,
+            "# ObjWatch Log",
+            f"> Version:        {runtime_info.version}",
+            f"> Start Time:     {runtime_info.start_time}",
+            f"> System Info:    {runtime_info.system_info}",
+            f"> Python Version: {runtime_info.python_version}",
+        ]
+
+        # Config section
+        config_section = []
+        if self.config:
+            config_section = ["\n## Config:", str(self.config)]
+
+        # Targets section
+        targets_section = [
+            "\n## Targets:",
+            Targets.serialize_targets(self.targets),
+        ]
+
+        # Filename targets section
+        filename_targets_section = [
+            "\n## Filename Targets:",
+        ]
+        if self.filename_targets:
+            for target in sorted(self.filename_targets):
+                filename_targets_section.append(f"* {target}")
+        else:
+            filename_targets_section.append("* None")
+
+        # Exclude filename targets section
+        exclude_filename_targets_section = [
+            "\n## Exclude Filename Targets:",
+        ]
+        if self.exclude_filename_targets:
+            for target in sorted(self.exclude_filename_targets):
+                exclude_filename_targets_section.append(f"* {target}")
+        else:
+            exclude_filename_targets_section.append("* None")
+
+        # Footer
+        footer = ["=" * 80]
+
+        # Combine all sections and log
+        log_content = "\n".join(
+            header
+            + config_section
+            + targets_section
+            + filename_targets_section
+            + exclude_filename_targets_section
+            + footer
+        )
+        log_info(log_content)
+
     def start(self) -> None:
         """
         Start the tracing process by setting the trace function.
         """
-        log_info("Starting tracing.")
+        # Format and logging all metainfo
+        self.log_metainfo_with_format()
+
+        # Initialize tracking dictionaries
+        self._initialize_tracking_state()
+
         sys.settrace(self.trace_factory())
         self.mp_handlers.sync()
 
     def stop(self) -> None:
         """
-        Stop the tracing process by removing the trace function and saving XML logs.
+        Stop the tracing process by removing the trace function and saving JSON logs.
         """
-        log_info("Stopping tracing.")
         sys.settrace(None)
-        self.event_handlers.save_xml()
+        self.event_handlers.save_json()

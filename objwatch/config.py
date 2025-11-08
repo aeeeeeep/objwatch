@@ -4,9 +4,7 @@
 import logging
 from types import ModuleType
 from dataclasses import dataclass
-from typing import Optional, Union, List
-
-from .wrappers import ABCWrapper
+from typing import Optional, Union, List, Dict, Any
 
 
 @dataclass(frozen=True)
@@ -20,7 +18,7 @@ class ObjWatchConfig:
         framework (Optional[str]): The multi-process framework module to use.
         indexes (Optional[List[int]]): The indexes to track in a multi-process environment.
         output (Optional[str]): Path to a file for writing logs.
-        output_xml (Optional[str]): Path to the XML file for writing structured logs.
+        output_json (Optional[str]): Path to the JSON file for writing structured logs.
         level (int): Logging level (e.g., logging.DEBUG, logging.INFO).
         simple (bool): Defaults to True, disable simple logging mode with the format "[{time}] [{level}] objwatch: {msg}".
         wrapper (Optional[ABCWrapper]): Custom wrapper to extend tracing and logging functionality.
@@ -33,10 +31,10 @@ class ObjWatchConfig:
     framework: Optional[str] = None
     indexes: Optional[List[int]] = None
     output: Optional[str] = None
-    output_xml: Optional[str] = None
+    output_json: Optional[str] = None
     level: int = logging.DEBUG
     simple: bool = True
-    wrapper: Optional[ABCWrapper] = None
+    wrapper: Optional[Any] = None
     with_locals: bool = False
     with_globals: bool = False
 
@@ -49,3 +47,46 @@ class ObjWatchConfig:
 
         if self.level == "force" and self.output is not None:
             raise ValueError("output cannot be specified when level is 'force'")
+
+    def __str__(self) -> str:
+        """
+        Return a simple string representation of the configuration.
+        """
+        config_lines = []
+        for field_name, field_value in self.__dict__.items():
+            if isinstance(field_value, list):
+                # For lists, print each element on a new line
+                config_lines.append(f"* {field_name}:")
+                for item in field_value:
+                    config_lines.append(f"  - {item}")
+            elif field_name == 'level' and isinstance(field_value, int):
+                config_lines.append(f"* {field_name}: {logging.getLevelName(field_value)}")
+            elif field_name == 'wrapper' and field_value is not None:
+                config_lines.append(f"* {field_name}: {field_value.__name__}")
+            else:
+                # For other types, print directly
+                config_lines.append(f"* {field_name}: {field_value}")
+        return "\n".join(config_lines)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert the configuration object to a dictionary representation.
+
+        Returns:
+            Dict[str, Any]: A dictionary containing all configuration fields.
+        """
+        result: Dict[str, Any] = {}
+        for field_name, field_value in self.__dict__.items():
+            if isinstance(field_value, list):
+                # Convert list elements to string representation if needed
+                result[field_name] = [str(item) if isinstance(item, ModuleType) else item for item in field_value]
+            elif isinstance(field_value, (ModuleType, type)):
+                # Convert module objects to their __name__
+                result[field_name] = field_value.__name__
+            elif field_name == 'level' and isinstance(field_value, int):
+                # For level field, include both numeric value and name
+                result[field_name] = logging.getLevelName(field_value)
+            else:
+                # For other types, add as is
+                result[field_name] = field_value
+        return result

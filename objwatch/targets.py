@@ -12,6 +12,7 @@ from types import ModuleType, MethodType, FunctionType
 from typing import Optional, Tuple, List, Union, Set
 
 from .constants import Constants
+from .utils.util import target_handler
 from .utils.logger import log_error, log_warn
 
 ClassType = type
@@ -549,14 +550,6 @@ class Targets:
         Returns:
             str: JSON serialized string
         """
-
-        def target_handler(o):
-            if isinstance(o, set):
-                return list(o)
-            if hasattr(o, '__dict__'):
-                return o.__dict__
-            return str(o)
-
         if len(targets) > Constants.MAX_TARGETS_DISPLAY:
             truncated_obj = {key: "..." for key in targets.keys()}
             truncated_obj["Warning: too many top-level keys, only showing values like"] = "..."
