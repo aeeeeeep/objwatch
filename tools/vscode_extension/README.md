@@ -1,8 +1,8 @@
+<img src="images/objwatch-logo.png" width="128px" alt="ObjWatch Logo">
+
 # ObjWatch Log Viewer - VSCode Extension
 
 \[ English | [中文](README_zh.md) \]
-
-<img src="images/objwatch-logo.png" width="256px" alt="ObjWatch Logo">
 
 Enhanced viewer for ObjWatch debugging logs with syntax highlighting, nested structure recognition, and folding support.
 

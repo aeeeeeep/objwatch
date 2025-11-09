@@ -1,10 +1,12 @@
-# ObjWatch Log Viewer - VSCode 扩展
+<img src="images/objwatch-logo.png" width="128px" alt="ObjWatch Logo">
+
+# ObjWatch Log Viewer - VSCode 扩展插件
 
 \[ [English](README.md) | 中文 \]
 
-<img src="images/objwatch-logo.png" width="256px" alt="ObjWatch Logo">
-
 专为 ObjWatch 调试日志设计的增强型查看器，提供语法高亮、嵌套结构识别和代码折叠支持。
+
+获取它：[VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=aeeeeeep.objwatch-log-viewer)
 
 ## 功能特性
 

@@ -1,7 +1,8 @@
 <div align="center">
-  <img src="docs/resource/objwatch-logo.png" alt="ObjWatch Logo" style="width: 200px; height: auto; vertical-align: middle; margin-right: 15px;" />
-  <p style="display: inline-block; vertical-align: middle; margin-right: 100px; font-size: 3em; font-weight: bold;">ObjWatch</p>
+  <img src="docs/resource/objwatch-logo.png" alt="ObjWatch Logo" style="width: 256px; height: auto; vertical-align: middle; margin-right: 128px;" />
 </div>
+
+# ObjWatch
 
 [![Nightly Test Status](https://github.com/aeeeeeep/objwatch/actions/workflows/nightly-test.yml/badge.svg)](https://github.com/aeeeeeep/objwatch/actions/workflows/nightly-test.yml)
 [![Documentation](https://img.shields.io/badge/docs-latest-green.svg?style=flat)](https://objwatch.readthedocs.io)
@@ -16,11 +17,9 @@
 
 ## 🔭 概述
 
-ObjWatch 是一款面向对象的 Python 调试库，支持对模块、类、成员、方法、函数、全局变量及局部变量进行可配置的嵌套追踪与监控，并兼容多进程场景。它帮助开发者深入洞察代码运行细节，快速定位问题、优化性能并全面提升代码质量。
+ObjWatch 是一款面向对象的 Python 调试库，支持对模块、类、成员、方法、函数、全局变量及局部变量进行可配置的嵌套追踪与监控，并兼容多进程场景。它帮助开发者深入洞察代码运行细节，快速定位问题、优化性能并全面提升代码质量。⚠️**该工具会影响程序的性能，建议仅在调试环境中使用。**
 
-**⚠️ 性能提示**
-
-ObjWatch 会影响程序的性能，建议仅在调试环境中使用。
+[ObjWatch Log Viewer](tools/vscode_extension) 扩展插件已在 [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=aeeeeeep.objwatch-log-viewer) 推出，通过智能语法高亮、层级结构识别和灵活的折叠功能，大幅提升 ObjWatch 日志易读性。
 
 ## ✨ 功能
 
@@ -238,7 +237,7 @@ ObjWatch 提供可定制的日志格式和追踪选项，适应不同项目需�
 - `exclude_targets` (列表，可选) ：要排除监控的文件或模块。
 - `framework` (字符串，可选)：需要使用的多进程框架模块。
 - `indexes` (列表，可选)：需要在多进程环境中跟踪的 ids。
-- `output` (字符串，可选) ：写入日志的文件路径。
+- `output` (字符串，可选) ：写入日志的文件路径，必须以 '.objwatch' 结尾，用于 ObjWatch Log Viewer 扩展插件。
 - `output_json` (字符串，可选) ：用于写入结构化日志的 JSON 文件路径。如果指定，将以嵌套的 JSON 格式保存追踪信息，便于后续分析工作。
 - `level` (字符串，可选) ：日志级别 (例如 `logging.DEBUG`，`logging.INFO`，`force` 等) 。为确保即使 logger 被外部库禁用或删除，日志仍然有效，可以设置 `level` 为 `"force"`，这将绕过标准的日志处理器，直接使用 `print()` 将日志消息输出到控制台，确保关键的调试信息不会丢失。
 - `simple` (布尔值，可选) ：默认值为 True，禁用简化日志模式，格式为 `"[{time}] [{level}] objwatch: {msg}"`。
