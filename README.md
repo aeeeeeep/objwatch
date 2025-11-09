@@ -1,4 +1,7 @@
-# ObjWatch
+<div align="center">
+  <img src="docs/resource/objwatch-logo.png" alt="ObjWatch Logo" style="width: 200px; height: auto; vertical-align: middle; margin-right: 15px;" />
+  <p style="display: inline-block; vertical-align: middle; margin-right: 100px; font-size: 3em; font-weight: bold;">ObjWatch</p>
+</div>
 
 [![Nightly Test Status](https://github.com/aeeeeeep/objwatch/actions/workflows/nightly-test.yml/badge.svg)](https://github.com/aeeeeeep/objwatch/actions/workflows/nightly-test.yml)
 [![Documentation](https://img.shields.io/badge/docs-latest-green.svg?style=flat)](https://objwatch.readthedocs.io)
@@ -13,7 +16,7 @@
 
 ## 🔭 Overview
 
-ObjWatch is a robust Python library designed to streamline the debugging and monitoring of complex projects. By offering real-time tracing of object attributes and method calls, ObjWatch empowers developers to gain deeper insights into their codebases, facilitating issue identification, performance optimization, and overall code quality enhancement.
+ObjWatch is a Python library for OOP debugging with nested tracing and configurable monitoring of modules, classes, members, methods, functions, globals, and locals, with multi-process support. It empowers developers to gain deeper insights into their codebases, facilitating issue identification, performance optimization, and overall code quality enhancement.
 
 **⚠️ Performance Notice**
 

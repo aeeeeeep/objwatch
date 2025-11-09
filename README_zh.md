@@ -1,4 +1,7 @@
-# ObjWatch
+<div align="center">
+  <img src="docs/resource/objwatch-logo.png" alt="ObjWatch Logo" style="width: 200px; height: auto; vertical-align: middle; margin-right: 15px;" />
+  <p style="display: inline-block; vertical-align: middle; margin-right: 100px; font-size: 3em; font-weight: bold;">ObjWatch</p>
+</div>
 
 [![Nightly Test Status](https://github.com/aeeeeeep/objwatch/actions/workflows/nightly-test.yml/badge.svg)](https://github.com/aeeeeeep/objwatch/actions/workflows/nightly-test.yml)
 [![Documentation](https://img.shields.io/badge/docs-latest-green.svg?style=flat)](https://objwatch.readthedocs.io)
@@ -13,7 +16,7 @@
 
 ## 🔭 概述
 
-ObjWatch 是一个用于简化复杂项目调试和监控的 Python 工具库。通过实时追踪对象属性和方法调用，使开发者能够深入了解代码库，帮助识别问题、优化性能并提升代码质量。
+ObjWatch 是一款面向对象的 Python 调试库，支持对模块、类、成员、方法、函数、全局变量及局部变量进行可配置的嵌套追踪与监控，并兼容多进程场景。它帮助开发者深入洞察代码运行细节，快速定位问题、优化性能并全面提升代码质量。
 
 **⚠️ 性能提示**
 

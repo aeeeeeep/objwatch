@@ -79,6 +79,7 @@ autosectionlabel_prefix_document = True
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "furo"
+html_logo = "docs/resource/objwatch-logo.png"
 
 # HTML theme options for better UX (furo specific)
 html_theme_options = {
