@@ -34,6 +34,8 @@ class EventHandls:
         self.output_json = self.config.output_json
         if self.output_json:
             self.is_json_saved: bool = False
+            # Event ID counter for unique event identification
+            self.event_id: int = 1
             # JSON structure with runtime info, config and events stack
             self.stack_root: Dict[str, Any] = {
                 'ObjWatch': {
@@ -73,7 +75,7 @@ class EventHandls:
         Returns:
             str: The formatted prefix string.
         """
-        return f"{lineno:>5} " + "| " * call_depth
+        return f"{lineno:>5} " + "  " * call_depth
 
     def _log_event(self, lineno: int, event_type: EventType, message: str, call_depth: int, index_info: str) -> None:
         """
@@ -100,7 +102,9 @@ class EventHandls:
         Returns:
             dict: The created event dictionary.
         """
-        event = {'type': event_type, **data}
+        # Add unique event ID and increment counter
+        event = {'id': self.event_id, 'type': event_type, **data}
+        self.event_id += 1
         self.current_node[-1].append(event)
         return event
 

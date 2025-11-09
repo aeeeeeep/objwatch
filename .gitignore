@@ -4,6 +4,7 @@ __pycache__/
 *.pyo
 *.pyd
 *.log
+*.objwatch
 .env
 .env.*
 venv/

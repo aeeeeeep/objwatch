@@ -17,7 +17,7 @@ def create_logger(
 
     Args:
         name (str): Name of the logger.
-        output (Optional[str]): Path to a file for writing logs.
+        output (Optional[str]): Path to a file for writing logs, must end with '.objwatch' for ObjWatch Log Viewer extension.
         level (Union[int, str]): Logging level (e.g., logging.DEBUG, logging.INFO, "force").
         simple (bool): Defaults to True, disable simple logging mode with the format "[{time}] [{level}] objwatch: {msg}".
     """

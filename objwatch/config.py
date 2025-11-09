@@ -17,7 +17,7 @@ class ObjWatchConfig:
         exclude_targets (Optional[List[Union[str, ModuleType]]]): Files or modules to exclude from monitoring.
         framework (Optional[str]): The multi-process framework module to use.
         indexes (Optional[List[int]]): The indexes to track in a multi-process environment.
-        output (Optional[str]): Path to a file for writing logs.
+        output (Optional[str]): Path to a file for writing logs, must end with '.objwatch' for ObjWatch Log Viewer extension.
         output_json (Optional[str]): Path to the JSON file for writing structured logs.
         level (int): Logging level (e.g., logging.DEBUG, logging.INFO).
         simple (bool): Defaults to True, disable simple logging mode with the format "[{time}] [{level}] objwatch: {msg}".
@@ -47,6 +47,12 @@ class ObjWatchConfig:
 
         if self.level == "force" and self.output is not None:
             raise ValueError("output cannot be specified when level is 'force'")
+
+        if self.output is not None and not self.output.endswith('.objwatch'):
+            raise ValueError("output file must end with '.objwatch' for ObjWatch Log Viewer extension")
+
+        if self.output_json is not None and not self.output_json.endswith('.json'):
+            raise ValueError("output_json file must end with '.json'")
 
     def __str__(self) -> str:
         """

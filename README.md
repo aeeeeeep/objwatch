@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="docs/resource/objwatch-logo.png" alt="ObjWatch Logo" style="width: 256px; height: auto; vertical-align: middle; margin-right: 128px;" />
+</div>
+
 # ObjWatch
 
 [![Nightly Test Status](https://github.com/aeeeeeep/objwatch/actions/workflows/nightly-test.yml/badge.svg)](https://github.com/aeeeeeep/objwatch/actions/workflows/nightly-test.yml)
@@ -13,11 +17,9 @@
 
 ## 🔭 Overview
 
-ObjWatch is a robust Python library designed to streamline the debugging and monitoring of complex projects. By offering real-time tracing of object attributes and method calls, ObjWatch empowers developers to gain deeper insights into their codebases, facilitating issue identification, performance optimization, and overall code quality enhancement.
+ObjWatch is a Python library for OOP debugging with nested tracing and configurable monitoring of modules, classes, members, methods, functions, globals, and locals, with multi-process support. It empowers developers to gain deeper insights into their codebases, facilitating issue identification, performance optimization, and overall code quality enhancement. ⚠️**This tool may impact your application's performance. It is recommended to use it solely in debugging environments.**
 
-**⚠️ Performance Notice**
-
-ObjWatch may impact your application's performance. It is recommended to use it solely in debugging environments.
+[ObjWatch Log Viewer](tools/vscode_extension) extension is now available on the [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=aeeeeeep.objwatch-log-viewer), significantly enhancing the readability of ObjWatch logs through intelligent syntax highlighting, hierarchical structure recognition, and flexible folding capabilities.
 
 ## ✨ Features
 
@@ -121,11 +123,11 @@ def main():
 
 if __name__ == '__main__':
     # Using ObjWatch as a context manager
-    with objwatch.ObjWatch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseWrapper):
+    with objwatch.ObjWatch(['examples/example_usage.py'], output='./log.objwatch', wrapper=BaseWrapper):
         main()
 
     # Using the watch function
-    obj_watch = objwatch.watch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseWrapper)
+    obj_watch = objwatch.watch(['examples/example_usage.py'], output='./log.objwatch', wrapper=BaseWrapper)
     main()
     obj_watch.stop()
 
@@ -138,6 +140,7 @@ When running the above script, ObjWatch will generate logs similar to the follow
 <summary>Expected Log Output</summary>
 
 ```
+Starting ObjWatch tracing.
 ================================================================================
 # ObjWatch Log
 > Version:        /
@@ -151,8 +154,8 @@ When running the above script, ObjWatch will generate logs similar to the follow
 * exclude_targets: None
 * framework: None
 * indexes: None
-* output: ./objwatch.log
-* output_json: None
+* output: ./log.objwatch
+* output_json: ./objwatch.json
 * level: DEBUG
 * simple: True
 * wrapper: BaseWrapper
@@ -168,35 +171,35 @@ When running the above script, ObjWatch will generate logs similar to the follow
 ## Exclude Filename Targets:
 * None
 ================================================================================
-   37 run __main__.main <- 
-   23 | run __main__.SampleClass.__init__ <- '0':(type)SampleClass, '1':10
-   23 | end __main__.SampleClass.__init__ -> None
-   25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-   14 | | upd SampleClass.value None -> 10
-   14 | | upd SampleClass.value 10 -> 11
-   25 | end __main__.SampleClass.increment -> None
-   25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-   14 | | upd SampleClass.value 11 -> 12
-   25 | end __main__.SampleClass.increment -> None
-   25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-   14 | | upd SampleClass.value 12 -> 13
-   25 | end __main__.SampleClass.increment -> None
-   25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-   14 | | upd SampleClass.value 13 -> 14
-   25 | end __main__.SampleClass.increment -> None
-   25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-   14 | | upd SampleClass.value 14 -> 15
-   25 | end __main__.SampleClass.increment -> None
-   27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
-   18 | | upd SampleClass.value 15 -> 14
-   27 | end __main__.SampleClass.decrement -> None
-   27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
-   18 | | upd SampleClass.value 14 -> 13
-   27 | end __main__.SampleClass.decrement -> None
-   27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
-   18 | | upd SampleClass.value 13 -> 12
-   27 | end __main__.SampleClass.decrement -> None
-   37 end __main__.main -> None
+   35 run __main__.main <- 
+   23   run __main__.SampleClass.__init__ <- '0':(type)SampleClass, '1':10
+   23   end __main__.SampleClass.__init__ -> None
+   25   run __main__.SampleClass.increment <- '0':(type)SampleClass
+   14     upd SampleClass.value None -> 10
+   14     upd SampleClass.value 10 -> 11
+   25   end __main__.SampleClass.increment -> None
+   25   run __main__.SampleClass.increment <- '0':(type)SampleClass
+   14     upd SampleClass.value 11 -> 12
+   25   end __main__.SampleClass.increment -> None
+   25   run __main__.SampleClass.increment <- '0':(type)SampleClass
+   14     upd SampleClass.value 12 -> 13
+   25   end __main__.SampleClass.increment -> None
+   25   run __main__.SampleClass.increment <- '0':(type)SampleClass
+   14     upd SampleClass.value 13 -> 14
+   25   end __main__.SampleClass.increment -> None
+   25   run __main__.SampleClass.increment <- '0':(type)SampleClass
+   14     upd SampleClass.value 14 -> 15
+   25   end __main__.SampleClass.increment -> None
+   27   run __main__.SampleClass.decrement <- '0':(type)SampleClass
+   18     upd SampleClass.value 15 -> 14
+   27   end __main__.SampleClass.decrement -> None
+   27   run __main__.SampleClass.decrement <- '0':(type)SampleClass
+   18     upd SampleClass.value 14 -> 13
+   27   end __main__.SampleClass.decrement -> None
+   27   run __main__.SampleClass.decrement <- '0':(type)SampleClass
+   18     upd SampleClass.value 13 -> 12
+   27   end __main__.SampleClass.decrement -> None
+   35 end __main__.main -> None
 Stopping ObjWatch tracing.
 ```
 
@@ -236,7 +239,7 @@ ObjWatch offers customizable logging formats and tracing options to suit various
 - `exclude_targets` (list, optional): Files or modules to exclude from monitoring.
 - `framework` (str, optional): The multi-process framework module to use.
 - `indexes` (list, optional): The indexes to track in a multi-process environment.
-- `output` (str, optional): Path to a file for writing logs.
+- `output` (str, optional): Path to a file for writing logs, must end with '.objwatch' for ObjWatch Log Viewer extension.
 - `output_json` (str, optional): Path to the JSON file for writing structured logs. If specified, tracing information will be saved in a nested JSON format for easy analysis.
 - `level` (str, optional): Logging level (e.g., `logging.DEBUG`, `logging.INFO`, `force` etc.). To ensure logs are captured even if the logger is disabled or removed by external libraries, you can set `level` to "force", which will bypass standard logging handlers and use `print()` to output log messages directly to the console, ensuring that critical debugging information is not lost.
 - `simple` (bool, optional): Defaults to True, disable simple logging mode with the format `"[{time}] [{level}] objwatch: {msg}"`.
@@ -263,7 +266,7 @@ def main():
     pass
 
 if __name__ == '__main__':
-    obj_watch = objwatch.watch(['multi_process_module.py'], indexes=[0, 1, 2, 3], output='./mp.log')
+    obj_watch = objwatch.watch(['multi_process_module.py'], indexes=[0, 1, 2, 3], output='./mp.objwatch')
     main()
     obj_watch.stop()
 ```

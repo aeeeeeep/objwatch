@@ -39,7 +39,7 @@ class ObjWatch:
             exclude_targets (Optional[List[Union[str, ModuleType]]]): Files or modules to exclude from monitoring.
             framework (Optional[str]): The multi-process framework module to use.
             indexes (Optional[List[int]]): The indexes to track in a multi-process environment.
-            output (Optional[str]): Path to a file for writing logs.
+            output (Optional[str]): Path to a file for writing logs, must end with '.objwatch' for ObjWatch Log Viewer extension.
             output_json (Optional[str]): Path to the JSON file for writing structured logs.
             level (int): Logging level (e.g., logging.DEBUG, logging.INFO).
             simple (bool): Defaults to True, disable simple logging mode with the format "[{time}] [{level}] objwatch: {msg}".
@@ -114,7 +114,7 @@ def watch(
         exclude_targets (Optional[List[Union[str, ModuleType]]]): Files or modules to exclude from monitoring.
         framework (Optional[str]): The multi-process framework module to use.
         indexes (Optional[List[int]]): The indexes to track in a multi-process environment.
-        output (Optional[str]): Path to a file for writing logs.
+        output (Optional[str]): Path to a file for writing logs, must end with '.objwatch' for ObjWatch Log Viewer extension.
         output_json (Optional[str]): Path to the JSON file for writing structured logs.
         level (int): Logging level (e.g., logging.DEBUG, logging.INFO).
         simple (bool): Defaults to True, disable simple logging mode with the format "[{time}] [{level}] objwatch: {msg}".

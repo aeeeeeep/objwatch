@@ -1,6 +1,6 @@
 # JSON到日志转换器（ObjWatch）
 
-\[ [English](README_zh.md) | 中文 \]
+\[ [English](README.md) | 中文 \]
 
 此工具将ObjWatch生成的JSON输出文件转换为人类可读的日志格式，使分析和理解追踪结果更加容易。
 
@@ -23,16 +23,16 @@ python3 json_to_log.py <json文件> [-o <输出文件>]
 
 - `<json文件>`: ObjWatch生成的输入JSON文件路径
 - `-o, --output <输出文件>`: （可选）输出日志文件路径
-  - 如果未指定，工具将创建一个与输入JSON文件同名但扩展名为`.log`的日志文件
+  - 如果未指定，工具将创建一个与输入JSON文件同名但扩展名为`.objwatch`的日志文件
 
 ### 示例
 
 ```bash
-# 将objwatch.json转换为objwatch.log
+# 将objwatch.json转换为objwatch.objwatch
 python3 json_to_log.py objwatch.json
 
-# 将objwatch.json转换为custom_output.log
-python3 json_to_log.py objwatch.json -o custom_output.log
+# 将objwatch.json转换为custom_output.objwatch
+python3 json_to_log.py objwatch.json -o custom_output.objwatch
 ```
 
 ## 输出格式

@@ -1,0 +1,115 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "ObjWatch Log",
+  "scopeName": "source.objwatch",
+  "patterns": [
+    {
+      "name": "meta.line-number.objwatch",
+      "match": "^(\\s{3})(\\d{1,5})",
+      "captures": {
+        "2": {
+          "name": "constant.numeric.line-number.objwatch"
+        }
+      }
+    },
+    {
+      "name": "meta.indentation.objwatch",
+      "match": "^(\\s{3}\\d{1,5})(\\s+)",
+      "captures": {
+        "2": {
+          "name": "meta.indentation.whitespace.objwatch"
+        }
+      }
+    },
+    {
+      "name": "keyword.event-type.run.objwatch",
+      "match": "(\\s+)(run)(\\s+)",
+      "captures": {
+        "2": {
+          "name": "keyword.event-type.run.objwatch"
+        }
+      }
+    },
+    {
+      "name": "keyword.event-type.end.objwatch",
+      "match": "(\\s+)(end)(\\s+)",
+      "captures": {
+        "2": {
+          "name": "keyword.event-type.end.objwatch"
+        }
+      }
+    },
+    {
+      "name": "keyword.event-type.upd.objwatch",
+      "match": "(\\s+)(upd)(\\s+)",
+      "captures": {
+        "2": {
+          "name": "keyword.event-type.upd.objwatch"
+        }
+      }
+    },
+    {
+      "name": "keyword.event-type.apd.objwatch",
+      "match": "(\\s+)(apd)(\\s+)",
+      "captures": {
+        "2": {
+          "name": "keyword.event-type.apd.objwatch"
+        }
+      }
+    },
+    {
+      "name": "keyword.event-type.pop.objwatch",
+      "match": "(\\s+)(pop)(\\s+)",
+      "captures": {
+        "2": {
+          "name": "keyword.event-type.pop.objwatch"
+        }
+      }
+    },
+    {
+      "name": "entity.name.function.objwatch",
+      "match": "(\\s+(?:run|end)\\s+)([\\w.]+)(?:\\s+)"
+    },
+    {
+      "name": "entity.name.variable.objwatch",
+      "match": "(\\s+(?:upd|apd|pop)\\s+)([\\w.]+)(?:\\s+)"
+    },
+    {
+      "name": "constant.language.arrow.objwatch",
+      "match": "\\s+->\\s+"
+    },
+    {
+      "name": "constant.language.left-arrow.objwatch",
+      "match": "\\s+<-\\s+"
+    },
+    {
+      "name": "string.quoted.single.objwatch",
+      "match": "'[^']*'"
+    },
+    {
+      "name": "string.quoted.double.objwatch",
+      "match": "\"[^\"]*\""
+    },
+    {
+      "name": "constant.numeric.objwatch",
+      "match": "\\b\\d+\\b"
+    },
+    {
+      "name": "meta.list.objwatch",
+      "match": "\\(list\\)\\[[^\\]]*\\]"
+    },
+    {
+      "name": "meta.dict.objwatch",
+      "match": "\\(dict\\)\\[[^\\]]*\\]"
+    },
+    {
+      "name": "meta.set.objwatch",
+      "match": "\\(set\\)\\[[^\\]]*\\]"
+    },
+    {
+      "name": "keyword.operator.objwatch",
+      "match": "None|True|False"
+    }
+  ],
+  "repository": {}
+}

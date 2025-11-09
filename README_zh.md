@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="docs/resource/objwatch-logo.png" alt="ObjWatch Logo" style="width: 256px; height: auto; vertical-align: middle; margin-right: 128px;" />
+</div>
+
 # ObjWatch
 
 [![Nightly Test Status](https://github.com/aeeeeeep/objwatch/actions/workflows/nightly-test.yml/badge.svg)](https://github.com/aeeeeeep/objwatch/actions/workflows/nightly-test.yml)
@@ -13,11 +17,9 @@
 
 ## 🔭 概述
 
-ObjWatch 是一个用于简化复杂项目调试和监控的 Python 工具库。通过实时追踪对象属性和方法调用，使开发者能够深入了解代码库，帮助识别问题、优化性能并提升代码质量。
+ObjWatch 是一款面向对象的 Python 调试库，支持对模块、类、成员、方法、函数、全局变量及局部变量进行可配置的嵌套追踪与监控，并兼容多进程场景。它帮助开发者深入洞察代码运行细节，快速定位问题、优化性能并全面提升代码质量。⚠️**该工具会影响程序的性能，建议仅在调试环境中使用。**
 
-**⚠️ 性能提示**
-
-ObjWatch 会影响程序的性能，建议仅在调试环境中使用。
+[ObjWatch Log Viewer](tools/vscode_extension) 扩展插件已在 [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=aeeeeeep.objwatch-log-viewer) 推出，通过智能语法高亮、层级结构识别和灵活的折叠功能，大幅提升 ObjWatch 日志易读性。
 
 ## ✨ 功能
 
@@ -120,11 +122,11 @@ def main():
 
 if __name__ == '__main__':
     # 使用上下文管理器并开启日志
-    with objwatch.ObjWatch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseWrapper):
+    with objwatch.ObjWatch(['examples/example_usage.py'], output='./log.objwatch', wrapper=BaseWrapper):
         main()
 
     # 使用 API 并开启日志
-    obj_watch = objwatch.watch(['examples/example_usage.py'], output='./objwatch.log', wrapper=BaseWrapper)
+    obj_watch = objwatch.watch(['examples/example_usage.py'], output='./log.objwatch', wrapper=BaseWrapper)
     main()
     obj_watch.stop()
 ```
@@ -136,6 +138,7 @@ if __name__ == '__main__':
 <summary>Expected Log Output</summary>
 
 ```
+Starting ObjWatch tracing.
 ================================================================================
 # ObjWatch Log
 > Version:        /
@@ -149,8 +152,8 @@ if __name__ == '__main__':
 * exclude_targets: None
 * framework: None
 * indexes: None
-* output: ./objwatch.log
-* output_json: None
+* output: ./log.objwatch
+* output_json: ./objwatch.json
 * level: DEBUG
 * simple: True
 * wrapper: BaseWrapper
@@ -166,35 +169,35 @@ if __name__ == '__main__':
 ## Exclude Filename Targets:
 * None
 ================================================================================
-   37 run __main__.main <- 
-   23 | run __main__.SampleClass.__init__ <- '0':(type)SampleClass, '1':10
-   23 | end __main__.SampleClass.__init__ -> None
-   25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-   14 | | upd SampleClass.value None -> 10
-   14 | | upd SampleClass.value 10 -> 11
-   25 | end __main__.SampleClass.increment -> None
-   25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-   14 | | upd SampleClass.value 11 -> 12
-   25 | end __main__.SampleClass.increment -> None
-   25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-   14 | | upd SampleClass.value 12 -> 13
-   25 | end __main__.SampleClass.increment -> None
-   25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-   14 | | upd SampleClass.value 13 -> 14
-   25 | end __main__.SampleClass.increment -> None
-   25 | run __main__.SampleClass.increment <- '0':(type)SampleClass
-   14 | | upd SampleClass.value 14 -> 15
-   25 | end __main__.SampleClass.increment -> None
-   27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
-   18 | | upd SampleClass.value 15 -> 14
-   27 | end __main__.SampleClass.decrement -> None
-   27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
-   18 | | upd SampleClass.value 14 -> 13
-   27 | end __main__.SampleClass.decrement -> None
-   27 | run __main__.SampleClass.decrement <- '0':(type)SampleClass
-   18 | | upd SampleClass.value 13 -> 12
-   27 | end __main__.SampleClass.decrement -> None
-   37 end __main__.main -> None
+   35 run __main__.main <- 
+   23   run __main__.SampleClass.__init__ <- '0':(type)SampleClass, '1':10
+   23   end __main__.SampleClass.__init__ -> None
+   25   run __main__.SampleClass.increment <- '0':(type)SampleClass
+   14     upd SampleClass.value None -> 10
+   14     upd SampleClass.value 10 -> 11
+   25   end __main__.SampleClass.increment -> None
+   25   run __main__.SampleClass.increment <- '0':(type)SampleClass
+   14     upd SampleClass.value 11 -> 12
+   25   end __main__.SampleClass.increment -> None
+   25   run __main__.SampleClass.increment <- '0':(type)SampleClass
+   14     upd SampleClass.value 12 -> 13
+   25   end __main__.SampleClass.increment -> None
+   25   run __main__.SampleClass.increment <- '0':(type)SampleClass
+   14     upd SampleClass.value 13 -> 14
+   25   end __main__.SampleClass.increment -> None
+   25   run __main__.SampleClass.increment <- '0':(type)SampleClass
+   14     upd SampleClass.value 14 -> 15
+   25   end __main__.SampleClass.increment -> None
+   27   run __main__.SampleClass.decrement <- '0':(type)SampleClass
+   18     upd SampleClass.value 15 -> 14
+   27   end __main__.SampleClass.decrement -> None
+   27   run __main__.SampleClass.decrement <- '0':(type)SampleClass
+   18     upd SampleClass.value 14 -> 13
+   27   end __main__.SampleClass.decrement -> None
+   27   run __main__.SampleClass.decrement <- '0':(type)SampleClass
+   18     upd SampleClass.value 13 -> 12
+   27   end __main__.SampleClass.decrement -> None
+   35 end __main__.main -> None
 Stopping ObjWatch tracing.
 ```
 
@@ -234,7 +237,7 @@ ObjWatch 提供可定制的日志格式和追踪选项，适应不同项目需�
 - `exclude_targets` (列表，可选) ：要排除监控的文件或模块。
 - `framework` (字符串，可选)：需要使用的多进程框架模块。
 - `indexes` (列表，可选)：需要在多进程环境中跟踪的 ids。
-- `output` (字符串，可选) ：写入日志的文件路径。
+- `output` (字符串，可选) ：写入日志的文件路径，必须以 '.objwatch' 结尾，用于 ObjWatch Log Viewer 扩展插件。
 - `output_json` (字符串，可选) ：用于写入结构化日志的 JSON 文件路径。如果指定，将以嵌套的 JSON 格式保存追踪信息，便于后续分析工作。
 - `level` (字符串，可选) ：日志级别 (例如 `logging.DEBUG`，`logging.INFO`，`force` 等) 。为确保即使 logger 被外部库禁用或删除，日志仍然有效，可以设置 `level` 为 `"force"`，这将绕过标准的日志处理器，直接使用 `print()` 将日志消息输出到控制台，确保关键的调试信息不会丢失。
 - `simple` (布尔值，可选) ：默认值为 True，禁用简化日志模式，格式为 `"[{time}] [{level}] objwatch: {msg}"`。
@@ -261,7 +264,7 @@ def main():
     pass
 
 if __name__ == '__main__':
-    obj_watch = objwatch.watch(['multi_process_module.py'], indexes=[0, 1, 2, 3], output='./mp.log')
+    obj_watch = objwatch.watch(['multi_process_module.py'], indexes=[0, 1, 2, 3], output='./mp.objwatch')
     main()
     obj_watch.stop()
 ```
