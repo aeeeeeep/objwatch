@@ -15,28 +15,28 @@ class ObjWatchConfig:
     Args:
         targets (List[Union[str, ModuleType]]): Files or modules to monitor.
         exclude_targets (Optional[List[Union[str, ModuleType]]]): Files or modules to exclude from monitoring.
-        framework (Optional[str]): The multi-process framework module to use.
-        indexes (Optional[List[int]]): The indexes to track in a multi-process environment.
+        with_locals (bool): Enable tracing and logging of local variables within functions.
+        with_globals (bool): Enable tracing and logging of global variables across function calls.
         output (Optional[str]): Path to a file for writing logs, must end with '.objwatch' for ObjWatch Log Viewer extension.
         output_json (Optional[str]): Path to the JSON file for writing structured logs.
         level (int): Logging level (e.g., logging.DEBUG, logging.INFO).
         simple (bool): Defaults to True, disable simple logging mode with the format "[{time}] [{level}] objwatch: {msg}".
         wrapper (Optional[ABCWrapper]): Custom wrapper to extend tracing and logging functionality.
-        with_locals (bool): Enable tracing and logging of local variables within functions.
-        with_globals (bool): Enable tracing and logging of global variables across function calls.
+        framework (Optional[str]): The multi-process framework module to use.
+        indexes (Optional[List[int]]): The indexes to track in a multi-process environment.
     """
 
     targets: List[Union[str, ModuleType]]
     exclude_targets: Optional[List[Union[str, ModuleType]]] = None
-    framework: Optional[str] = None
-    indexes: Optional[List[int]] = None
+    with_locals: bool = False
+    with_globals: bool = False
     output: Optional[str] = None
     output_json: Optional[str] = None
     level: int = logging.DEBUG
     simple: bool = True
     wrapper: Optional[Any] = None
-    with_locals: bool = False
-    with_globals: bool = False
+    framework: Optional[str] = None
+    indexes: Optional[List[int]] = None
 
     def __post_init__(self) -> None:
         """

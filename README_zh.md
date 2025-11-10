@@ -21,24 +21,6 @@ ObjWatch 是一款面向对象的 Python 调试库，支持对模块、类、成
 
 [ObjWatch Log Viewer](tools/vscode_extension) 扩展插件已在 [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=aeeeeeep.objwatch-log-viewer) 推出，通过智能语法高亮、层级结构识别和灵活的折叠功能，大幅提升 ObjWatch 日志易读性。
 
-## ✨ 功能
-
-- **🎯 灵活的目标监控**：支持多种目标选择模式，如文件路径，模块，类，类成员，类方法，函数，全局变量。
-- **🌳 嵌套结构追踪**：通过清晰的层次化日志，直观地可视化和监控嵌套的函数调用和对象交互。
-- **📝 增强的日志支持**：利用 Python 内建的 `logging` 模块进行结构化、可定制的日志输出，支持简单和详细模式。
-- **📋 日志消息类型**：ObjWatch 将日志消息分类，以便提供详细的代码执行信息。主要类型包括：
-
-  - **`run`**：表示函数或类方法的执行开始。
-  - **`end`**：表示函数或类方法的执行结束。
-  - **`upd`**：表示新变量的创建。
-  - **`apd`**：表示向数据结构中添加元素。
-  - **`pop`**：表示从数据结构中移除元素。
-
-  这些分类帮助开发者高效地追踪和调试代码，了解程序中的执行流和状态变化。
-- **🔥 多进程支持**：无缝追踪分布式程序，支持跨多个进程/GPU 运行，确保高性能环境中的全面监控。
-- **🔌 自定义包装器扩展**：通过自定义包装器扩展功能，使其能够根据项目需求进行定制化的追踪和日志记录。
-- **🎛️ 上下文管理器和 API 集成**：通过上下文管理器或 API 函数轻松集成，无需依赖命令行界面。
-
 ## 📦 安装
 
 可通过 [PyPI](https://pypi.org/project/objwatch) 安装。使用 `pip` 安装：
@@ -54,6 +36,48 @@ git clone https://github.com/aeeeeeep/objwatch.git
 cd objwatch
 pip install -e .
 ```
+
+## ⚙️ 配置
+
+ObjWatch 提供可定制的日志格式和追踪选项，适应不同项目需求。
+
+### 参数
+
+- `targets` (列表) ：要监控的文件路径、模块、类、类成员、类方法、函数、全局变量或 Python 对象。具体语法格式如下：
+  - 模块对象：直接传入模块实例
+  - 类对象：直接传入类定义
+  - 实例方法：直接传入方法实例
+  - 函数对象：直接传入函数实例
+  - 字符串格式：
+    - 模块：'package.module'
+    - 类：'package.module:ClassName'
+    - 类属性：'package.module:ClassName.attribute'
+    - 类方法：'package.module:ClassName.method()'
+    - 函数：'package.module:function()'
+    - 全局变量：'package.module::GLOBAL_VAR'
+
+  示例演示混合使用对象和字符串：
+  ```python
+  from package.models import User
+  from package.utils import format_str
+
+  with objwatch.ObjWatch([
+      User,                  # 直接监控类对象
+      format_str,            # 直接监控函数对象
+      'package.config::DEBUG_MODE'  # 字符串格式全局变量
+  ]):
+      main()
+  ```
+- `exclude_targets` (列表，可选) ：要排除监控的文件或模块。
+- `with_locals` (布尔值，可选) ：启用在函数执行期间对局部变量的追踪和日志记录。
+- `with_globals` (布尔值，可选) ：启用跨函数调用的全局变量追踪和日志记录。当你输入的 `targets` 列表中包含全局变量时，需要同时启用此选项。
+- `output` (字符串，可选) ：写入日志的文件路径，必须以 '.objwatch' 结尾，用于 ObjWatch Log Viewer 扩展插件。
+- `output_json` (字符串，可选) ：用于写入结构化日志的 JSON 文件路径。如果指定，将以嵌套的 JSON 格式保存追踪信息，便于后续分析工作。
+- `level` (字符串，可选) ：日志级别 (例如 `logging.DEBUG`，`logging.INFO`，`force` 等) 。为确保即使 logger 被外部库禁用或删除，日志仍然有效，可以设置 `level` 为 `"force"`，这将绕过标准的日志处理器，直接使用 `print()` 将日志消息输出到控制台，确保关键的调试信息不会丢失。
+- `simple` (布尔值，可选) ：默认值为 True，禁用简化日志模式，格式为 `"[{time}] [{level}] objwatch: {msg}"`。
+- `wrapper` (ABCWrapper，可选) ：自定义包装器，用于扩展追踪和日志记录功能，详见下文。
+- `framework` (字符串，可选)：需要使用的多进程框架模块。
+- `indexes` (列表，可选)：需要在多进程环境中跟踪的 ids。
 
 ## 🚀 快速开始
 
@@ -203,47 +227,23 @@ Stopping ObjWatch tracing.
 
 </details>
 
-## ⚙️ 配置
+## ✨ 功能
 
-ObjWatch 提供可定制的日志格式和追踪选项，适应不同项目需求。
+- **🎯 灵活的目标监控**：支持多种目标选择模式，如文件路径，模块，类，类成员，类方法，函数，全局变量。
+- **🌳 嵌套结构追踪**：通过清晰的层次化日志，直观地可视化和监控嵌套的函数调用和对象交互。
+- **📝 增强的日志支持**：利用 Python 内建的 `logging` 模块进行结构化、可定制的日志输出，支持简单和详细模式。
+- **📋 日志消息类型**：ObjWatch 将日志消息分类，以便提供详细的代码执行信息。主要类型包括：
 
-### 参数
+  - **`run`**：表示函数或类方法的执行开始。
+  - **`end`**：表示函数或类方法的执行结束。
+  - **`upd`**：表示新变量的创建。
+  - **`apd`**：表示向数据结构中添加元素。
+  - **`pop`**：表示从数据结构中移除元素。
 
-- `targets` (列表) ：要监控的文件路径、模块、类、类成员、类方法、函数、全局变量或 Python 对象。具体语法格式如下：
-  - 模块对象：直接传入模块实例
-  - 类对象：直接传入类定义
-  - 实例方法：直接传入方法实例
-  - 函数对象：直接传入函数实例
-  - 字符串格式：
-    - 模块：'package.module'
-    - 类：'package.module:ClassName'
-    - 类属性：'package.module:ClassName.attribute'
-    - 类方法：'package.module:ClassName.method()'
-    - 函数：'package.module:function()'
-    - 全局变量：'package.module::GLOBAL_VAR'
-
-  示例演示混合使用对象和字符串：
-  ```python
-  from package.models import User
-  from package.utils import format_str
-
-  with objwatch.ObjWatch([
-      User,                  # 直接监控类对象
-      format_str,            # 直接监控函数对象
-      'package.config::DEBUG_MODE'  # 字符串格式全局变量
-  ]):
-      main()
-  ```
-- `exclude_targets` (列表，可选) ：要排除监控的文件或模块。
-- `framework` (字符串，可选)：需要使用的多进程框架模块。
-- `indexes` (列表，可选)：需要在多进程环境中跟踪的 ids。
-- `output` (字符串，可选) ：写入日志的文件路径，必须以 '.objwatch' 结尾，用于 ObjWatch Log Viewer 扩展插件。
-- `output_json` (字符串，可选) ：用于写入结构化日志的 JSON 文件路径。如果指定，将以嵌套的 JSON 格式保存追踪信息，便于后续分析工作。
-- `level` (字符串，可选) ：日志级别 (例如 `logging.DEBUG`，`logging.INFO`，`force` 等) 。为确保即使 logger 被外部库禁用或删除，日志仍然有效，可以设置 `level` 为 `"force"`，这将绕过标准的日志处理器，直接使用 `print()` 将日志消息输出到控制台，确保关键的调试信息不会丢失。
-- `simple` (布尔值，可选) ：默认值为 True，禁用简化日志模式，格式为 `"[{time}] [{level}] objwatch: {msg}"`。
-- `wrapper` (ABCWrapper，可选) ：自定义包装器，用于扩展追踪和日志记录功能，详见下文。
-- `with_locals` (布尔值，可选) ：启用在函数执行期间对局部变量的追踪和日志记录。
-- `with_globals` (布尔值，可选) ：启用跨函数调用的全局变量追踪和日志记录。当你输入的 `targets` 列表中包含全局变量时，需要同时启用此选项。
+  这些分类帮助开发者高效地追踪和调试代码，了解程序中的执行流和状态变化。
+- **🔥 多进程支持**：无缝追踪分布式程序，支持跨多个进程/GPU 运行，确保高性能环境中的全面监控。
+- **🔌 自定义包装器扩展**：通过自定义包装器扩展功能，使其能够根据项目需求进行定制化的追踪和日志记录。
+- **🎛️ 上下文管理器和 API 集成**：通过上下文管理器或 API 函数轻松集成，无需依赖命令行界面。
 
 ## 🪁 高级用法
 

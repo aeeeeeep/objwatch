@@ -21,25 +21,6 @@ ObjWatch is a robust Python library designed to streamline the debugging and mon
 
 ObjWatch may impact your application's performance. It is recommended to use it solely in debugging environments.
 
-✨ Features
-===========
-
-- **🎯 Flexible Target Monitoring**: Supports multiple target selection modes such as file paths, modules, classes, class members, class methods, functions, and global variables.
-- **🌳 Nested Structure Tracing**: Visualize and monitor nested function calls and object interactions with clear, hierarchical logging.
-- **📝 Enhanced Logging Support**: Utilize Python's built-in `logging` module for structured, customizable log outputs, including support for simple and detailed formats.
-- **📋 Logging Message Types**: ObjWatch categorizes log messages into various types to provide detailed insights into code execution. The primary types include:
-  
-  - **`run`**: Function/method execution start
-  - **`end`**: Function/method execution end
-  - **`upd`**: Variable creation
-  - **`apd`**: Element addition to data structures
-  - **`pop`**: Element removal from data structures
-  
-  These classifications help developers efficiently trace and debug their code by understanding the flow and state changes within their applications.
-- **🔥 Multi-Process Support**: Seamlessly trace distributed applications running across multiple processes/GPUs, ensuring comprehensive monitoring in high-performance environments.
-- **🔌 Custom Wrapper Extensions**: Extend ObjWatch's functionality with custom wrappers, allowing tailored tracing and logging to fit specific project needs.
-- **🎛️ Context Manager & API Integration**: Integrate ObjWatch effortlessly into your projects using context managers or API functions without relying on command-line interfaces.
-
 📦 Installation
 ===============
 
@@ -56,6 +37,51 @@ Alternatively, you can clone the latest repository and install from source:
    git clone https://github.com/aeeeeeep/objwatch.git
    cd objwatch
    pip install -e .
+
+⚙️ Configuration
+================
+
+ObjWatch offers customizable logging formats and tracing options to suit various project requirements. Utilize the `simple` parameter to toggle between detailed and simplified logging outputs.
+
+Parameters
+----------
+
+- `targets` (list): Files, modules, classes, class members, class methods, functions, global variables, or Python objects to monitor. The specific syntax formats are as follows:
+  - Module objects: Pass the module instance directly
+  - Class objects: Pass the class definition directly
+  - Instance methods: Pass the method instance directly
+  - Function objects: Pass the function instance directly
+  - String format:
+    - Module: 'package.module'
+    - Class: 'package.module:ClassName'
+    - Class attribute: 'package.module:ClassName.attribute'
+    - Class method: 'package.module:ClassName.method()'
+    - Function: 'package.module:function()'
+    - Global variable: 'package.module::GLOBAL_VAR'
+
+  Example demonstrating mixed use of objects and strings:
+
+  .. code-block:: python
+
+     from package.models import User
+     from package.utils import format_str
+
+     with objwatch.ObjWatch([
+         User,                  # Directly monitor class object
+         format_str,            # Directly monitor function object
+         'package.config::DEBUG_MODE'  # String format global variable
+     ]):
+         main()
+- `exclude_targets` (list, optional): Files or modules to exclude from monitoring.
+- `with_locals` (bool, optional): Enable tracing and logging of local variables within functions during their execution.
+- `with_globals` (bool, optional): Enable tracing and logging of global variables across function calls. When you input the global variables in the `targets` list, you need to enable this option.
+- `output` (str, optional): Path to a file for writing logs, must end with '.objwatch' for ObjWatch Log Viewer extension.
+- `output_json` (str, optional): Path to the JSON file for writing structured logs. If specified, tracing information will be saved in a nested JSON format for easy analysis.
+- `level` (str, optional): Logging level (e.g., `logging.DEBUG`, `logging.INFO`, `force` etc.). To ensure logs are captured even if the logger is disabled or removed by external libraries, you can set `level` to "force", which will bypass standard logging handlers and use `print()` to output log messages directly to the console, ensuring that critical debugging information is not lost.
+- `simple` (bool, optional): Defaults to True, disable simple logging mode with the format `"[{time}] [{level}] objwatch: {msg}"`.
+- `wrapper` (ABCWrapper, optional): Custom wrapper to extend tracing and logging functionality.
+- `framework` (str, optional): The multi-process framework module to use.
+- `indexes` (list, optional): The indexes to track in a multi-process environment.
 
 🚀 Getting Started
 ==================
@@ -211,50 +237,24 @@ When running the above script, ObjWatch will generate logs similar to the follow
             35 end __main__.main -> None
          Stopping ObjWatch tracing.
 
-⚙️ Configuration
-================
+✨ Features
+===========
 
-ObjWatch offers customizable logging formats and tracing options to suit various project requirements. Utilize the `simple` parameter to toggle between detailed and simplified logging outputs.
-
-Parameters
-----------
-
-- `targets` (list): Files, modules, classes, class members, class methods, functions, global variables, or Python objects to monitor. The specific syntax formats are as follows:
-  - Module objects: Pass the module instance directly
-  - Class objects: Pass the class definition directly
-  - Instance methods: Pass the method instance directly
-  - Function objects: Pass the function instance directly
-  - String format:
-    - Module: 'package.module'
-    - Class: 'package.module:ClassName'
-    - Class attribute: 'package.module:ClassName.attribute'
-    - Class method: 'package.module:ClassName.method()'
-    - Function: 'package.module:function()'
-    - Global variable: 'package.module::GLOBAL_VAR'
-
-  Example demonstrating mixed use of objects and strings:
-
-  .. code-block:: python
-
-     from package.models import User
-     from package.utils import format_str
-
-     with objwatch.ObjWatch([
-         User,                  # Directly monitor class object
-         format_str,            # Directly monitor function object
-         'package.config::DEBUG_MODE'  # String format global variable
-     ]):
-         main()
-- `exclude_targets` (list, optional): Files or modules to exclude from monitoring.
-- `framework` (str, optional): The multi-process framework module to use.
-- `indexes` (list, optional): The indexes to track in a multi-process environment.
-- `output` (str, optional): Path to a file for writing logs, must end with '.objwatch' for ObjWatch Log Viewer extension.
-- `output_json` (str, optional): Path to the JSON file for writing structured logs. If specified, tracing information will be saved in a nested JSON format for easy analysis.
-- `level` (str, optional): Logging level (e.g., `logging.DEBUG`, `logging.INFO`, `force` etc.). To ensure logs are captured even if the logger is disabled or removed by external libraries, you can set `level` to "force", which will bypass standard logging handlers and use `print()` to output log messages directly to the console, ensuring that critical debugging information is not lost.
-- `simple` (bool, optional): Defaults to True, disable simple logging mode with the format `"[{time}] [{level}] objwatch: {msg}"`.
-- `wrapper` (ABCWrapper, optional): Custom wrapper to extend tracing and logging functionality.
-- `with_locals` (bool, optional): Enable tracing and logging of local variables within functions during their execution.
-- `with_globals` (bool, optional): Enable tracing and logging of global variables across function calls. When you input the global variables in the `targets` list, you need to enable this option.
+- **🎯 Flexible Target Monitoring**: Supports multiple target selection modes such as file paths, modules, classes, class members, class methods, functions, and global variables.
+- **🌳 Nested Structure Tracing**: Visualize and monitor nested function calls and object interactions with clear, hierarchical logging.
+- **📝 Enhanced Logging Support**: Utilize Python's built-in `logging` module for structured, customizable log outputs, including support for simple and detailed formats.
+- **📋 Logging Message Types**: ObjWatch categorizes log messages into various types to provide detailed insights into code execution. The primary types include:
+  
+  - **`run`**: Function/method execution start
+  - **`end`**: Function/method execution end
+  - **`upd`**: Variable creation
+  - **`apd`**: Element addition to data structures
+  - **`pop`**: Element removal from data structures
+  
+  These classifications help developers efficiently trace and debug their code by understanding the flow and state changes within their applications.
+- **🔥 Multi-Process Support**: Seamlessly trace distributed applications running across multiple processes/GPUs, ensuring comprehensive monitoring in high-performance environments.
+- **🔌 Custom Wrapper Extensions**: Extend ObjWatch's functionality with custom wrappers, allowing tailored tracing and logging to fit specific project needs.
+- **🎛️ Context Manager & API Integration**: Integrate ObjWatch effortlessly into your projects using context managers or API functions without relying on command-line interfaces.
 
 🪁 Advanced Usage
 =================
