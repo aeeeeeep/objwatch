@@ -47,8 +47,8 @@ jobs:
       run: |
         # Stop the build if there are Python syntax errors or undefined names
         flake8 ./objwatch ./examples --count --select=E9,F63,F7,F82 --show-source --statistics
-        # Exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 ./objwatch ./examples --count --exit-zero --max-complexity=16 --max-line-length=127 --statistics
+        # The GitHub editor is 127 chars wide
+        flake8 ./objwatch ./examples --count --max-complexity=16 --max-line-length=127 --statistics
 
     - name: Type check with mypy
       run: |

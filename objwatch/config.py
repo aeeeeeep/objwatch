@@ -17,8 +17,8 @@ class ObjWatchConfig:
         exclude_targets (Optional[List[Union[str, ModuleType]]]): Files or modules to exclude from monitoring.
         with_locals (bool): Enable tracing and logging of local variables within functions.
         with_globals (bool): Enable tracing and logging of global variables across function calls.
-        output (Optional[str]): Path to a file for writing logs, must end with '.objwatch' for ObjWatch Log Viewer extension.
-        output_json (Optional[str]): Path to the JSON file for writing structured logs.
+        output (Optional[str]): File path for writing logs, must end with '.objwatch' for ObjWatch Log Viewer extension.
+        output_json (Optional[str]): JSON file path for writing structured logs.
         level (int): Logging level (e.g., logging.DEBUG, logging.INFO).
         simple (bool): Defaults to True, disable simple logging mode with the format "[{time}] [{level}] objwatch: {msg}".
         wrapper (Optional[ABCWrapper]): Custom wrapper to extend tracing and logging functionality.

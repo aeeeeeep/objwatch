@@ -75,8 +75,8 @@ Parameters
 - `exclude_targets` (list, optional): Files or modules to exclude from monitoring.
 - `with_locals` (bool, optional): Enable tracing and logging of local variables within functions during their execution.
 - `with_globals` (bool, optional): Enable tracing and logging of global variables across function calls. When you input the global variables in the `targets` list, you need to enable this option.
-- `output` (str, optional): Path to a file for writing logs, must end with '.objwatch' for ObjWatch Log Viewer extension.
-- `output_json` (str, optional): Path to the JSON file for writing structured logs. If specified, tracing information will be saved in a nested JSON format for easy analysis.
+- `output` (str, optional): File path for writing logs, must end with '.objwatch' for ObjWatch Log Viewer extension.
+- `output_json` (str, optional): JSON file path for writing structured logs. If specified, tracing information will be saved in a nested JSON format for easy analysis.
 - `level` (str, optional): Logging level (e.g., `logging.DEBUG`, `logging.INFO`, `force` etc.). To ensure logs are captured even if the logger is disabled or removed by external libraries, you can set `level` to "force", which will bypass standard logging handlers and use `print()` to output log messages directly to the console, ensuring that critical debugging information is not lost.
 - `simple` (bool, optional): Defaults to True, disable simple logging mode with the format `"[{time}] [{level}] objwatch: {msg}"`.
 - `wrapper` (ABCWrapper, optional): Custom wrapper to extend tracing and logging functionality.
