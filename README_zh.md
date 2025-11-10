@@ -241,6 +241,27 @@ Stopping ObjWatch tracing.
   - **`pop`**：表示从数据结构中移除元素。
 
   这些分类帮助开发者高效地追踪和调试代码，了解程序中的执行流和状态变化。
+
+- **📊 结构化日志格式**：ObjWatch 使用一致的日志格式，便于解析和分析：
+
+  **标准日志结构**：
+  ```
+  f"{lineno:>5} {'  '*call_depth}{event_type} {object_string} {message_string}"
+  ```
+
+  **多进程日志结构**：
+  ```
+  f"[#{process_id}]{any_number_of_spaces}{lineno:>5} {'  '*call_depth}{event_type} {object_string} {message_string}"
+  ```
+
+  其中：
+  - `lineno`：行号（右对齐，5个字符）
+  - `call_depth`：调用栈深度（每级缩进2个空格）
+  - `event_type`：事件类型（run, end, upd, apd, pop）
+  - `object_string`：对象标识符（如 `SampleClass.value`）
+  - `message_string`：事件特定消息（如 `None -> 10`）
+  - `process_id`：多进程环境中的进程标识符
+
 - **🔥 多进程支持**：无缝追踪分布式程序，支持跨多个进程/GPU 运行，确保高性能环境中的全面监控。
 - **🔌 自定义包装器扩展**：通过自定义包装器扩展功能，使其能够根据项目需求进行定制化的追踪和日志记录。
 - **🎛️ 上下文管理器和 API 集成**：通过上下文管理器或 API 函数轻松集成，无需依赖命令行界面。

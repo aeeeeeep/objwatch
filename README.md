@@ -243,6 +243,27 @@ Stopping ObjWatch tracing.
   - **`pop`**: Element removal from data structures
   
   These classifications help developers efficiently trace and debug their code by understanding the flow and state changes within their applications.
+
+- **📊 Structured Log Format**: ObjWatch uses a consistent log format for easy parsing and analysis:
+
+  **Standard log structure**:
+  ```
+  f"{lineno:>5} {'  '*call_depth}{event_type} {object_string} {message_string}"
+  ```
+
+  **Multi-process log structure**:
+  ```
+  f"[#{process_id}]{any_number_of_spaces}{lineno:>5} {'  '*call_depth}{event_type} {object_string} {message_string}"
+  ```
+
+  Where:
+  - `lineno`: Line number (right-aligned, 5 characters)
+  - `call_depth`: Call stack depth (indented with 2 spaces per level)
+  - `event_type`: Event type (run, end, upd, apd, pop)
+  - `object_string`: Object identifier (e.g., `SampleClass.value`)
+  - `message_string`: Event-specific message (e.g., `None -> 10`)
+  - `process_id`: Process identifier in multi-process environments
+
 - **🔥 Multi-Process Support**: Seamlessly trace distributed applications running across multiple processes/GPUs, ensuring comprehensive monitoring in high-performance environments.
 - **🔌 Custom Wrapper Extensions**: Extend ObjWatch's functionality with custom wrappers, allowing tailored tracing and logging to fit specific project needs.
 - **🎛️ Context Manager & API Integration**: Integrate ObjWatch effortlessly into your projects using context managers or API functions without relying on command-line interfaces.
