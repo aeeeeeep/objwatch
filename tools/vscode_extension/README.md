@@ -1,4 +1,4 @@
-<img src="images/objwatch-logo.png" width="128px" alt="ObjWatch Logo">
+<img src="https://raw.githubusercontent.com/aeeeeeep/objwatch/main/tools/vscode_extension/images/objwatch-logo.png" width="128px" alt="ObjWatch Logo">
 
 # ObjWatch Log Viewer - VSCode Extension
 
