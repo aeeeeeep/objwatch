@@ -69,4 +69,5 @@ To set up the development environment:
 1. Clone the repository
 2. Navigate to the extension directory (`tools/vscode_extension`)
 3. Run `npm install` to install dependencies
-4. Press `F5` to start debugging the extension in a new VSCode window
+4. Run `npx vsce package` to package the extension
+5. Run `code --install-extension <path-to-vsix>` to install the extension in VSCode

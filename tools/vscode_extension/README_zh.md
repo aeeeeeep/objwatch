@@ -71,4 +71,5 @@
 1. 克隆代码库
 2. 导航到扩展目录 (`tools/vscode_extension`)
 3. 运行 `npm install` 安装依赖
-4. 按 `F5` 在新的 VSCode 窗口中开始调试扩展
+4. 运行 `npx vsce package` 打包扩展
+5. 运行 `code --install-extension <path-to-vsix>` 安装扩展

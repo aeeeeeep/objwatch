@@ -53,54 +53,42 @@ function activate(context) {
             const lineCount = document.lineCount;
 
             for (let line = 0; line < lineCount; line++) {
+                const text = document.lineAt(line).text.trim();
+                if (!text) continue;
+
+                // Skip comment lines
+                if (text.startsWith('#')) continue;
+
+                // Get indentation level (4 spaces per level)
                 const fullLine = document.lineAt(line).text;
-                const trimmedLine = fullLine.trim();
-                if (!trimmedLine) continue;
-
-                // No longer skipping lines starting with #, now using === as block comments
-
-                // Get indentation level by counting actual spaces in the line
-                // This works for various log formats and indentation patterns
-                const indentMatch = fullLine.match(/^(\s+)(\d+\s+)/);
+                // Handle both regular and multi-process log formats
+                const match = fullLine.match(/^(?:\[#\d+\])?(\s*)(\d+\s+)(\s*)/);
                 let indentLevel = 0;
-                if (indentMatch && indentMatch[1]) {
-                    // Use the actual space count as indentation level
-                    indentLevel = indentMatch[1].length;
+                if (match && match[3]) {
+                    indentLevel = match[3].length / 4;
                 }
 
-                // Extract event type using regex
-                const eventMatch = trimmedLine.match(/^(?:\d+\s+)?(run|end|upd|apd|pop)\s+/);
-                const eventType = eventMatch ? eventMatch[1] : null;
-
-                // Process run events (start of folding block)
-                if (eventType === 'run') {
-                    stack.push({ line, indentLevel, text: trimmedLine });
+                // Check for run events (start folding)
+                if (text.includes('run ')) {
+                    stack.push({ line, indentLevel });
                 }
-                // Process end events (end of folding block)
-                else if (eventType === 'end') {
-                    // Find matching run event with the same indentation
-                    let matchingStartIndex = -1;
-                    for (let i = stack.length - 1; i >= 0; i--) {
-                        const item = stack[i];
-                        // Use exact space count for matching
-                        // We already ensured it's a run event when pushing to stack
-                        if (item.indentLevel === indentLevel) {
-                            matchingStartIndex = i;
+                // Check for end events (end folding)
+                else if (text.includes('end ')) {
+                    // Find matching start event
+                    while (stack.length > 0) {
+                        const top = stack.pop();
+                        if (top.indentLevel < indentLevel) {
+                            // Push back if indentation doesn't match
+                            stack.push(top);
                             break;
                         }
-                    }
-
-                    // If we found a matching start event
-                    if (matchingStartIndex !== -1) {
-                        const startItem = stack[matchingStartIndex];
-                        // Create folding range from start to end line
+                        // Create folding range
                         ranges.push(new vscode.FoldingRange(
-                            startItem.line,
+                            top.line,
                             line,
                             vscode.FoldingRangeKind.Region
                         ));
-                        // Remove only the matched run event from stack
-                        stack.splice(matchingStartIndex, 1);
+                        break;
                     }
                 }
             }
@@ -142,12 +130,14 @@ function activate(context) {
         const formattedLines = [];
 
         for (const line of lines) {
-            // Ensure line numbers are properly aligned
-            const match = line.match(/^(\s*)(\d+)(\s+)(.*)$/);
+            // Handle both regular and multi-process log formats
+            const match = line.match(/^(\s*)(?:\[#(\d+)\]\s*)?(\d+)(\s+)(.*)$/);
             if (match) {
                 const spaces = '   '; // 3 spaces before line number
-                const lineNum = match[2].padStart(5, ' ');
-                formattedLines.push(`${spaces}${lineNum}${match[3]}${match[2]}`);
+                const processId = match[2] ? `[#${match[2]}]` : '';
+                const lineNum = match[3].padStart(5, ' ');
+                const separator = match[2] ? ' ' : ''; // Add space after process ID if present
+                formattedLines.push(`${spaces}${processId}${separator}${lineNum}${match[4]}${match[5]}`);
             } else {
                 formattedLines.push(line);
             }
@@ -257,20 +247,22 @@ function updateIndentDecorations() {
         const line = document.lineAt(lineNum);
         const lineText = line.text;
 
-        // Match line number format: any spaces + digits + spaces + content
-        const match = lineText.match(/^(\s*)(\d+)(\s+)(.*)$/);
+        // Match line number format: handle both regular and multi-process log formats
+        // Updated regex to correctly handle multi-process log format - match line numbers after process ID
+        const match = lineText.match(/^(\s*)(\[#\d+\]\s*)?(\d+)(\s+)(.*)$/);
         if (match) {
-            // Skip spaces before line number
-            // Skip line number itself
-            // Skip one space after line number
-            const lineNumberPrefix = match[1]; // Spaces before line number
-            const lineNumber = match[2];        // Line number itself
-            const afterLineNumber = match[3];   // All spaces after line number
+            // Extract matched components
+            const lineNumberPrefix = match[1]; // Spaces before process ID (if any)
+            const processIdPart = match[2] || ''; // Process ID part including spaces after it
+            const lineNumber = match[3];        // Line number itself
+            const afterLineNumber = match[4];   // Spaces after line number
 
-            // Calculate position after skipping one space and remaining indentation
-            const skipOneSpace = afterLineNumber.length > 0 ? 1 : 0;
-            const indentStartPos = lineNumberPrefix.length + lineNumber.length + skipOneSpace;
-            const remainingIndent = afterLineNumber.substring(skipOneSpace);
+            // Calculate the actual indent start position
+            // The indent starts after: prefix spaces + process ID part + line number + first space
+            const indentStartPos = lineNumberPrefix.length + processIdPart.length + lineNumber.length + 1;
+
+            // The remaining indent is all spaces after the first space following the line number
+            const remainingIndent = afterLineNumber.length > 1 ? afterLineNumber.substring(1) : '';
             const indentEndPos = indentStartPos + remainingIndent.length;
 
             // Calculate remaining indentation level (based on space count)

@@ -2,7 +2,7 @@
     "name": "objwatch-log-viewer",
     "displayName": "ObjWatch Log Viewer",
     "description": "Enhanced viewer for ObjWatch debugging logs with syntax highlighting and folding support",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "engines": {
         "vscode": "^1.80.0"
     },
