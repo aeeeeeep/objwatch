@@ -245,16 +245,19 @@ Stopping ObjWatch tracing.
 - **📊 结构化日志格式**：ObjWatch 使用一致的日志格式，便于解析和分析：
 
   **标准日志结构**：
+
   ```python
   f"{lineno:>5} {'  '*call_depth}{event_type} {object_string} {message_string}"
   ```
 
   **多进程日志结构**：
+
   ```python
   f"[#{process_id}] {lineno:>5} {'  '*call_depth}{event_type} {object_string} {message_string}"
   ```
 
   其中：
+
   - `lineno`：行号（右对齐，5个字符）
   - `call_depth`：调用栈深度（每级缩进2个空格）
   - `event_type`：事件类型（run, end, upd, apd, pop）

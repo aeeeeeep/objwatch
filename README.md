@@ -247,16 +247,19 @@ Stopping ObjWatch tracing.
 - **📊 Structured Log Format**: ObjWatch uses a consistent log format for easy parsing and analysis:
 
   **Standard log structure**:
+
   ```python
   f"{lineno:>5} {'  '*call_depth}{event_type} {object_string} {message_string}"
   ```
 
   **Multi-process log structure**:
+
   ```python
   f"[#{process_id}] {lineno:>5} {'  '*call_depth}{event_type} {object_string} {message_string}"
   ```
 
   Where:
+
   - `lineno`: Line number (right-aligned, 5 characters)
   - `call_depth`: Call stack depth (indented with 2 spaces per level)
   - `event_type`: Event type (run, end, upd, apd, pop)
