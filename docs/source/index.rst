@@ -256,13 +256,13 @@ When running the above script, ObjWatch will generate logs similar to the follow
 - **📊 Structured Log Format**: ObjWatch uses a consistent log format for easy parsing and analysis:
 
   **Standard log structure**:
-  ```
+  ```python
   f"{lineno:>5} {'  '*call_depth}{event_type} {object_string} {message_string}"
   ```
 
   **Multi-process log structure**:
-  ```
-  f"[#{process_id}]{any_number_of_spaces}{lineno:>5} {'  '*call_depth}{event_type} {object_string} {message_string}"
+  ```python
+  f"[#{process_id}] {lineno:>5} {'  '*call_depth}{event_type} {object_string} {message_string}"
   ```
 
   Where:
