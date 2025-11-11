@@ -42,6 +42,7 @@ The extension provides the following configuration options:
 ])
 - `objwatch-log-viewer.indentRainbowErrorColor`: Color used to highlight indentation errors (default: "rgba(128,32,32,0.3)")
 - `objwatch-log-viewer.indentRainbowIndicatorStyle`: Style of indentation indicators (default: "classic", options: "classic", "light")
+- `objwatch-log-viewer.stickyScrollMaxLineCount`: Maximum number of lines to show in sticky scroll for deep nested structures (default: 32, range: 1-128)
 
 ## Log Format
 

@@ -7,14 +7,25 @@ let indentDecorationTypes = [];
 let indentErrorDecorationType = null;
 let activeEditor = null;
 
+// Global variables for event type highlighting
+let eventTypeDecorationTypes = {};
+let eventTypeHighlightEnabled = true;
+
 /**
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
     console.log('ObjWatch Log Viewer extension is now active!');
 
+    // Apply sticky scroll settings for deep nested structures
+    applyStickyScrollSettings();
+
     // Initialize indent rainbow functionality
     initializeIndentRainbow();
+
+    // Initialize event type highlighting
+    initializeEventTypeDecorations();
+    applyHighlightEventTypes();
 
     // Listen for editor changes
     activeEditor = vscode.window.activeTextEditor;
@@ -26,6 +37,7 @@ function activate(context) {
         activeEditor = editor;
         if (editor && editor.document.languageId === 'objwatch') {
             triggerUpdateIndentDecorations();
+            triggerUpdateEventTypeDecorations();
         }
     }, null, context.subscriptions);
 
@@ -33,14 +45,18 @@ function activate(context) {
         if (activeEditor && event.document === activeEditor.document &&
             activeEditor.document.languageId === 'objwatch') {
             triggerUpdateIndentDecorations();
+            triggerUpdateEventTypeDecorations();
         }
     }, null, context.subscriptions);
 
     vscode.workspace.onDidChangeConfiguration(configChangeEvent => {
         if (configChangeEvent.affectsConfiguration('objwatch-log-viewer')) {
+            applyStickyScrollSettings();
             initializeIndentRainbow();
+            applyHighlightEventTypes();
             if (activeEditor && activeEditor.document.languageId === 'objwatch') {
                 triggerUpdateIndentDecorations();
+                triggerUpdateEventTypeDecorations();
             }
         }
     }, null, context.subscriptions);
@@ -59,36 +75,61 @@ function activate(context) {
                 // Skip comment lines
                 if (text.startsWith('#')) continue;
 
-                // Get indentation level (4 spaces per level)
+                // Get indentation level (4 spaces per level) and process ID
                 const fullLine = document.lineAt(line).text;
                 // Handle both regular and multi-process log formats
-                const match = fullLine.match(/^(?:\[#\d+\])?(\s*)(\d+\s+)(\s*)/);
+                // Improved regex to correctly capture process ID and indentation
+                const match = fullLine.match(/^(\s*)(?:\[(#\d+)\]\s*)?(\d+\s+)(.*)$/);
                 let indentLevel = 0;
-                if (match && match[3]) {
-                    indentLevel = match[3].length / 4;
+                let processId = null;
+                if (match) {
+                    processId = match[2]; // Extract process ID if present
+                    // Calculate indentation level based on leading spaces (4 spaces per level)
+                    const leadingSpaces = match[1].length;
+                    indentLevel = Math.floor(leadingSpaces / 4);
                 }
 
                 // Check for run events (start folding)
                 if (text.includes('run ')) {
-                    stack.push({ line, indentLevel });
+                    stack.push({ line, indentLevel, processId });
                 }
                 // Check for end events (end folding)
                 else if (text.includes('end ')) {
-                    // Find matching start event
+                    // Find matching start event with same process ID and indentation
+                    // Use a temporary stack to preserve non-matching items
+                    const tempStack = [];
+                    let foundMatch = false;
+
                     while (stack.length > 0) {
                         const top = stack.pop();
-                        if (top.indentLevel < indentLevel) {
-                            // Push back if indentation doesn't match
-                            stack.push(top);
+                        // Check if process IDs match (both undefined/null or same value)
+                        const processMatch = (!top.processId && !processId) ||
+                            (top.processId === processId);
+
+                        // Check if indentation levels match exactly and process IDs match
+                        if (top.indentLevel === indentLevel && processMatch) {
+                            // Create folding range for matching pair
+                            ranges.push(new vscode.FoldingRange(
+                                top.line,
+                                line,
+                                vscode.FoldingRangeKind.Region
+                            ));
+                            foundMatch = true;
                             break;
+                        } else {
+                            // Keep non-matching items in temporary stack
+                            tempStack.push(top);
                         }
-                        // Create folding range
-                        ranges.push(new vscode.FoldingRange(
-                            top.line,
-                            line,
-                            vscode.FoldingRangeKind.Region
-                        ));
-                        break;
+                    }
+
+                    // Restore non-matching items back to stack
+                    while (tempStack.length > 0) {
+                        stack.push(tempStack.pop());
+                    }
+
+                    // If no match found, continue to next line
+                    if (!foundMatch) {
+                        continue;
                     }
                 }
             }
@@ -165,6 +206,36 @@ function deactivate() {
     console.log('ObjWatch Log Viewer extension is now deactivated!');
 }
 
+// Apply sticky scroll settings for deep nested structures
+function applyStickyScrollSettings() {
+    const config = vscode.workspace.getConfiguration('objwatch-log-viewer');
+    const maxLineCount = config.get('stickyScrollMaxLineCount', 32);
+
+    // Update editor sticky scroll settings
+    vscode.workspace.getConfiguration('editor').update('stickyScroll.maxLineCount', maxLineCount, vscode.ConfigurationTarget.Global);
+
+    console.log(`Sticky scroll max line count set to: ${maxLineCount}`);
+}
+
+// Apply highlight event types settings
+function applyHighlightEventTypes() {
+    const config = vscode.workspace.getConfiguration('objwatch-log-viewer');
+    const highlightEventTypes = config.get('highlightEventTypes', true);
+
+    // Update global flag
+    eventTypeHighlightEnabled = highlightEventTypes;
+
+    // Clear existing event type decorations if disabled
+    if (!highlightEventTypes) {
+        clearEventTypeDecorations();
+    } else if (activeEditor && activeEditor.document.languageId === 'objwatch') {
+        // Re-apply decorations if enabled
+        triggerUpdateEventTypeDecorations();
+    }
+
+    console.log(`Event type highlighting ${highlightEventTypes ? 'enabled' : 'disabled'}`);
+}
+
 // Initialize indent rainbow functionality
 function initializeIndentRainbow() {
     // Clean up previous decorations
@@ -223,6 +294,94 @@ function triggerUpdateIndentDecorations() {
         clearTimeout(indentUpdateTimeout);
     }
     indentUpdateTimeout = setTimeout(updateIndentDecorations, 100);
+}
+
+// Clear event type decorations
+function clearEventTypeDecorations() {
+    Object.values(eventTypeDecorationTypes).forEach(decorationType => {
+        if (activeEditor) {
+            activeEditor.setDecorations(decorationType, []);
+        }
+        decorationType.dispose();
+    });
+    eventTypeDecorationTypes = {};
+}
+
+// Initialize event type decorations
+function initializeEventTypeDecorations() {
+    // Clear existing decorations
+    clearEventTypeDecorations();
+
+    // Define font colors for different event types
+    const eventTypeColors = {
+        'run': '#4CAF50',     // Green - Start of execution (positive, beginning)
+        'end': '#9E9E9E',     // Gray - End of execution (neutral, completion)
+        'upd': '#2196F3',     // Blue - Variable creation (informative, new)
+        'apd': '#FF9800',     // Orange - Add to data structure (warning, modification)
+        'pop': '#F44336'      // Red - Remove from data structure (danger, deletion)
+    };
+
+    // Create decoration types for each event type
+    Object.entries(eventTypeColors).forEach(([eventType, color]) => {
+        eventTypeDecorationTypes[eventType] = vscode.window.createTextEditorDecorationType({
+            color: color,
+            fontWeight: 'bold'
+        });
+    });
+}
+
+// Trigger update of event type decorations
+let eventTypeUpdateTimeout = null;
+function triggerUpdateEventTypeDecorations() {
+    if (eventTypeUpdateTimeout) {
+        clearTimeout(eventTypeUpdateTimeout);
+    }
+    eventTypeUpdateTimeout = setTimeout(updateEventTypeDecorations, 100);
+}
+
+// Update event type decorations
+function updateEventTypeDecorations() {
+    if (!activeEditor || !eventTypeHighlightEnabled || Object.keys(eventTypeDecorationTypes).length === 0) {
+        return;
+    }
+
+    const document = activeEditor.document;
+    const decorators = {};
+
+    // Initialize decorator arrays for each event type
+    Object.keys(eventTypeDecorationTypes).forEach(eventType => {
+        decorators[eventType] = [];
+    });
+
+    // Process each line
+    for (let lineNum = 0; lineNum < document.lineCount; lineNum++) {
+        const line = document.lineAt(lineNum);
+        const lineText = line.text;
+
+        // Match event types in the line - handle both regular and multi-process log formats
+        // Updated regex to match event types that appear after line numbers (with or without spaces)
+        const eventMatch = lineText.match(/^(?:\s*(?:\[#\d+\]\s*)?\d+\s*)(run|end|upd|apd|pop)\b/);
+        if (eventMatch) {
+            const eventType = eventMatch[1];
+            const eventStart = lineText.indexOf(eventType);
+            const eventEnd = eventStart + eventType.length;
+
+            if (decorators[eventType]) {
+                const startPos = new vscode.Position(lineNum, eventStart);
+                const endPos = new vscode.Position(lineNum, eventEnd);
+                decorators[eventType].push({
+                    range: new vscode.Range(startPos, endPos)
+                });
+            }
+        }
+    }
+
+    // Apply decorations
+    Object.entries(eventTypeDecorationTypes).forEach(([eventType, decorationType]) => {
+        if (activeEditor && decorators[eventType]) {
+            activeEditor.setDecorations(decorationType, decorators[eventType]);
+        }
+    });
 }
 
 // Update indent decorations
