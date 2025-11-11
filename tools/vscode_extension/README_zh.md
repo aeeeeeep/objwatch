@@ -44,6 +44,7 @@
 ]）
 - `objwatch-log-viewer.indentRainbowErrorColor`：用于高亮缩进错误的颜色（默认值："rgba(128,32,32,0.3)"）
 - `objwatch-log-viewer.indentRainbowIndicatorStyle`：缩进指示器的样式（默认值："classic"，选项："classic"、"light"）
+- `objwatch-log-viewer.stickyScrollMaxLineCount`：粘滞滚动中显示的最大行数，用于深度嵌套结构（默认值：32，范围：1-128）
 
 ## 日志格式
 
