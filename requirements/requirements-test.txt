@@ -1,3 +1,5 @@
 psutil
+pyzmq
+msgpack
 pytest
 mypy

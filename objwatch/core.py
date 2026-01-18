@@ -8,8 +8,9 @@ from typing import Optional, Union, List, Any
 from .config import ObjWatchConfig
 from .tracer import Tracer
 from .wrappers import ABCWrapper
-from .utils.logger import create_logger, log_info
 from .runtime_info import runtime_info
+from .sinks.consumer import ZeroMQFileConsumer
+from .utils.logger import log_info, setup_logging_from_config
 
 
 class ObjWatch:
@@ -30,6 +31,10 @@ class ObjWatch:
         wrapper: Optional[ABCWrapper] = None,
         framework: Optional[str] = None,
         indexes: Optional[List[int]] = None,
+        output_mode: str = "std",
+        zmq_endpoint: str = "tcp://127.0.0.1:5555",
+        zmq_topic: str = "",
+        auto_start_consumer: bool = True,
     ) -> None:
         """
         Initialize the ObjWatch instance with configuration parameters.
@@ -46,15 +51,31 @@ class ObjWatch:
             wrapper (Optional[ABCWrapper]): Custom wrapper to extend tracing and logging functionality.
             framework (Optional[str]): The multi-process framework module to use.
             indexes (Optional[List[int]]): The indexes to track in a multi-process environment.
+            output_mode (str): Output mode for logs. Options: 'std', 'zmq'. Defaults to 'std'.
+            zmq_endpoint (str): ZeroMQ endpoint for 'zmq' mode. Defaults to "tcp://127.0.0.1:5555".
+            zmq_topic (str): ZeroMQ topic for 'zmq' mode. Defaults to "".
+            auto_start_consumer (bool): Whether to automatically start the ZeroMQ consumer. Defaults to True.
         """
         # Create configuration parameters for ObjWatch
         config = ObjWatchConfig(**{k: v for k, v in locals().items() if k != 'self'})
 
         # Create and configure the logger based on provided parameters
-        create_logger(output=config.output, level=config.level, simple=config.simple)
+        setup_logging_from_config(config)
 
         # Initialize the Tracer with the given configuration
         self.tracer = Tracer(config=config)
+
+        # Initialize ZeroMQ consumer if configured
+        self.consumer = None
+        if config.output_mode == 'zmq' and config.auto_start_consumer and config.output:
+            log_info(f"Auto-starting ZeroMQ consumer on endpoint {config.zmq_endpoint}")
+            self.consumer = ZeroMQFileConsumer(
+                endpoint=config.zmq_endpoint,
+                topic=config.zmq_topic,
+                output_file=config.output,
+                auto_start=True,
+                daemon=True,
+            )
 
     def start(self) -> None:
         """
@@ -66,10 +87,16 @@ class ObjWatch:
 
     def stop(self) -> None:
         """
-        Stop the ObjWatch tracing process.
+        Stop the ObjWatch tracing process and clean up resources.
         """
         log_info("Stopping ObjWatch tracing.")
         self.tracer.stop()
+
+        # Stop the ZeroMQ consumer if it was started
+        if self.consumer:
+            log_info("Stopping ZeroMQ consumer.")
+            self.consumer.stop()
+            self.consumer = None
 
     def __enter__(self) -> 'ObjWatch':
         """
@@ -105,6 +132,10 @@ def watch(
     wrapper: Optional[ABCWrapper] = None,
     framework: Optional[str] = None,
     indexes: Optional[List[int]] = None,
+    output_mode: str = "std",
+    zmq_endpoint: str = "tcp://127.0.0.1:5555",
+    zmq_topic: str = "",
+    auto_start_consumer: bool = True,
 ) -> ObjWatch:
     """
     Initialize and start an ObjWatch instance.
@@ -121,6 +152,10 @@ def watch(
         wrapper (Optional[ABCWrapper]): Custom wrapper to extend tracing and logging functionality.
         framework (Optional[str]): The multi-process framework module to use.
         indexes (Optional[List[int]]): The indexes to track in a multi-process environment.
+        output_mode (str): Output mode for logs. Options: 'std', 'zmq'. Defaults to 'std'.
+        zmq_endpoint (str): ZeroMQ endpoint for 'zmq' mode. Defaults to "tcp://127.0.0.1:5555".
+        zmq_topic (str): ZeroMQ topic for 'zmq' mode. Defaults to "".
+        auto_start_consumer (bool): Whether to automatically start the ZeroMQ consumer. Defaults to True.
 
     Returns:
         ObjWatch: The initialized and started ObjWatch instance.

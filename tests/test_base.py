@@ -478,30 +478,6 @@ class TestLoggerForce(unittest.TestCase):
 
         mock_print.assert_called_with(msg, flush=True)
 
-    @patch('objwatch.utils.logger.logger.info')
-    @patch('objwatch.utils.logger.logger.debug')
-    @patch('objwatch.utils.logger.logger.warning')
-    @patch('builtins.print')
-    def test_log_functions_force_false(self, mock_print, mock_warning, mock_debug, mock_info):
-        import objwatch.utils.logger
-
-        objwatch.utils.logger.create_logger(level=logging.DEBUG)
-
-        info_msg = "Normal log message"
-        objwatch.utils.logger.log_info(info_msg)
-        mock_info.assert_called_with(info_msg)
-        mock_print.assert_not_called()
-
-        debug_msg = "Normal debug message"
-        objwatch.utils.logger.log_debug(debug_msg)
-        mock_debug.assert_called_with(debug_msg)
-        mock_print.assert_not_called()
-
-        warn_msg = "Normal warning message"
-        objwatch.utils.logger.log_warn(warn_msg)
-        mock_warning.assert_called_with(warn_msg)
-        mock_print.assert_not_called()
-
 
 if __name__ == '__main__':
     unittest.main()

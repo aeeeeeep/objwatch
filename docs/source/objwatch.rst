@@ -31,5 +31,6 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   objwatch.sinks
    objwatch.utils
    objwatch.wrappers

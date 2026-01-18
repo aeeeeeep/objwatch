@@ -12,7 +12,9 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.8,<3.16"
 dependencies = [
-  "psutil"
+  "psutil",
+  "pyzmq",
+  "msgpack"
 ]
 classifiers = [
   "Operating System :: OS Independent",
