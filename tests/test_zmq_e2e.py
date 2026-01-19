@@ -22,7 +22,7 @@ class TestZeroMQE2E(unittest.TestCase):
         # Use a unique port for each test to avoid conflicts
         self.endpoint = "tcp://127.0.0.1:5555"
         self.topic = "test_topic"
-        self.consumer_output = tempfile.mktemp(suffix=".log")
+        self.consumer_output = tempfile.NamedTemporaryFile(suffix=".log", delete=False).name
 
         # Clean up any existing output file
         if os.path.exists(self.consumer_output):
@@ -126,7 +126,7 @@ class TestZeroMQE2E(unittest.TestCase):
         Note: This test may fail occasionally due to ZeroMQ's asynchronous nature and SUB socket's "slow joiner" problem.
         """
         # Simplified test: create one consumer with a specific topic and send matching messages
-        consumer_output = tempfile.mktemp(suffix=".log")
+        consumer_output = tempfile.NamedTemporaryFile(suffix=".log", delete=False).name
 
         # Create consumer with topic "test_topic"
         consumer = ZeroMQFileConsumer(

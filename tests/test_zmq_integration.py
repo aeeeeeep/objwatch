@@ -70,7 +70,8 @@ def test_zmq_integration():
             with open(output, 'r') as f:
                 content = f.read()
 
-            print(f"Output file contains {content.count('\n')} lines")
+            newline = '\n'
+            print(f"Output file contains {content.count(newline)} lines")
             print("First 3 lines:")
             for line in content.split('\n')[:3]:
                 if line:
@@ -81,20 +82,20 @@ def test_zmq_integration():
             print(f"Found {test_messages_found}/5 test messages in the output file")
             if test_messages_found > 0:
                 print("Test PASSED: ZeroMQ integration works correctly!")
-                return True
+                assert True  # For pytest
             else:
                 print("Test FAILED: No test messages found in the output file")
-                return False
+                assert False  # For pytest
         else:
             print(f"Test FAILED: Output file {output} was not created")
-            return False
+            assert False  # For pytest
 
     except Exception as e:
         print(f"Test FAILED with exception: {e}")
         import traceback
 
         traceback.print_exc()
-        return False
+        assert False  # For pytest
 
     finally:
         # Clean up

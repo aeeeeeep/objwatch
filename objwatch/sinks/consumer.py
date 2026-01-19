@@ -68,7 +68,13 @@ class ZeroMQFileConsumer:
             self.logger.info(f"Subscribed to topic: {self.topic.decode('utf-8') if self.topic else 'all topics'}")
         except zmq.ZMQError as e:
             self.logger.error(f"Failed to connect to ZeroMQ endpoint {self.endpoint}: {e}")
-            raise
+            # Clean up resources if partially initialized
+            if self.socket:
+                self.socket.close()
+                self.socket = None
+            if self.context:
+                self.context.term()
+                self.context = None
 
     def _disconnect(self) -> None:
         """
@@ -106,8 +112,6 @@ class ZeroMQFileConsumer:
         """
         The main run loop that listens for messages and writes them to file.
         """
-        self._connect()
-
         try:
             with open(self.output_file, 'a', encoding='utf-8') as f:
                 self.logger.info(f"Writing events to file: {self.output_file}")
@@ -115,16 +119,16 @@ class ZeroMQFileConsumer:
                 while self.running:
                     try:
                         if self.socket is None:
-                            self.logger.error("Socket is None, attempting to reconnect")
+                            self.logger.info("Attempting to connect to ZeroMQ endpoint...")
                             self._connect()
                             if self.socket is None:
+                                self.logger.error("Failed to establish connection, will retry")
                                 time.sleep(0.1)
                                 continue
 
                         # Receive multipart message [topic, payload]
                         msg_parts = self.socket.recv_multipart()
                         if len(msg_parts) == 2:
-                            received_topic = msg_parts[0].decode('utf-8')
                             payload = msgpack.unpackb(msg_parts[1], raw=False)
 
                             # Process and write the event to file
@@ -133,6 +137,12 @@ class ZeroMQFileConsumer:
                             f.flush()  # Ensure immediate write to disk
                     except zmq.Again:
                         # Timeout occurred, continue the loop
+                        continue
+                    except zmq.ZMQError as e:
+                        self.logger.error(f"ZeroMQ error: {e}")
+                        # Reset socket to trigger reconnection
+                        self.socket = None
+                        time.sleep(0.1)
                         continue
                     except Exception as e:
                         self.logger.error(f"Error processing message: {e}")
