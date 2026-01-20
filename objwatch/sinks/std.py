@@ -16,6 +16,7 @@ class StandardSink(BaseSink):
 
     def __init__(self, output: Optional[str] = None, level: Union[int, str] = logging.DEBUG, simple: bool = True):
         self.logger_name = 'objwatch_std_sink'
+        self.output_file = output
         self.output = output
         self.level = level
         self.simple = simple

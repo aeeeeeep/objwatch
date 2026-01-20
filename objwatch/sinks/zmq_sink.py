@@ -19,9 +19,10 @@ class ZeroMQSink(BaseSink):
     Uses msgpack for fast binary serialization.
     """
 
-    def __init__(self, endpoint: str = "tcp://127.0.0.1:5555", topic: str = ""):
+    def __init__(self, endpoint: str = "tcp://127.0.0.1:5555", topic: str = "", output_file: Optional[str] = None):
         self.endpoint = endpoint
         self.topic = topic.encode('utf-8')
+        self.output_file = output_file
         self.context: Optional[zmq.Context] = None
         self.socket: Optional[zmq.Socket] = None
         self.connected: bool = False

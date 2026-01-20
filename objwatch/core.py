@@ -2,6 +2,7 @@
 # Copyright (c) 2025 aeeeeeep
 
 import logging
+import os
 from types import ModuleType
 from typing import Optional, Union, List, Any
 
@@ -9,7 +10,7 @@ from .config import ObjWatchConfig
 from .tracer import Tracer
 from .wrappers import ABCWrapper
 from .runtime_info import runtime_info
-from .sinks.consumer import ZeroMQFileConsumer
+from .sinks.consumer import ZeroMQFileConsumer, DynamicRoutingConsumer
 from .utils.logger import log_info, setup_logging_from_config
 
 
@@ -67,14 +68,14 @@ class ObjWatch:
 
         # Initialize ZeroMQ consumer if configured
         self.consumer = None
-        if config.output_mode == 'zmq' and config.auto_start_consumer and config.output:
+        if config.output_mode == 'zmq' and config.auto_start_consumer:
             log_info(f"Auto-starting ZeroMQ consumer on endpoint {config.zmq_endpoint}")
-            self.consumer = ZeroMQFileConsumer(
+            # Use DynamicRoutingConsumer for dynamic routing support
+            self.consumer = DynamicRoutingConsumer(
                 endpoint=config.zmq_endpoint,
-                topic=config.zmq_topic,
-                output_file=config.output,
                 auto_start=True,
                 daemon=True,
+                allowed_directories=[os.getcwd()],
             )
 
     def start(self) -> None:
