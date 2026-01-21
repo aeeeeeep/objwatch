@@ -4,6 +4,7 @@
 import os
 import sys
 import time
+
 from objwatch import ObjWatch
 from objwatch.config import ObjWatchConfig
 

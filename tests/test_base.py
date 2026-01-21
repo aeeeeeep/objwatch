@@ -3,17 +3,16 @@
 
 import os
 import runpy
-import importlib
-import unittest
-from unittest.mock import MagicMock, patch
 import logging
+import unittest
+import importlib
 from io import StringIO
+from unittest.mock import MagicMock, patch
+
 import objwatch
-from objwatch.config import ObjWatchConfig
 from objwatch.wrappers import BaseWrapper, TensorShapeWrapper, ABCWrapper
 from objwatch.core import ObjWatch
 from objwatch.targets import Targets
-from objwatch.tracer import Tracer
 from tests.util import strip_line_numbers
 
 try:
@@ -285,7 +284,10 @@ class TestTensorShapeWrapper(unittest.TestCase):
 
         tensors_dict = {f"key_{i}": torch.randn(2, 2) for i in range(5)}
         mock_frame.f_locals = {'arg_tensors': tensors_dict}
-        expected_call_msg = "'0':(dict)[('key_0', torch.Size([2, 2])), ('key_1', torch.Size([2, 2])), ('key_2', torch.Size([2, 2])), '... (2 more elements)']"
+        expected_call_msg = (
+            "'0':(dict)[('key_0', torch.Size([2, 2])), ('key_1', torch.Size([2, 2])), "
+            "('key_2', torch.Size([2, 2])), '... (2 more elements)']"
+        )
         actual_call_msg = self.tensor_shape_logger.wrap_call('test_tensor_func', mock_frame)
         self.assertEqual(actual_call_msg, expected_call_msg)
 

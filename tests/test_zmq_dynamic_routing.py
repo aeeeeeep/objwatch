@@ -5,8 +5,9 @@ import os
 import time
 import tempfile
 import unittest
-from objwatch.sinks.consumer import DynamicRoutingConsumer
+
 from objwatch.sinks.zmq_sink import ZeroMQSink
+from objwatch.sinks.consumer import DynamicRoutingConsumer
 
 
 class TestDynamicRoutingConsumer(unittest.TestCase):
@@ -28,16 +29,17 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
         """
         # Clean up test output files
         if os.path.exists(self.temp_dir):
+            import logging
             for filename in os.listdir(self.temp_dir):
                 filepath = os.path.join(self.temp_dir, filename)
                 try:
                     os.remove(filepath)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logging.debug(f"Failed to remove {filepath}: {e}")
             try:
                 os.rmdir(self.temp_dir)
-            except Exception:
-                pass
+            except Exception as e:
+                logging.debug(f"Failed to remove directory {self.temp_dir}: {e}")
 
     def test_dynamic_routing_basic(self):
         """
@@ -59,7 +61,7 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
 
         # Give consumer time to start and connect
         # Increase delay to handle ZeroMQ SUB socket's slow joiner problem
-        time.sleep(0.5)
+        time.sleep(0.1)
 
         # Send messages with different output_file
         # Send multiple messages to increase chance of reception
@@ -88,14 +90,14 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
                 "output_file": output1,
                 "process_id": os.getpid(),
             }
-            
+
             sink.emit(event1)
             sink.emit(event2)
             sink.emit(event3)
             time.sleep(0.1)
 
         # Give time for messages to be processed
-        time.sleep(0.5)
+        time.sleep(0.1)
 
         # Clean up
         consumer.stop()
@@ -114,18 +116,18 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
         # Check that at least some messages were received
         self.assertTrue(len(content1) > 0, "Output file 1 should contain messages")
         self.assertTrue(len(content2) > 0, "Output file 2 should contain messages")
-        
+
         # Check for presence of expected messages (may not be all due to ZeroMQ async nature)
         if "Message to output1" in content1:
             print("✓ Received 'Message to output1'")
         else:
             print("✗ Did not receive 'Message to output1' (may be due to ZeroMQ timing)")
-            
+
         if "Another message to output1" in content1:
             print("✓ Received 'Another message to output1'")
         else:
             print("✗ Did not receive 'Another message to output1' (may be due to ZeroMQ timing)")
-            
+
         if "Message to output2" in content2:
             print("✓ Received 'Message to output2'")
         else:
@@ -172,13 +174,13 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
         Test LRU cache for file handles.
         """
         max_open_files = 3
-        
+
         # Create ZeroMQSink first and bind to endpoint
         sink = ZeroMQSink(endpoint=self.endpoint, topic="")
-        
+
         # Wait a bit for sink to be ready
         time.sleep(0.1)
-        
+
         consumer = DynamicRoutingConsumer(
             endpoint=self.endpoint,
             auto_start=True,
@@ -189,7 +191,7 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
 
         # Give consumer time to start and connect
         # Increase delay to handle ZeroMQ SUB socket's slow joiner problem
-        time.sleep(0.5)
+        time.sleep(0.1)
 
         # Create more output files than max_open_files
         output_files = [os.path.join(self.temp_dir, f"output{i}.log") for i in range(5)]
@@ -209,7 +211,7 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
                 time.sleep(0.05)
 
         # Give time for messages to be processed
-        time.sleep(0.5)
+        time.sleep(0.1)
 
         # Clean up
         consumer.stop()
@@ -226,20 +228,18 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
         Test proper lifecycle management of DynamicRoutingConsumer.
         """
         # Create consumer
-        consumer = DynamicRoutingConsumer(
-            endpoint=self.endpoint, auto_start=False, allowed_directories=[self.temp_dir]
-        )
+        consumer = DynamicRoutingConsumer(endpoint=self.endpoint, auto_start=False, allowed_directories=[self.temp_dir])
 
         # Start consumer
         consumer.start()
-        time.sleep(0.2)
+        time.sleep(0.1)
 
         # Verify consumer is running
         self.assertTrue(consumer.running, "Consumer should be running after start()")
 
         # Stop consumer
         consumer.stop()
-        time.sleep(0.2)
+        time.sleep(0.1)
 
         # Verify consumer has stopped
         self.assertFalse(consumer.running, "Consumer should not be running after stop()")
@@ -254,7 +254,7 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
         ) as consumer:
             # Start consumer within context
             consumer.start()
-            time.sleep(0.2)
+            time.sleep(0.1)
             self.assertTrue(consumer.running, "Consumer should be running within context")
 
         # Verify consumer has been stopped after context exit
@@ -284,10 +284,10 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
 
         # Create ZeroMQSink first and bind to endpoint
         sink = ZeroMQSink(endpoint=self.endpoint, topic="")
-        
+
         # Wait a bit for sink to be ready
         time.sleep(0.1)
-        
+
         # Create and start consumer
         consumer = DynamicRoutingConsumer(
             endpoint=self.endpoint, auto_start=True, daemon=True, allowed_directories=[self.temp_dir]
@@ -295,7 +295,7 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
 
         # Give consumer time to start and connect
         # Increase delay to handle ZeroMQ SUB socket's slow joiner problem
-        time.sleep(0.5)
+        time.sleep(0.1)
 
         # Send multiple messages to increase chance of reception
         for _ in range(5):
@@ -311,7 +311,7 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
             time.sleep(0.1)
 
         # Give time for messages to be processed
-        time.sleep(0.5)
+        time.sleep(0.1)
 
         # Clean up
         consumer.stop()
@@ -321,10 +321,10 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
         if os.path.exists(output_file):
             with open(output_file, "r") as f:
                 content = f.read()
-            
+
             # Check that at least some messages were received
             self.assertTrue(len(content) > 0, "Output file should contain messages")
-            
+
             # Check for process ID (may not be present if no messages were received)
             if "PID:12345" in content:
                 print("✓ Process ID found in output")

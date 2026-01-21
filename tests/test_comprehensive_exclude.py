@@ -1,18 +1,8 @@
-#!/usr/bin/env python3
-"""
-Comprehensive test for exclude functionality in track_all mode.
-"""
-
-import sys
-import os
-
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# MIT License
+# Copyright (c) 2025 aeeeeeep
 
 from objwatch.tracer import Tracer
 from objwatch.config import ObjWatchConfig
-
-# Import test module from the same directory
-from .utils.example_module import TestClass
 
 
 def test_comprehensive_exclude():

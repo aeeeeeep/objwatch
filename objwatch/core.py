@@ -9,9 +9,9 @@ from typing import Optional, Union, List, Any
 from .config import ObjWatchConfig
 from .tracer import Tracer
 from .wrappers import ABCWrapper
-from .runtime_info import runtime_info
-from .sinks.consumer import ZeroMQFileConsumer, DynamicRoutingConsumer
+from .sinks.consumer import DynamicRoutingConsumer
 from .utils.logger import log_info, setup_logging_from_config
+from .runtime_info import runtime_info
 
 
 class ObjWatch:

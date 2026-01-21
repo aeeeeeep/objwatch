@@ -3,9 +3,10 @@
 
 import time
 import pytest
-from objwatch.sinks.zmq_sink import ZeroMQSink
-from objwatch.sinks.std import StandardSink
+
 from objwatch.config import ObjWatchConfig
+from objwatch.sinks.std import StandardSink
+from objwatch.sinks.zmq_sink import ZeroMQSink
 from objwatch.sinks.factory import get_sink
 
 
@@ -173,8 +174,6 @@ class TestZeroMQSink:
     def test_zmq_sink_context_termination(self):
         """Test context termination"""
         sink = ZeroMQSink(endpoint="tcp://127.0.0.1:5566")
-        # Save context reference
-        context = sink.context
         # Close sink
         sink.close()
         # Context should have been terminated

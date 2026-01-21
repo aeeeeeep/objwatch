@@ -1,3 +1,6 @@
+# MIT License
+# Copyright (c) 2025 aeeeeeep
+
 import runpy
 import unittest
 from objwatch import ObjWatch

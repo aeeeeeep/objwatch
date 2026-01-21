@@ -130,16 +130,17 @@ class SinkHandler(logging.Handler):
                 'time': record.created,
                 'name': record.name,
             }
-            
+
             # Add output_file and process_id for dynamic routing support
             if hasattr(sink, 'output_file') and sink.output_file:
                 event['output_file'] = sink.output_file
             else:
                 event['output_file'] = None
-            
+
             import os
+
             event['process_id'] = os.getpid()
-            
+
             sink.emit(event)
         except Exception as e:
             logging.error(f"SinkHandler failed to emit record: {e}")

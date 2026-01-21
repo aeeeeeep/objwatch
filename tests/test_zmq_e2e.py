@@ -5,6 +5,7 @@ import os
 import time
 import unittest
 import tempfile
+
 from objwatch import ObjWatch, watch
 from objwatch.config import ObjWatchConfig
 from objwatch.sinks.consumer import ZeroMQFileConsumer

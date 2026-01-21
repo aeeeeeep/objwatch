@@ -1,17 +1,10 @@
-#!/usr/bin/env python3
-"""Test script to verify exclude functionality with track_all."""
+# MIT License
+# Copyright (c) 2025 aeeeeeep
 
 import sys
-import os
 
-# Add the objwatch package to the path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from objwatch.config import ObjWatchConfig
 from objwatch.tracer import Tracer
-
-# Import test module from the same directory
-from .utils.example_module import TestClass
+from objwatch.config import ObjWatchConfig
 
 
 def test_exclude_functionality():
@@ -50,10 +43,10 @@ def test_exclude_functionality():
     print(f"Should track excluded_attr: {should_track_attr_excluded}")
 
     # Verify results
-    assert should_track_tracked == True, "tracked_method should be tracked"
-    assert should_track_excluded == False, "excluded_method should be excluded"
-    assert should_track_attr_tracked == True, "tracked_attr should be tracked"
-    assert should_track_attr_excluded == False, "excluded_attr should be excluded"
+    assert should_track_tracked, "tracked_method should be tracked"
+    assert not should_track_excluded, "excluded_method should be excluded"
+    assert should_track_attr_tracked, "tracked_attr should be tracked"
+    assert not should_track_attr_excluded, "excluded_attr should be excluded"
 
     print("All exclude functionality tests passed!")
     # All assertions passed, no return value needed for pytest

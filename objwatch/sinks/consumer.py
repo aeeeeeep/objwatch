@@ -1,17 +1,15 @@
 # MIT License
 # Copyright (c) 2025 aeeeeeep
 
+import os
 import zmq
 import time
 import logging
 import msgpack
 import threading
-import os
-import sys
 from pathlib import Path
 from typing import Dict, Any, Optional
 from collections import OrderedDict
-from functools import lru_cache
 
 
 class ZeroMQFileConsumer:
