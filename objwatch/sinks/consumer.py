@@ -11,6 +11,9 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 from collections import OrderedDict
 
+from ..events import LogEvent
+from .formatter import Formatter
+
 
 class ZeroMQFileConsumer:
     """
@@ -90,25 +93,30 @@ class ZeroMQFileConsumer:
             self.context = None
         self.logger.info("Disconnected from ZeroMQ endpoint")
 
-    def _process_event(self, event: Dict[str, Any]) -> str:
+    def _process_event(self, event_dict: Dict[str, Any]) -> str:
         """
-        Process the event into a string format suitable for logging.
+        Process the event dictionary into a string format suitable for logging.
 
         Args:
-            event: The event dictionary to process
+            event_dict: The event dictionary to process
 
         Returns:
             str: Formatted log line
         """
-        # Extract event fields
-        level = event.get('level', 'INFO')
-        msg = event.get('msg', '')
-        timestamp = event.get('time', time.time())
-        time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timestamp))
-        name = event.get('name', 'unknown')
+        # Check if this is a raw LogEvent (new format)
+        if 'event_type' in event_dict and 'lineno' in event_dict and 'call_depth' in event_dict:
+            # Convert dict to LogEvent object
+            log_event = LogEvent(**event_dict)
+            return Formatter.format(log_event)
+        else:
+            # Legacy format - keep for backward compatibility
+            level = event_dict.get('level', 'INFO')
+            msg = event_dict.get('msg', '')
+            timestamp = event_dict.get('time', time.time())
+            time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timestamp))
+            name = event_dict.get('name', 'unknown')
 
-        # Format the log line similar to standard logging format
-        return f"[{time_str}] [{level}] {name}: {msg}\n"
+            return f"[{time_str}] [{level}] {name}: {msg}\n"
 
     def _run(self) -> None:
         """
@@ -430,24 +438,31 @@ class DynamicRoutingConsumer:
             self.context = None
         self.logger.info("Disconnected from ZeroMQ endpoint")
 
-    def _process_event(self, event: Dict[str, Any]) -> str:
+    def _process_event(self, event_dict: Dict[str, Any]) -> str:
         """
-        Process the event into a string format suitable for logging.
+        Process the event dictionary into a string format suitable for logging.
 
         Args:
-            event: The event dictionary to process
+            event_dict: The event dictionary to process
 
         Returns:
             str: Formatted log line
         """
-        level = event.get('level', 'INFO')
-        msg = event.get('msg', '')
-        timestamp = event.get('time', time.time())
-        time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timestamp))
-        name = event.get('name', 'unknown')
-        process_id = event.get('process_id', 'unknown')
+        # Check if this is a raw LogEvent (new format)
+        if 'event_type' in event_dict and 'lineno' in event_dict and 'call_depth' in event_dict:
+            # Convert dict to LogEvent object
+            log_event = LogEvent(**event_dict)
+            return Formatter.format(log_event)
+        else:
+            # Legacy format - keep for backward compatibility
+            level = event_dict.get('level', 'INFO')
+            msg = event_dict.get('msg', '')
+            timestamp = event_dict.get('time', time.time())
+            time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timestamp))
+            name = event_dict.get('name', 'unknown')
+            process_id = event_dict.get('process_id', 'unknown')
 
-        return f"[{time_str}] [{level}] [PID:{process_id}] {name}: {msg}\n"
+            return f"[{time_str}] [{level}] [PID:{process_id}] {name}: {msg}\n"
 
     def _run(self) -> None:
         """

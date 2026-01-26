@@ -55,7 +55,8 @@ class ZeroMQSink(BaseSink):
         try:
             # Serialize payload with msgpack
             # msgpack is faster and more compact than JSON
-            payload = msgpack.packb(event)
+            # Use default=str to handle non-serializable objects
+            payload = msgpack.packb(event, default=str)
 
             # Send multipart message: [topic, payload]
             # This allows subscribers to filter by topic efficiently

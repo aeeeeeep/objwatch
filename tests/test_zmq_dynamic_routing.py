@@ -30,6 +30,7 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
         # Clean up test output files
         if os.path.exists(self.temp_dir):
             import logging
+
             for filename in os.listdir(self.temp_dir):
                 filepath = os.path.join(self.temp_dir, filename)
                 try:

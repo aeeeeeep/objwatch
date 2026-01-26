@@ -3,6 +3,7 @@
 
 import sys
 import json
+import time
 import signal
 import atexit
 from functools import lru_cache
@@ -88,8 +89,24 @@ class EventHandls:
             call_depth (int): Current depth of the call stack.
             index_info (str): Information about the index to track in a multi-process environment.
         """
+        # For backward compatibility, still format the message for direct logging
         prefix = self._generate_prefix(lineno, call_depth)
-        log_debug(f"{index_info}{prefix}{event_type.label} {message}")
+        formatted_msg = f"{index_info}{prefix}{event_type.label} {message}"
+
+        # But also include raw event data for lazy serialization in sinks like ZeroMQSink
+        log_debug(
+            formatted_msg,
+            extra={
+                'raw_event': {
+                    'event_type': event_type.label,
+                    'lineno': lineno,
+                    'call_depth': call_depth,
+                    'index_info': index_info,
+                    'message': message,
+                    'timestamp': time.time(),
+                }
+            },
+        )
 
     def _add_json_event(self, event_type: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -137,7 +154,26 @@ class EventHandls:
         diff_msg = f" ({value_type.__name__})(len){old_value_len} -> {current_value_len}"
         logger_msg = f"{class_name}.{key}{diff_msg}"
 
-        self._log_event(lineno, event_type, logger_msg, call_depth, index_info)
+        # Log with raw event data for lazy serialization
+        import time
+
+        raw_event = {
+            'event_type': event_type.label,
+            'lineno': lineno,
+            'call_depth': call_depth,
+            'index_info': index_info,
+            'class_name': class_name,
+            'key': key,
+            'value_type': value_type,
+            'old_value_len': old_value_len,
+            'current_value_len': current_value_len,
+            'timestamp': time.time(),
+        }
+
+        # For backward compatibility, still format the message for direct logging
+        prefix = self._generate_prefix(lineno, call_depth)
+        formatted_msg = f"{index_info}{prefix}{event_type.label} {logger_msg}"
+        log_debug(formatted_msg, extra={'raw_event': raw_event})
 
         if self.output_json:
             self._add_json_event(
@@ -173,21 +209,33 @@ class EventHandls:
             func_data['call_msg'] = call_msg
             logger_msg += ' <- ' + call_msg
 
-        self._log_event(lineno, EventType.RUN, logger_msg, call_depth, index_info)
+        # Log with raw event data for lazy serialization
+        import time
+
+        raw_event = {
+            'event_type': EventType.RUN.label,
+            'lineno': lineno,
+            'call_depth': call_depth,
+            'index_info': index_info,
+            'func_info': func_info,
+            'timestamp': time.time(),
+        }
+
+        # For backward compatibility, still format the message for direct logging
+        prefix = self._generate_prefix(lineno, call_depth)
+        formatted_msg = f"{index_info}{prefix}{EventType.RUN.label} {logger_msg}"
+        log_debug(formatted_msg, extra={'raw_event': raw_event})
 
         if self.output_json:
-            function_event = self._add_json_event('Function', func_data)
+            function_event = self._add_json_event(
+                'Function',
+                func_data,
+            )
             # Push the function's events list to the stack to maintain hierarchy
             self.current_node.append(function_event['events'])
 
     def handle_end(
-        self,
-        lineno: int,
-        func_info: dict,
-        abc_wrapper: Optional[Any],
-        call_depth: int,
-        index_info: str,
-        result: Any,
+        self, lineno: int, func_info: dict, abc_wrapper: Optional[Any], call_depth: int, index_info: str, result: Any
     ) -> None:
         """
         Handle the 'end' event indicating the end of a function or method execution.
@@ -199,7 +247,22 @@ class EventHandls:
             return_msg = abc_wrapper.wrap_return(func_info['symbol'], result)
             logger_msg += ' -> ' + return_msg
 
-        self._log_event(lineno, EventType.END, logger_msg, call_depth, index_info)
+        # Log with raw event data for lazy serialization
+        import time
+
+        raw_event = {
+            'event_type': EventType.END.label,
+            'lineno': lineno,
+            'call_depth': call_depth,
+            'index_info': index_info,
+            'func_info': func_info,
+            'timestamp': time.time(),
+        }
+
+        # For backward compatibility, still format the message for direct logging
+        prefix = self._generate_prefix(lineno, call_depth)
+        formatted_msg = f"{index_info}{prefix}{EventType.END.label} {logger_msg}"
+        log_debug(formatted_msg, extra={'raw_event': raw_event})
 
         if self.output_json and len(self.current_node) > 1:
             # Find the corresponding function event in the parent node
@@ -248,7 +311,25 @@ class EventHandls:
         diff_msg = f" {old_msg} -> {current_msg}"
         logger_msg = f"{class_name}.{key}{diff_msg}"
 
-        self._log_event(lineno, EventType.UPD, logger_msg, call_depth, index_info)
+        # Log with raw event data for lazy serialization
+        import time
+
+        raw_event = {
+            'event_type': EventType.UPD.label,
+            'lineno': lineno,
+            'call_depth': call_depth,
+            'index_info': index_info,
+            'class_name': class_name,
+            'key': key,
+            'old_value': old_value,
+            'current_value': current_value,
+            'timestamp': time.time(),
+        }
+
+        # For backward compatibility, still format the message for direct logging
+        prefix = self._generate_prefix(lineno, call_depth)
+        formatted_msg = f"{index_info}{prefix}{EventType.UPD.label} {logger_msg}"
+        log_debug(formatted_msg, extra={'raw_event': raw_event})
 
         if self.output_json:
             self._add_json_event(

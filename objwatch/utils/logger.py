@@ -124,22 +124,44 @@ class SinkHandler(logging.Handler):
 
         try:
             msg = self.format(record)
-            event = {
-                'level': record.levelname,
-                'msg': msg,
-                'time': record.created,
-                'name': record.name,
-            }
 
-            # Add output_file and process_id for dynamic routing support
-            if hasattr(sink, 'output_file') and sink.output_file:
-                event['output_file'] = sink.output_file
-            else:
-                event['output_file'] = None
+            # Check if raw event data is available (for lazy serialization)
+            raw_event = getattr(record, 'raw_event', None)
 
             import os
 
-            event['process_id'] = os.getpid()
+            process_id = os.getpid()
+
+            if raw_event:
+                # Use raw event data for lazy serialization
+                event = {
+                    **raw_event,
+                    'level': record.levelname,
+                    'time': record.created,
+                    'name': record.name,
+                    'process_id': process_id,
+                }
+
+                # Add output_file for dynamic routing support
+                if hasattr(sink, 'output_file') and sink.output_file:
+                    event['output_file'] = sink.output_file
+                else:
+                    event['output_file'] = None
+            else:
+                # Legacy format for backward compatibility
+                event = {
+                    'level': record.levelname,
+                    'msg': msg,
+                    'time': record.created,
+                    'name': record.name,
+                    'process_id': process_id,
+                }
+
+                # Add output_file for dynamic routing support
+                if hasattr(sink, 'output_file') and sink.output_file:
+                    event['output_file'] = sink.output_file
+                else:
+                    event['output_file'] = None
 
             sink.emit(event)
         except Exception as e:
