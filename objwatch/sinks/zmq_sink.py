@@ -26,6 +26,49 @@ class ZeroMQSink(BaseSink):
         self.context: Optional[zmq.Context] = None
         self.socket: Optional[zmq.Socket] = None
         self.connected: bool = False
+        
+        # Connect and wait for ready if requested
+        self._connect()
+        self._wait_ready()
+
+    def _wait_ready(self, timeout: float = 5.0) -> bool:
+        """
+        Wait for the ZeroMQ sink to be fully ready to send messages.
+
+        Args:
+            timeout: Maximum time to wait in seconds
+
+        Returns:
+            bool: True if sink is ready, False if timeout occurred
+        """
+        import time
+        start_time = time.time()
+        
+        # Wait for connection to be established
+        while not self.connected:
+            if time.time() - start_time > timeout:
+                logger.error("Timeout waiting for ZeroMQ sink to connect")
+                return False
+            self._connect()
+            time.sleep(0.01)
+        
+        # Give some extra time for ZeroMQ to complete the binding setup
+        time.sleep(0.05)
+        
+        logger.info("ZeroMQ sink is ready to send messages")
+        return True
+
+    def wait_ready(self, timeout: float = 5.0) -> bool:
+        """
+        Wait for the ZeroMQ sink to be fully ready to send messages.
+
+        Args:
+            timeout: Maximum time to wait in seconds
+
+        Returns:
+            bool: True if sink is ready, False if timeout occurred
+        """
+        return self._wait_ready(timeout)
 
     def _connect(self) -> None:
         if self.connected:
@@ -42,6 +85,32 @@ class ZeroMQSink(BaseSink):
         except zmq.ZMQError as e:
             logger.error(f"Failed to bind ZeroMQ socket to {self.endpoint}: {e}")
             self.connected = False
+
+    def wait_ready(self, timeout: float = 5.0) -> bool:
+        """
+        Wait for the ZeroMQ sink to be fully ready to send messages.
+
+        Args:
+            timeout: Maximum time to wait in seconds
+
+        Returns:
+            bool: True if sink is ready, False if timeout occurred
+        """
+        start_time = time.time()
+        
+        # Wait for connection to be established
+        while not self.connected:
+            if time.time() - start_time > timeout:
+                logger.error("Timeout waiting for ZeroMQ sink to connect")
+                return False
+            self._connect()
+            time.sleep(0.01)
+        
+        # Give some extra time for ZeroMQ to complete the binding setup
+        time.sleep(0.05)
+        
+        logger.info("ZeroMQ sink is ready to send messages")
+        return True
 
     def emit(self, event: Dict[str, Any]) -> None:
         # Ensure we're connected before emitting

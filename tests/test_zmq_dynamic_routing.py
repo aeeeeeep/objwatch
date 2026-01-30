@@ -7,12 +7,12 @@ import tempfile
 import unittest
 
 from objwatch.sinks.zmq_sink import ZeroMQSink
-from objwatch.sinks.consumer import DynamicRoutingConsumer
+from objwatch.sinks.consumer import ZeroMQFileConsumer
 
 
-class TestDynamicRoutingConsumer(unittest.TestCase):
+class TestZeroMQFileConsumer(unittest.TestCase):
     """
-    Tests for DynamicRoutingConsumer class functionality
+    Tests for ZeroMQFileConsumer class functionality
     """
 
     def setUp(self):
@@ -49,20 +49,13 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
         output1 = os.path.join(self.temp_dir, "output1.log")
         output2 = os.path.join(self.temp_dir, "output2.log")
 
-        # Create ZeroMQSink first and bind to endpoint
+        # Create ZeroMQSink first and bind to endpoint (wait_ready is now handled in __init__)
         sink = ZeroMQSink(endpoint=self.endpoint, topic="", output_file=output1)
 
-        # Wait a bit for sink to be ready
-        time.sleep(0.1)
-
-        # Create and start consumer
-        consumer = DynamicRoutingConsumer(
+        # Create and start consumer (wait_ready is now handled in __init__)
+        consumer = ZeroMQFileConsumer(
             endpoint=self.endpoint, auto_start=True, daemon=True, allowed_directories=[self.temp_dir]
         )
-
-        # Give consumer time to start and connect
-        # Increase delay to handle ZeroMQ SUB socket's slow joiner problem
-        time.sleep(0.1)
 
         # Send messages with different output_file
         # Send multiple messages to increase chance of reception
@@ -95,7 +88,7 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
             sink.emit(event1)
             sink.emit(event2)
             sink.emit(event3)
-            time.sleep(0.1)
+            time.sleep(0.05)
 
         # Give time for messages to be processed
         time.sleep(0.1)
@@ -139,7 +132,7 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
         Test path validation to prevent directory traversal.
         """
         # Create and start the consumer
-        consumer = DynamicRoutingConsumer(
+        consumer = ZeroMQFileConsumer(
             endpoint=self.endpoint, auto_start=True, daemon=True, allowed_directories=[self.temp_dir]
         )
 
@@ -182,7 +175,7 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
         # Wait a bit for sink to be ready
         time.sleep(0.1)
 
-        consumer = DynamicRoutingConsumer(
+        consumer = ZeroMQFileConsumer(
             endpoint=self.endpoint,
             auto_start=True,
             daemon=True,
@@ -226,10 +219,10 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
 
     def test_consumer_lifecycle(self):
         """
-        Test proper lifecycle management of DynamicRoutingConsumer.
+        Test proper lifecycle management of ZeroMQFileConsumer.
         """
         # Create consumer
-        consumer = DynamicRoutingConsumer(endpoint=self.endpoint, auto_start=False, allowed_directories=[self.temp_dir])
+        consumer = ZeroMQFileConsumer(endpoint=self.endpoint, auto_start=False, allowed_directories=[self.temp_dir])
 
         # Start consumer
         consumer.start()
@@ -247,10 +240,10 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
 
     def test_consumer_context_manager(self):
         """
-        Test that DynamicRoutingConsumer works correctly as a context manager.
+        Test that ZeroMQFileConsumer works correctly as a context manager.
         """
         # Use consumer as context manager
-        with DynamicRoutingConsumer(
+        with ZeroMQFileConsumer(
             endpoint=self.endpoint, auto_start=False, allowed_directories=[self.temp_dir]
         ) as consumer:
             # Start consumer within context
@@ -267,15 +260,15 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
         """
         invalid_endpoint = "invalid_endpoint"
 
-        # Test that DynamicRoutingConsumer handles invalid endpoint gracefully
+        # Test that ZeroMQFileConsumer handles invalid endpoint gracefully
         try:
-            consumer = DynamicRoutingConsumer(
+            consumer = ZeroMQFileConsumer(
                 endpoint=invalid_endpoint, auto_start=True, daemon=True, allowed_directories=[self.temp_dir]
             )
             # If we get here, the consumer should have handled the error
             consumer.stop()
         except Exception as e:
-            self.fail(f"DynamicRoutingConsumer should handle invalid endpoint gracefully, but got exception: {e}")
+            self.fail(f"ZeroMQFileConsumer should handle invalid endpoint gracefully, but got exception: {e}")
 
     def test_process_id_in_output(self):
         """
@@ -290,7 +283,7 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
         time.sleep(0.1)
 
         # Create and start consumer
-        consumer = DynamicRoutingConsumer(
+        consumer = ZeroMQFileConsumer(
             endpoint=self.endpoint, auto_start=True, daemon=True, allowed_directories=[self.temp_dir]
         )
 
@@ -339,7 +332,7 @@ class TestDynamicRoutingConsumer(unittest.TestCase):
         Test handling of events without output_file field.
         """
         # Create and start the consumer
-        consumer = DynamicRoutingConsumer(
+        consumer = ZeroMQFileConsumer(
             endpoint=self.endpoint, auto_start=True, daemon=True, allowed_directories=[self.temp_dir]
         )
 

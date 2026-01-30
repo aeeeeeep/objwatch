@@ -41,50 +41,69 @@ class TestZeroMQE2E(unittest.TestCase):
         """
         Test that ZeroMQSink sends messages that can be received by ZeroMQFileConsumer.
         """
-        # Create and start the consumer directly
-        consumer = ZeroMQFileConsumer(
-            endpoint=self.endpoint, topic=self.topic, output_file=self.consumer_output, auto_start=True, daemon=True
-        )
+        import tempfile
+        import os
+        
+        # Create a temporary directory for test output
+        temp_dir = tempfile.mkdtemp()
+        consumer_output = os.path.join(temp_dir, "test_output.log")
+        
+        try:
+            # Create a ZeroMQSink directly first (wait_ready is now handled in __init__)
+            from objwatch.sinks.zmq_sink import ZeroMQSink
 
-        # Give the consumer time to start and connect
-        # Increase delay to handle ZeroMQ SUB socket's slow joiner problem
-        time.sleep(0.1)
+            sink = ZeroMQSink(endpoint=self.endpoint, topic=self.topic)
 
-        # Create a ZeroMQSink directly
-        from objwatch.sinks.zmq_sink import ZeroMQSink
+            # Create and start the consumer directly (wait_ready is now handled in __init__)
+            consumer = ZeroMQFileConsumer(
+                endpoint=self.endpoint, 
+                topic=self.topic, 
+                output_file=consumer_output, 
+                auto_start=True, 
+                daemon=True,
+                allowed_directories=[temp_dir]
+            )
 
-        sink = ZeroMQSink(endpoint=self.endpoint, topic=self.topic)
+            # Send some test messages directly
+            test_messages = [f"Test message {i}" for i in range(3)]
 
-        # Send some test messages directly
-        test_messages = [f"Test message {i}" for i in range(3)]
+            for msg in test_messages:
+                print(f"[Test] Sending direct message: {msg}")
+                test_event = {
+                    'level': 'INFO', 
+                    'msg': msg, 
+                    'time': time.time(), 
+                    'name': 'test_logger',
+                    'output_file': consumer_output
+                }
+                sink.emit(test_event)
+                time.sleep(0.1)  # Give time for message to be sent
 
-        for msg in test_messages:
-            print(f"[Test] Sending direct message: {msg}")
-            test_event = {'level': 'INFO', 'msg': msg, 'time': time.time(), 'name': 'test_logger'}
-            sink.emit(test_event)
-            time.sleep(0.1)  # Give time for message to be sent
+            # Give time for messages to be processed
+            time.sleep(0.1)
 
-        # Give time for messages to be processed
-        time.sleep(0.1)
+            # Clean up
+            consumer.stop()
+            sink.close()
 
-        # Clean up
-        consumer.stop()
-        sink.close()
+            # Verify that messages were received and written to file
+            self.assertTrue(os.path.exists(consumer_output), "Consumer output file was not created")
 
-        # Verify that messages were received and written to file
-        self.assertTrue(os.path.exists(self.consumer_output), "Consumer output file was not created")
+            with open(consumer_output, 'r', encoding='utf-8') as f:
+                content = f.read()
 
-        with open(self.consumer_output, 'r', encoding='utf-8') as f:
-            content = f.read()
+            # Check that at least one message was received
+            self.assertTrue(len(content) > 0, "No messages were received by the consumer")
 
-        # Check that at least one message was received
-        self.assertTrue(len(content) > 0, "No messages were received by the consumer")
+            # Check that at least one test message is in the output
+            received_test_messages = [msg for msg in test_messages if msg in content]
+            self.assertGreater(len(received_test_messages), 0, "No test messages were found in consumer output")
 
-        # Check that at least one test message is in the output
-        received_test_messages = [msg for msg in test_messages if msg in content]
-        self.assertGreater(len(received_test_messages), 0, "No test messages were found in consumer output")
-
-        print(f"[Test] Received messages: {received_test_messages}")
+            print(f"[Test] Received messages: {received_test_messages}")
+        finally:
+            # Clean up temporary directory
+            import shutil
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
     def test_auto_start_consumer(self):
         """
@@ -126,49 +145,62 @@ class TestZeroMQE2E(unittest.TestCase):
         Test that consumer only receives messages with the subscribed topic.
         Note: This test may fail occasionally due to ZeroMQ's asynchronous nature and SUB socket's "slow joiner" problem.
         """
-        # Simplified test: create one consumer with a specific topic and send matching messages
-        consumer_output = tempfile.NamedTemporaryFile(suffix=".log", delete=False).name
+        import tempfile
+        import os
+        
+        # Create a temporary directory for test output
+        temp_dir = tempfile.mkdtemp()
+        consumer_output = os.path.join(temp_dir, "test_output.log")
+        
+        try:
+            # Create consumer with topic "test_topic" (wait_ready is now handled in __init__)
+            consumer = ZeroMQFileConsumer(
+                endpoint=self.endpoint, 
+                topic="test_topic", 
+                output_file=consumer_output, 
+                auto_start=True, 
+                daemon=True,
+                allowed_directories=[temp_dir]
+            )
 
-        # Create consumer with topic "test_topic"
-        consumer = ZeroMQFileConsumer(
-            endpoint=self.endpoint, topic="test_topic", output_file=consumer_output, auto_start=True, daemon=True
-        )
+            # Create ZeroMQSink (wait_ready is now handled in __init__)
+            from objwatch.sinks.zmq_sink import ZeroMQSink
 
-        # Give consumers time to start and connect
-        # Increase delay to handle ZeroMQ SUB socket's slow joiner problem
-        time.sleep(0.1)
+            sink = ZeroMQSink(endpoint=self.endpoint, topic="test_topic")
 
-        # Create ZeroMQSink
-        from objwatch.sinks.zmq_sink import ZeroMQSink
+            # Send multiple messages with matching topic
+            message = "Test message with matching topic"
+            print(f"[Test] Sending messages with topic 'test_topic': {message}")
 
-        sink = ZeroMQSink(endpoint=self.endpoint, topic="test_topic")
+            # Send multiple messages to increase chance of reception
+            for _ in range(5):
+                sink.emit({
+                    'level': 'INFO', 
+                    'msg': message, 
+                    'time': time.time(), 
+                    'name': 'test_logger',
+                    'output_file': consumer_output
+                })
+                time.sleep(0.1)
 
-        # Send multiple messages with matching topic
-        message = "Test message with matching topic"
-        print(f"[Test] Sending messages with topic 'test_topic': {message}")
-
-        # Send multiple messages to increase chance of reception
-        for _ in range(5):
-            sink.emit({'level': 'INFO', 'msg': message, 'time': time.time(), 'name': 'test_logger'})
+            # Give time for messages to be processed
             time.sleep(0.1)
 
-        # Give time for messages to be processed
-        time.sleep(0.1)
+            # Clean up
+            consumer.stop()
+            sink.close()
 
-        # Clean up
-        consumer.stop()
-        sink.close()
+            # Verify that the consumer received at least one message
+            with open(consumer_output, 'r', encoding='utf-8') as f:
+                content = f.read()
 
-        # Verify that the consumer received at least one message
-        with open(consumer_output, 'r', encoding='utf-8') as f:
-            content = f.read()
-
-        # Check that at least one message was received
-        self.assertTrue(len(content) > 0, "No messages were received by the consumer")
-        self.assertIn(message, content, "Consumer should have received message with matching topic")
-
-        # Clean up
-        os.remove(consumer_output)
+            # Check that at least one message was received
+            self.assertTrue(len(content) > 0, "No messages were received by the consumer")
+            self.assertIn(message, content, "Consumer should have received message with matching topic")
+        finally:
+            # Clean up temporary directory
+            import shutil
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
     def test_zmq_invalid_endpoint(self):
         """

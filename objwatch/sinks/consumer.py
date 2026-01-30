@@ -19,6 +19,7 @@ class ZeroMQFileConsumer:
     """
     A consumer that receives events from ZeroMQSink via ZeroMQ SUB socket
     and writes them to a local file in append mode.
+    Supports dynamic routing to different output files based on event content.
     """
 
     def __init__(
@@ -28,6 +29,8 @@ class ZeroMQFileConsumer:
         output_file: str = "zmq_events.log",
         auto_start: bool = False,
         daemon: bool = True,
+        max_open_files: int = 100,
+        allowed_directories: Optional[list] = None,
     ):
         """
         Initialize the ZeroMQFileConsumer.
@@ -35,216 +38,15 @@ class ZeroMQFileConsumer:
         Args:
             endpoint: ZeroMQ endpoint to connect to (e.g., "tcp://127.0.0.1:5555")
             topic: Topic to subscribe to (empty string means subscribe to all topics)
-            output_file: Path to the output file where events will be written
-            auto_start: Whether to automatically start the consumer when initialized
-            daemon: Whether to run the consumer in a daemon thread
-        """
-        self.endpoint = endpoint
-        self.topic = topic.encode('utf-8') if isinstance(topic, str) else topic
-        self.output_file = output_file
-        self.auto_start = auto_start
-        self.daemon = daemon
-
-        self.context: Optional[zmq.Context] = None
-        self.socket: Optional[zmq.Socket] = None
-        self.running = False
-        self.thread: Optional[threading.Thread] = None
-
-        # Initialize logging for the consumer
-        self.logger = logging.getLogger('objwatch.ZeroMQFileConsumer')
-
-        # Create output directory if it doesn't exist
-        Path(output_file).parent.mkdir(parents=True, exist_ok=True)
-
-        if auto_start:
-            self.start()
-
-    def _connect(self) -> None:
-        """
-        Establish connection to the ZeroMQ endpoint.
-        """
-        try:
-            self.context = zmq.Context()
-            self.socket = self.context.socket(zmq.SUB)
-            self.socket.setsockopt(zmq.RCVTIMEO, 1000)  # 1 second timeout for receive
-            self.socket.setsockopt(zmq.SUBSCRIBE, self.topic)
-            self.socket.connect(self.endpoint)
-            self.logger.info(f"Connected to ZeroMQ endpoint: {self.endpoint}")
-            self.logger.info(f"Subscribed to topic: {self.topic.decode('utf-8') if self.topic else 'all topics'}")
-        except zmq.ZMQError as e:
-            self.logger.error(f"Failed to connect to ZeroMQ endpoint {self.endpoint}: {e}")
-            # Clean up resources if partially initialized
-            if self.socket:
-                self.socket.close()
-                self.socket = None
-            if self.context:
-                self.context.term()
-                self.context = None
-
-    def _disconnect(self) -> None:
-        """
-        Disconnect from the ZeroMQ endpoint and clean up resources.
-        """
-        if self.socket:
-            self.socket.close()
-            self.socket = None
-        if self.context:
-            self.context.term()
-            self.context = None
-        self.logger.info("Disconnected from ZeroMQ endpoint")
-
-    def _process_event(self, event_dict: Dict[str, Any]) -> str:
-        """
-        Process the event dictionary into a string format suitable for logging.
-
-        Args:
-            event_dict: The event dictionary to process
-
-        Returns:
-            str: Formatted log line
-        """
-        # Check if this is a raw LogEvent (new format)
-        if 'event_type' in event_dict and 'lineno' in event_dict and 'call_depth' in event_dict:
-            # Convert dict to LogEvent object
-            log_event = LogEvent(**event_dict)
-            return Formatter.format(log_event)
-        else:
-            # Legacy format - keep for backward compatibility
-            level = event_dict.get('level', 'INFO')
-            msg = event_dict.get('msg', '')
-            timestamp = event_dict.get('time', time.time())
-            time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timestamp))
-            name = event_dict.get('name', 'unknown')
-
-            return f"[{time_str}] [{level}] {name}: {msg}\n"
-
-    def _run(self) -> None:
-        """
-        The main run loop that listens for messages and writes them to file.
-        """
-        try:
-            with open(self.output_file, 'a', encoding='utf-8') as f:
-                self.logger.info(f"Writing events to file: {self.output_file}")
-
-                while self.running:
-                    try:
-                        if self.socket is None:
-                            self.logger.info("Attempting to connect to ZeroMQ endpoint...")
-                            self._connect()
-                            if self.socket is None:
-                                self.logger.error("Failed to establish connection, will retry")
-                                time.sleep(0.1)
-                                continue
-
-                        # Receive multipart message [topic, payload]
-                        msg_parts = self.socket.recv_multipart()
-                        if len(msg_parts) == 2:
-                            payload = msgpack.unpackb(msg_parts[1], raw=False)
-
-                            # Process and write the event to file
-                            log_line = self._process_event(payload)
-                            f.write(log_line)
-                            f.flush()  # Ensure immediate write to disk
-                    except zmq.Again:
-                        # Timeout occurred, continue the loop
-                        continue
-                    except zmq.ZMQError as e:
-                        self.logger.error(f"ZeroMQ error: {e}")
-                        # Reset socket to trigger reconnection
-                        self.socket = None
-                        time.sleep(0.1)
-                        continue
-                    except Exception as e:
-                        self.logger.error(f"Error processing message: {e}")
-                        continue
-        finally:
-            self._disconnect()
-
-    def start(self, daemon: Optional[bool] = None) -> None:
-        """
-        Start the consumer in a separate thread.
-
-        Args:
-            daemon: Whether to run the thread as a daemon. If None, uses the instance's daemon setting.
-        """
-        if self.running:
-            self.logger.warning("Consumer is already running")
-            return
-
-        self.running = True
-
-        # Use provided daemon value or instance default
-        daemon = daemon if daemon is not None else self.daemon
-
-        # Create and start the thread
-        self.thread = threading.Thread(target=self._run, daemon=daemon)
-        self.thread.start()
-        self.logger.info(f"Consumer started {'(daemon thread)' if daemon else ''}")
-
-    def stop(self, timeout: float = 5.0) -> None:
-        """
-        Stop the consumer gracefully.
-
-        Args:
-            timeout: Maximum time to wait for the thread to join
-        """
-        if not self.running:
-            self.logger.warning("Consumer is not running")
-            return
-
-        self.logger.info("Stopping consumer...")
-        self.running = False
-
-        if self.thread and self.thread.is_alive():
-            self.thread.join(timeout)
-            if self.thread.is_alive():
-                self.logger.warning("Consumer thread did not terminate within timeout")
-            else:
-                self.logger.info("Consumer thread terminated gracefully")
-
-        self.thread = None
-
-    def __enter__(self) -> 'ZeroMQFileConsumer':
-        """
-        Enter method for context manager support.
-        """
-        if not self.running:
-            self.start()
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
-        """
-        Exit method for context manager support.
-        """
-        self.stop()
-
-
-class DynamicRoutingConsumer:
-    """
-    A consumer that receives events from ZeroMQSink via ZeroMQ SUB socket
-    and dynamically routes them to different output files based on event content.
-    Supports multi-process scenarios with proper file locking and path validation.
-    """
-
-    def __init__(
-        self,
-        endpoint: str = "tcp://127.0.0.1:5555",
-        auto_start: bool = False,
-        daemon: bool = True,
-        max_open_files: int = 100,
-        allowed_directories: Optional[list] = None,
-    ):
-        """
-        Initialize the DynamicRoutingConsumer.
-
-        Args:
-            endpoint: ZeroMQ endpoint to connect to (e.g., "tcp://127.0.0.1:5555")
+            output_file: Default path to the output file where events will be written
             auto_start: Whether to automatically start the consumer when initialized
             daemon: Whether to run the consumer in a daemon thread
             max_open_files: Maximum number of file handles to keep open
             allowed_directories: List of allowed directories for output files (None means any directory)
         """
         self.endpoint = endpoint
+        self.topic = topic.encode('utf-8') if isinstance(topic, str) else topic
+        self.output_file = output_file
         self.auto_start = auto_start
         self.daemon = daemon
         self.max_open_files = max_open_files
@@ -261,10 +63,64 @@ class DynamicRoutingConsumer:
         self.handle_lock = threading.Lock()
 
         # Initialize logging for the consumer
-        self.logger = logging.getLogger('objwatch.DynamicRoutingConsumer')
+        self.logger = logging.getLogger('objwatch.ZeroMQFileConsumer')
+
+        # Create output directory if it doesn't exist
+        Path(output_file).parent.mkdir(parents=True, exist_ok=True)
 
         if auto_start:
             self.start()
+            self._wait_ready()
+
+    def _wait_ready(self, timeout: float = 5.0) -> bool:
+        """
+        Wait for the consumer to be fully ready to receive messages.
+        This helps with ZeroMQ's slow joiner problem by ensuring the SUB socket
+        is connected and ready before messages are sent.
+
+        Args:
+            timeout: Maximum time to wait in seconds
+
+        Returns:
+            bool: True if consumer is ready, False if timeout occurred
+        """
+        import time
+        start_time = time.time()
+        
+        # Wait for thread to start
+        while not self.thread or not self.thread.is_alive():
+            if time.time() - start_time > timeout:
+                self.logger.error("Timeout waiting for consumer thread to start")
+                return False
+            time.sleep(0.01)
+        
+        # Wait for socket to be connected
+        while self.socket is None:
+            if time.time() - start_time > timeout:
+                self.logger.error("Timeout waiting for ZeroMQ socket to connect")
+                return False
+            time.sleep(0.01)
+        
+        # Give some extra time for ZeroMQ to complete the connection setup
+        # This helps with the slow joiner problem
+        time.sleep(0.05)
+        
+        self.logger.info("Consumer is ready to receive messages")
+        return True
+
+    def wait_ready(self, timeout: float = 5.0) -> bool:
+        """
+        Wait for the consumer to be fully ready to receive messages.
+        This helps with ZeroMQ's slow joiner problem by ensuring the SUB socket
+        is connected and ready before messages are sent.
+
+        Args:
+            timeout: Maximum time to wait in seconds
+
+        Returns:
+            bool: True if consumer is ready, False if timeout occurred
+        """
+        return self._wait_ready(timeout)
 
     def _validate_file_path(self, path: str) -> bool:
         """
@@ -404,7 +260,11 @@ class DynamicRoutingConsumer:
             output_file: Path to the output file
         """
         if output_file in self.file_locks:
-            self.file_locks[output_file].release()
+            try:
+                self.file_locks[output_file].release()
+            except RuntimeError:
+                # Lock was not held, ignore
+                pass
 
     def _connect(self) -> None:
         """
@@ -414,11 +274,13 @@ class DynamicRoutingConsumer:
             self.context = zmq.Context()
             self.socket = self.context.socket(zmq.SUB)
             self.socket.setsockopt(zmq.RCVTIMEO, 1000)  # 1 second timeout for receive
-            self.socket.setsockopt(zmq.SUBSCRIBE, b"")  # Subscribe to all topics
+            self.socket.setsockopt(zmq.SUBSCRIBE, self.topic)
             self.socket.connect(self.endpoint)
             self.logger.info(f"Connected to ZeroMQ endpoint: {self.endpoint}")
+            self.logger.info(f"Subscribed to topic: {self.topic.decode('utf-8') if self.topic else 'all topics'}")
         except zmq.ZMQError as e:
             self.logger.error(f"Failed to connect to ZeroMQ endpoint {self.endpoint}: {e}")
+            # Clean up resources if partially initialized
             if self.socket:
                 self.socket.close()
                 self.socket = None
@@ -466,10 +328,10 @@ class DynamicRoutingConsumer:
 
     def _run(self) -> None:
         """
-        The main run loop that listens for messages and routes them to appropriate files.
+        The main run loop that listens for messages and writes them to file.
         """
         try:
-            self.logger.info("Dynamic routing consumer started")
+            self.logger.info(f"Writing events to file: {self.output_file}")
 
             while self.running:
                 try:
@@ -487,7 +349,7 @@ class DynamicRoutingConsumer:
                         payload = msgpack.unpackb(msg_parts[1], raw=False)
 
                         # Extract output_file from event, use default if not specified
-                        output_file = payload.get('output_file')
+                        output_file = payload.get('output_file', self.output_file)
 
                         # Get file handle
                         file_handle = self._get_file_handle(output_file)
@@ -509,9 +371,11 @@ class DynamicRoutingConsumer:
                             self.logger.warning(f"No file handle available for: {output_file}")
 
                 except zmq.Again:
+                    # Timeout occurred, continue the loop
                     continue
                 except zmq.ZMQError as e:
                     self.logger.error(f"ZeroMQ error: {e}")
+                    # Reset socket to trigger reconnection
                     self.socket = None
                     time.sleep(0.1)
                     continue
@@ -534,24 +398,34 @@ class DynamicRoutingConsumer:
             return
 
         self.running = True
+
+        # Use provided daemon value or instance default
         daemon = daemon if daemon is not None else self.daemon
 
+        # Create and start the thread
         self.thread = threading.Thread(target=self._run, daemon=daemon)
         self.thread.start()
-        self.logger.info(f"Dynamic routing consumer started {'(daemon thread)' if daemon else ''}")
+        self.logger.info(f"Consumer started {'(daemon thread)' if daemon else ''}")
 
-    def stop(self, timeout: float = 5.0) -> None:
+    def stop(self, timeout: float = 5.0, wait_for_messages: bool = True) -> None:
         """
         Stop the consumer gracefully.
 
         Args:
             timeout: Maximum time to wait for the thread to join
+            wait_for_messages: Whether to wait for all messages to be processed before stopping
         """
         if not self.running:
             self.logger.warning("Consumer is not running")
             return
 
         self.logger.info("Stopping consumer...")
+        
+        # Give some time for messages to be processed if requested
+        if wait_for_messages:
+            self.logger.info("Waiting for messages to be processed...")
+            time.sleep(0.2)  # Give time for messages to be processed
+
         self.running = False
 
         if self.thread and self.thread.is_alive():
@@ -563,7 +437,7 @@ class DynamicRoutingConsumer:
 
         self.thread = None
 
-    def __enter__(self) -> 'DynamicRoutingConsumer':
+    def __enter__(self) -> 'ZeroMQFileConsumer':
         """
         Enter method for context manager support.
         """
@@ -576,3 +450,5 @@ class DynamicRoutingConsumer:
         Exit method for context manager support.
         """
         self.stop()
+
+
