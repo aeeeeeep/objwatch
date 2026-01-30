@@ -18,8 +18,8 @@ def get_sink(config: ObjWatchConfig) -> BaseSink:
         BaseSink: The configured sink instance.
     """
     if config.output_mode == 'zmq':
-        return ZeroMQSink(endpoint=config.zmq_endpoint, topic=config.zmq_topic, output_file=config.output)
+        return ZeroMQSink(endpoint=config.zmq_endpoint, topic=config.zmq_topic, output_path=config.output)
     else:
         # Default to StandardSink
         # It handles output file internally if config.output is set
-        return StandardSink(output=config.output, level=config.level, simple=config.simple)
+        return StandardSink(output_path=config.output, level=config.level, simple=config.simple)

@@ -7,7 +7,7 @@ import signal
 import time
 import unittest
 from unittest.mock import patch
-from tests.util import compare_json_files
+from tests.unit.utils.util import compare_json_files
 
 
 class TestForceKill(unittest.TestCase):

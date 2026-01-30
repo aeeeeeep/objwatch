@@ -6,7 +6,7 @@ import unittest
 from objwatch import ObjWatch
 from objwatch.wrappers import BaseWrapper
 from unittest.mock import patch
-from tests.util import strip_line_numbers
+from tests.unit.utils.util import strip_line_numbers
 
 
 class TestMultiprocessingCalculations(unittest.TestCase):

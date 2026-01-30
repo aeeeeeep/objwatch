@@ -43,11 +43,11 @@ class TestZeroMQE2E(unittest.TestCase):
         """
         import tempfile
         import os
-        
+
         # Create a temporary directory for test output
         temp_dir = tempfile.mkdtemp()
         consumer_output = os.path.join(temp_dir, "test_output.log")
-        
+
         try:
             # Create a ZeroMQSink directly first (wait_ready is now handled in __init__)
             from objwatch.sinks.zmq_sink import ZeroMQSink
@@ -56,12 +56,12 @@ class TestZeroMQE2E(unittest.TestCase):
 
             # Create and start the consumer directly (wait_ready is now handled in __init__)
             consumer = ZeroMQFileConsumer(
-                endpoint=self.endpoint, 
-                topic=self.topic, 
-                output_file=consumer_output, 
-                auto_start=True, 
+                endpoint=self.endpoint,
+                topic=self.topic,
+                output_file=consumer_output,
+                auto_start=True,
                 daemon=True,
-                allowed_directories=[temp_dir]
+                allowed_directories=[temp_dir],
             )
 
             # Send some test messages directly
@@ -70,11 +70,11 @@ class TestZeroMQE2E(unittest.TestCase):
             for msg in test_messages:
                 print(f"[Test] Sending direct message: {msg}")
                 test_event = {
-                    'level': 'INFO', 
-                    'msg': msg, 
-                    'time': time.time(), 
+                    'level': 'INFO',
+                    'msg': msg,
+                    'time': time.time(),
                     'name': 'test_logger',
-                    'output_file': consumer_output
+                    'output_file': consumer_output,
                 }
                 sink.emit(test_event)
                 time.sleep(0.1)  # Give time for message to be sent
@@ -103,6 +103,7 @@ class TestZeroMQE2E(unittest.TestCase):
         finally:
             # Clean up temporary directory
             import shutil
+
             shutil.rmtree(temp_dir, ignore_errors=True)
 
     def test_auto_start_consumer(self):
@@ -147,20 +148,20 @@ class TestZeroMQE2E(unittest.TestCase):
         """
         import tempfile
         import os
-        
+
         # Create a temporary directory for test output
         temp_dir = tempfile.mkdtemp()
         consumer_output = os.path.join(temp_dir, "test_output.log")
-        
+
         try:
             # Create consumer with topic "test_topic" (wait_ready is now handled in __init__)
             consumer = ZeroMQFileConsumer(
-                endpoint=self.endpoint, 
-                topic="test_topic", 
-                output_file=consumer_output, 
-                auto_start=True, 
+                endpoint=self.endpoint,
+                topic="test_topic",
+                output_file=consumer_output,
+                auto_start=True,
                 daemon=True,
-                allowed_directories=[temp_dir]
+                allowed_directories=[temp_dir],
             )
 
             # Create ZeroMQSink (wait_ready is now handled in __init__)
@@ -174,13 +175,15 @@ class TestZeroMQE2E(unittest.TestCase):
 
             # Send multiple messages to increase chance of reception
             for _ in range(5):
-                sink.emit({
-                    'level': 'INFO', 
-                    'msg': message, 
-                    'time': time.time(), 
-                    'name': 'test_logger',
-                    'output_file': consumer_output
-                })
+                sink.emit(
+                    {
+                        'level': 'INFO',
+                        'msg': message,
+                        'time': time.time(),
+                        'name': 'test_logger',
+                        'output_file': consumer_output,
+                    }
+                )
                 time.sleep(0.1)
 
             # Give time for messages to be processed
@@ -200,6 +203,7 @@ class TestZeroMQE2E(unittest.TestCase):
         finally:
             # Clean up temporary directory
             import shutil
+
             shutil.rmtree(temp_dir, ignore_errors=True)
 
     def test_zmq_invalid_endpoint(self):

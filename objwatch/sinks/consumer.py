@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 from collections import OrderedDict
 
-from ..events import LogEvent
 from .formatter import Formatter
 
 
@@ -85,26 +84,27 @@ class ZeroMQFileConsumer:
             bool: True if consumer is ready, False if timeout occurred
         """
         import time
+
         start_time = time.time()
-        
+
         # Wait for thread to start
         while not self.thread or not self.thread.is_alive():
             if time.time() - start_time > timeout:
                 self.logger.error("Timeout waiting for consumer thread to start")
                 return False
             time.sleep(0.01)
-        
+
         # Wait for socket to be connected
         while self.socket is None:
             if time.time() - start_time > timeout:
                 self.logger.error("Timeout waiting for ZeroMQ socket to connect")
                 return False
             time.sleep(0.01)
-        
+
         # Give some extra time for ZeroMQ to complete the connection setup
         # This helps with the slow joiner problem
         time.sleep(0.05)
-        
+
         self.logger.info("Consumer is ready to receive messages")
         return True
 
@@ -310,11 +310,10 @@ class ZeroMQFileConsumer:
         Returns:
             str: Formatted log line
         """
-        # Check if this is a raw LogEvent (new format)
+        # Check if this is a raw event (new format)
         if 'event_type' in event_dict and 'lineno' in event_dict and 'call_depth' in event_dict:
-            # Convert dict to LogEvent object
-            log_event = LogEvent(**event_dict)
-            return Formatter.format(log_event)
+            # Use the formatter to process the event dictionary
+            return Formatter.format(event_dict)
         else:
             # Legacy format - keep for backward compatibility
             level = event_dict.get('level', 'INFO')
@@ -420,7 +419,7 @@ class ZeroMQFileConsumer:
             return
 
         self.logger.info("Stopping consumer...")
-        
+
         # Give some time for messages to be processed if requested
         if wait_for_messages:
             self.logger.info("Waiting for messages to be processed...")
@@ -450,5 +449,3 @@ class ZeroMQFileConsumer:
         Exit method for context manager support.
         """
         self.stop()
-
-

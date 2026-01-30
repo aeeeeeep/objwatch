@@ -13,7 +13,7 @@ import objwatch
 from objwatch.wrappers import BaseWrapper, TensorShapeWrapper, ABCWrapper
 from objwatch.core import ObjWatch
 from objwatch.targets import Targets
-from tests.util import strip_line_numbers
+from tests.unit.utils.util import strip_line_numbers
 
 try:
     import torch
@@ -21,11 +21,11 @@ except ImportError:
     torch = None
 
 
-golden_log = """DEBUG:objwatch:   run __main__.<module>
-DEBUG:objwatch:    run __main__.TestClass
+golden_log = """DEBUG:objwatch:   run __main__.<module> <- 
+DEBUG:objwatch:    run __main__.TestClass <- 
 DEBUG:objwatch:    end __main__.TestClass
-DEBUG:objwatch:   run __main__.main
-DEBUG:objwatch:    run __main__.TestClass.method
+DEBUG:objwatch:   run __main__.main <- 
+DEBUG:objwatch:    run __main__.TestClass.method <- 
 DEBUG:objwatch:    upd TestClass.attr None -> 1
 DEBUG:objwatch:    end __main__.TestClass.method
 DEBUG:objwatch:   end __main__.main

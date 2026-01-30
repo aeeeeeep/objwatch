@@ -14,10 +14,11 @@ class StandardSink(BaseSink):
     Preserves the original behavior of objwatch.
     """
 
-    def __init__(self, output: Optional[str] = None, level: Union[int, str] = logging.DEBUG, simple: bool = True):
+    def __init__(
+        self, output_path: Optional[str] = None, level: Union[int, str] = logging.DEBUG, simple: bool = True, **kwargs
+    ):
+        super().__init__(output_path=output_path, **kwargs)
         self.logger_name = 'objwatch_std_sink'
-        self.output_file = output
-        self.output = output
         self.level = level
         self.simple = simple
         self.force_print = level == "force"
@@ -53,13 +54,13 @@ class StandardSink(BaseSink):
         self.logger.addHandler(stream_handler)
 
         # File Handler
-        if self.output:
+        if self.output_path:
             try:
-                file_handler = logging.FileHandler(self.output, mode='a', encoding='utf-8')
+                file_handler = logging.FileHandler(self.output_path, mode='a', encoding='utf-8')
                 file_handler.setFormatter(formatter)
                 self.logger.addHandler(file_handler)
             except Exception as e:
-                sys.stderr.write(f"objwatch: Failed to setup file logging to {self.output}: {e}\n")
+                sys.stderr.write(f"objwatch: Failed to setup file logging to {self.output_path}: {e}\n")
 
     def emit(self, event: Dict[str, Any]) -> None:
         """

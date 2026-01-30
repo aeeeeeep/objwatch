@@ -106,9 +106,7 @@ class LoggerManager:
 
 
 class SinkHandler(logging.Handler):
-    """
-    A logging handler that redirects records to the configured sink.
-    """
+    """Handler that redirects records to sink with lazy serialization."""
 
     def emit(self, record: logging.LogRecord) -> None:
         # Prevent logging loops by skipping records from sinks module
@@ -125,30 +123,22 @@ class SinkHandler(logging.Handler):
         try:
             msg = self.format(record)
 
-            # Check if raw event data is available (for lazy serialization)
-            raw_event = getattr(record, 'raw_event', None)
-
             import os
 
             process_id = os.getpid()
 
-            if raw_event:
-                # Use raw event data for lazy serialization
+            event_obj = getattr(record, 'event', None)
+
+            if event_obj is not None:
                 event = {
-                    **raw_event,
+                    '_event': event_obj,
                     'level': record.levelname,
                     'time': record.created,
                     'name': record.name,
                     'process_id': process_id,
+                    'msg': msg,
                 }
-
-                # Add output_file for dynamic routing support
-                if hasattr(sink, 'output_file') and sink.output_file:
-                    event['output_file'] = sink.output_file
-                else:
-                    event['output_file'] = None
             else:
-                # Legacy format for backward compatibility
                 event = {
                     'level': record.levelname,
                     'msg': msg,
@@ -157,11 +147,12 @@ class SinkHandler(logging.Handler):
                     'process_id': process_id,
                 }
 
-                # Add output_file for dynamic routing support
-                if hasattr(sink, 'output_file') and sink.output_file:
-                    event['output_file'] = sink.output_file
-                else:
-                    event['output_file'] = None
+            # Add output_file for dynamic routing support
+            output_path = getattr(sink, 'output_path', None) or getattr(sink, 'output_file', None)
+            if output_path:
+                event['output_file'] = output_path
+            else:
+                event['output_file'] = None
 
             sink.emit(event)
         except Exception as e:

@@ -7,7 +7,7 @@ from unittest.mock import patch
 from objwatch.config import ObjWatchConfig
 from objwatch.tracer import Tracer
 from objwatch.wrappers import BaseWrapper
-from tests.util import compare_json_files
+from tests.unit.utils.util import compare_json_files
 
 
 class TestOutputJSON(unittest.TestCase):
@@ -16,7 +16,7 @@ class TestOutputJSON(unittest.TestCase):
         self.golden_output = "tests/utils/golden_output_json.json"
 
         config = ObjWatchConfig(
-            targets="tests/test_output_json.py",
+            targets="tests/unit/core/test_output_json.py",
             output_json=self.test_output,
             wrapper=BaseWrapper,
             with_locals=True,
