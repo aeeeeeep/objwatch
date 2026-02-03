@@ -10,6 +10,7 @@ Submodules
    objwatch.sinks.abc
    objwatch.sinks.consumer
    objwatch.sinks.factory
+   objwatch.sinks.formatter
    objwatch.sinks.std
    objwatch.sinks.zmq_sink
 
