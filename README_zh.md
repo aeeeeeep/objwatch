@@ -11,7 +11,6 @@
 [![Downloads](https://static.pepy.tech/badge/objwatch)](https://pepy.tech/projects/objwatch)
 [![Python Versions](https://img.shields.io/pypi/pyversions/objwatch)](https://github.com/aeeeeeep/objwatch)
 [![GitHub pull request](https://img.shields.io/badge/PRs-welcome-blue)](https://github.com/aeeeeeep/objwatch/pulls)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16986436.svg)](https://doi.org/10.5281/zenodo.16986436)
 
 \[ [English](README.md) | 中文 \]
 
@@ -78,6 +77,10 @@ ObjWatch 提供可定制的日志格式和追踪选项，适应不同项目需�
 - `wrapper` (ABCWrapper，可选) ：自定义包装器，用于扩展追踪和日志记录功能，详见下文。
 - `framework` (字符串，可选)：需要使用的多进程框架模块。
 - `indexes` (列表，可选)：需要在多进程环境中跟踪的 ids。
+- `output_mode` (字符串，可选)：日志输出模式。选项：'std', 'zmq'。默认为 'std'。
+- `zmq_endpoint` (字符串，可选)：'zmq' 模式的 ZeroMQ 端点。默认为 "tcp://127.0.0.1:5555"。
+- `zmq_topic` (字符串，可选)：'zmq' 模式的 ZeroMQ 主题。默认为 ""。
+- `auto_start_consumer` (布尔值，可选)：是否自动启动 ZeroMQ 消费者。默认为 True。
 
 ## 🚀 快速开始
 

@@ -83,7 +83,9 @@ class JSONToLogConverter:
                     log_lines.extend(nested_lines)
 
                 # Handle function end event
-                end_prefix = JSONToLogConverter._generate_prefix(event['end_line'] if 'end_line' in event else event['run_line'], call_depth)
+                end_prefix = JSONToLogConverter._generate_prefix(
+                    event['end_line'] if 'end_line' in event else event['run_line'], call_depth
+                )
                 end_msg = f"{end_prefix}end {event['qualified_name']}"
                 if 'return_msg' in event:
                     end_msg += f" -> {event['return_msg']}"

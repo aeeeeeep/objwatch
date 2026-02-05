@@ -24,6 +24,10 @@ class ObjWatchConfig:
         wrapper (Optional[ABCWrapper]): Custom wrapper to extend tracing and logging functionality.
         framework (Optional[str]): The multi-process framework module to use.
         indexes (Optional[List[int]]): The indexes to track in a multi-process environment.
+        output_mode (str): Output mode for logs. Options: 'std', 'zmq'. Defaults to 'std'.
+        zmq_endpoint (str): ZeroMQ endpoint for 'zmq' mode. Defaults to "tcp://127.0.0.1:5555".
+        zmq_topic (str): ZeroMQ topic for 'zmq' mode. Defaults to "".
+        auto_start_consumer (bool): Whether to automatically start the ZeroMQ consumer. Defaults to True.
     """
 
     targets: List[Union[str, ModuleType]]
@@ -37,6 +41,10 @@ class ObjWatchConfig:
     wrapper: Optional[Any] = None
     framework: Optional[str] = None
     indexes: Optional[List[int]] = None
+    output_mode: str = "std"
+    zmq_endpoint: str = "tcp://127.0.0.1:5555"
+    zmq_topic: str = ""
+    auto_start_consumer: bool = True
 
     def __post_init__(self) -> None:
         """
@@ -49,7 +57,7 @@ class ObjWatchConfig:
             raise ValueError("output cannot be specified when level is 'force'")
 
         if self.output is not None and not self.output.endswith('.objwatch'):
-            raise ValueError("output file must end with '.objwatch' for ObjWatch Log Viewer extension")
+            logging.warning("output file must end with '.objwatch' for ObjWatch Log Viewer extension")
 
         if self.output_json is not None and not self.output_json.endswith('.json'):
             raise ValueError("output_json file must end with '.json'")

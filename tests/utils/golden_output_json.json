@@ -7,48 +7,50 @@
             "python_version": "/"
         },
         "config": {
-            "targets": "tests/test_output_json.py",
+            "targets": "tests/unit/core/test_output_json.py",
             "exclude_targets": null,
-            "framework": null,
-            "indexes": null,
+            "with_locals": true,
+            "with_globals": false,
             "output": null,
             "output_json": "test_trace.json",
             "level": "DEBUG",
             "simple": true,
             "wrapper": "BaseWrapper",
-            "with_locals": true,
-            "with_globals": false
+            "framework": null,
+            "indexes": null,
+            "output_mode": "std",
+            "zmq_endpoint": "tcp://127.0.0.1:5555",
+            "zmq_topic": "",
+            "auto_start_consumer": true
         },
         "events": [
             {
-                "id": 1,
                 "type": "Function",
-                "module": "tests.test_output_json",
+                "module": "tests.unit.core.test_output_json",
                 "symbol": "TestClass.outer_function",
                 "symbol_type": "function",
                 "run_line": 87,
-                "qualified_name": "tests.test_output_json.TestClass.outer_function",
+                "qualified_name": "tests.unit.core.test_output_json.TestClass.outer_function",
                 "events": [
                     {
-                        "id": 2,
                         "type": "upd",
                         "name": "TestClass.a",
                         "line": 35,
                         "old": "None",
                         "new": "10",
-                        "call_depth": 1
+                        "call_depth": 1,
+                        "id": 2
                     },
                     {
-                        "id": 3,
                         "type": "upd",
                         "name": "TestClass.b",
                         "line": 37,
                         "old": "None",
                         "new": "(list)[1, 2, 3]",
-                        "call_depth": 1
+                        "call_depth": 1,
+                        "id": 3
                     },
                     {
-                        "id": 4,
                         "type": "apd",
                         "name": "TestClass.b",
                         "line": 38,
@@ -60,10 +62,10 @@
                             "type": "list",
                             "len": 4
                         },
-                        "call_depth": 1
+                        "call_depth": 1,
+                        "id": 4
                     },
                     {
-                        "id": 5,
                         "type": "pop",
                         "name": "TestClass.b",
                         "line": 39,
@@ -75,19 +77,19 @@
                             "type": "list",
                             "len": 3
                         },
-                        "call_depth": 1
+                        "call_depth": 1,
+                        "id": 5
                     },
                     {
-                        "id": 6,
                         "type": "upd",
                         "name": "TestClass.c",
                         "line": 42,
                         "old": "None",
                         "new": "(dict)[('key1', 'value1')]",
-                        "call_depth": 1
+                        "call_depth": 1,
+                        "id": 6
                     },
                     {
-                        "id": 7,
                         "type": "apd",
                         "name": "TestClass.c",
                         "line": 43,
@@ -99,10 +101,10 @@
                             "type": "dict",
                             "len": 2
                         },
-                        "call_depth": 1
+                        "call_depth": 1,
+                        "id": 7
                     },
                     {
-                        "id": 8,
                         "type": "pop",
                         "name": "TestClass.c",
                         "line": 45,
@@ -114,19 +116,19 @@
                             "type": "dict",
                             "len": 1
                         },
-                        "call_depth": 1
+                        "call_depth": 1,
+                        "id": 8
                     },
                     {
-                        "id": 9,
                         "type": "upd",
                         "name": "TestClass.d",
                         "line": 47,
                         "old": "None",
                         "new": "(set)[1, 2, 3]",
-                        "call_depth": 1
+                        "call_depth": 1,
+                        "id": 9
                     },
                     {
-                        "id": 10,
                         "type": "apd",
                         "name": "TestClass.d",
                         "line": 48,
@@ -138,10 +140,10 @@
                             "type": "set",
                             "len": 4
                         },
-                        "call_depth": 1
+                        "call_depth": 1,
+                        "id": 10
                     },
                     {
-                        "id": 11,
                         "type": "pop",
                         "name": "TestClass.d",
                         "line": 49,
@@ -153,10 +155,10 @@
                             "type": "set",
                             "len": 3
                         },
-                        "call_depth": 1
+                        "call_depth": 1,
+                        "id": 11
                     },
                     {
-                        "id": 12,
                         "type": "apd",
                         "name": "TestClass.d",
                         "line": 50,
@@ -168,10 +170,10 @@
                             "type": "set",
                             "len": 5
                         },
-                        "call_depth": 1
+                        "call_depth": 1,
+                        "id": 12
                     },
                     {
-                        "id": 13,
                         "type": "pop",
                         "name": "TestClass.d",
                         "line": 51,
@@ -183,46 +185,45 @@
                             "type": "set",
                             "len": 4
                         },
-                        "call_depth": 1
+                        "call_depth": 1,
+                        "id": 13
                     },
                     {
-                        "id": 14,
                         "type": "upd",
                         "name": "TestClass.a",
                         "line": 53,
                         "old": "10",
                         "new": "20",
-                        "call_depth": 1
+                        "call_depth": 1,
+                        "id": 14
                     },
                     {
-                        "id": 15,
                         "type": "Function",
-                        "module": "tests.test_output_json",
+                        "module": "tests.unit.core.test_output_json",
                         "symbol": "TestClass.inner_function",
                         "symbol_type": "function",
                         "run_line": 55,
-                        "qualified_name": "tests.test_output_json.TestClass.inner_function",
+                        "qualified_name": "tests.unit.core.test_output_json.TestClass.inner_function",
                         "events": [
                             {
-                                "id": 16,
                                 "type": "upd",
                                 "name": "_.a",
                                 "line": 59,
                                 "old": "None",
                                 "new": "10",
-                                "call_depth": 2
+                                "call_depth": 2,
+                                "id": 16
                             },
                             {
-                                "id": 17,
                                 "type": "upd",
                                 "name": "_.b",
                                 "line": 61,
                                 "old": "None",
                                 "new": "(list)[1, 2, 3]",
-                                "call_depth": 2
+                                "call_depth": 2,
+                                "id": 17
                             },
                             {
-                                "id": 18,
                                 "type": "apd",
                                 "name": "_.b",
                                 "line": 62,
@@ -234,10 +235,10 @@
                                     "type": "list",
                                     "len": 4
                                 },
-                                "call_depth": 2
+                                "call_depth": 2,
+                                "id": 18
                             },
                             {
-                                "id": 19,
                                 "type": "pop",
                                 "name": "_.b",
                                 "line": 63,
@@ -249,19 +250,19 @@
                                     "type": "list",
                                     "len": 3
                                 },
-                                "call_depth": 2
+                                "call_depth": 2,
+                                "id": 19
                             },
                             {
-                                "id": 20,
                                 "type": "upd",
                                 "name": "TestClass.lst",
                                 "line": 66,
                                 "old": "None",
                                 "new": "(list)[100, 3, 4]",
-                                "call_depth": 2
+                                "call_depth": 2,
+                                "id": 20
                             },
                             {
-                                "id": 21,
                                 "type": "apd",
                                 "name": "TestClass.b",
                                 "line": 67,
@@ -273,10 +274,10 @@
                                     "type": "list",
                                     "len": 4
                                 },
-                                "call_depth": 2
+                                "call_depth": 2,
+                                "id": 21
                             },
                             {
-                                "id": 22,
                                 "type": "apd",
                                 "name": "TestClass.lst",
                                 "line": 67,
@@ -288,10 +289,10 @@
                                     "type": "list",
                                     "len": 4
                                 },
-                                "call_depth": 2
+                                "call_depth": 2,
+                                "id": 22
                             },
                             {
-                                "id": 23,
                                 "type": "apd",
                                 "name": "_.lst",
                                 "line": 67,
@@ -303,19 +304,19 @@
                                     "type": "list",
                                     "len": 4
                                 },
-                                "call_depth": 2
+                                "call_depth": 2,
+                                "id": 23
                             },
                             {
-                                "id": 24,
                                 "type": "upd",
                                 "name": "TestClass.e",
                                 "line": 70,
                                 "old": "None",
                                 "new": "(dict)[('inner_key1', 'inner_value1')]",
-                                "call_depth": 2
+                                "call_depth": 2,
+                                "id": 24
                             },
                             {
-                                "id": 25,
                                 "type": "apd",
                                 "name": "TestClass.e",
                                 "line": 71,
@@ -327,10 +328,10 @@
                                     "type": "dict",
                                     "len": 2
                                 },
-                                "call_depth": 2
+                                "call_depth": 2,
+                                "id": 25
                             },
                             {
-                                "id": 26,
                                 "type": "pop",
                                 "name": "TestClass.e",
                                 "line": 73,
@@ -342,19 +343,19 @@
                                     "type": "dict",
                                     "len": 1
                                 },
-                                "call_depth": 2
+                                "call_depth": 2,
+                                "id": 26
                             },
                             {
-                                "id": 27,
                                 "type": "upd",
                                 "name": "TestClass.f",
                                 "line": 75,
                                 "old": "None",
                                 "new": "(set)[10, 20, 30]",
-                                "call_depth": 2
+                                "call_depth": 2,
+                                "id": 27
                             },
                             {
-                                "id": 28,
                                 "type": "apd",
                                 "name": "TestClass.f",
                                 "line": 76,
@@ -366,10 +367,10 @@
                                     "type": "set",
                                     "len": 4
                                 },
-                                "call_depth": 2
+                                "call_depth": 2,
+                                "id": 28
                             },
                             {
-                                "id": 29,
                                 "type": "pop",
                                 "name": "TestClass.f",
                                 "line": 77,
@@ -381,10 +382,10 @@
                                     "type": "set",
                                     "len": 3
                                 },
-                                "call_depth": 2
+                                "call_depth": 2,
+                                "id": 29
                             },
                             {
-                                "id": 30,
                                 "type": "apd",
                                 "name": "TestClass.f",
                                 "line": 78,
@@ -396,10 +397,10 @@
                                     "type": "set",
                                     "len": 5
                                 },
-                                "call_depth": 2
+                                "call_depth": 2,
+                                "id": 30
                             },
                             {
-                                "id": 31,
                                 "type": "pop",
                                 "name": "TestClass.f",
                                 "line": 79,
@@ -411,26 +412,29 @@
                                     "type": "set",
                                     "len": 4
                                 },
-                                "call_depth": 2
+                                "call_depth": 2,
+                                "id": 31
                             }
                         ],
                         "call_msg": "'0':(type)TestClass, '1':(list)[100, 3, 4]",
-                        "return_msg": "[(list)[200, 3, 4, '... (1 more elements)']]",
-                        "end_line": 55
+                        "id": 15,
+                        "end_line": 55,
+                        "return_msg": "[(list)[200, 3, 4, '... (1 more elements)']]"
                     },
                     {
-                        "id": 32,
                         "type": "upd",
                         "name": "TestClass.a",
                         "line": 55,
                         "old": "20",
                         "new": "(list)[200, 3, 4, '... (1 more elements)']",
-                        "call_depth": 1
+                        "call_depth": 1,
+                        "id": 32
                     }
                 ],
                 "call_msg": "'0':(type)TestClass",
-                "return_msg": "[(list)[200, 3, 4, '... (1 more elements)']]",
-                "end_line": 87
+                "id": 1,
+                "end_line": 87,
+                "return_msg": "[(list)[200, 3, 4, '... (1 more elements)']]"
             }
         ]
     }

@@ -11,7 +11,6 @@
 [![Downloads](https://static.pepy.tech/badge/objwatch)](https://pepy.tech/projects/objwatch)
 [![Python Versions](https://img.shields.io/pypi/pyversions/objwatch)](https://github.com/aeeeeeep/objwatch)
 [![GitHub pull request](https://img.shields.io/badge/PRs-welcome-blue)](https://github.com/aeeeeeep/objwatch/pulls)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16986436.svg)](https://doi.org/10.5281/zenodo.16986436)
 
 \[ English | [中文](README_zh.md) \]
 
@@ -78,6 +77,10 @@ ObjWatch offers customizable logging formats and tracing options to suit various
 - `wrapper` (ABCWrapper, optional): Custom wrapper to extend tracing and logging functionality.
 - `framework` (str, optional): The multi-process framework module to use.
 - `indexes` (list, optional): The indexes to track in a multi-process environment.
+- `output_mode` (str, optional): Output mode for logs. Options: 'std', 'zmq'. Defaults to 'std'.
+- `zmq_endpoint` (str, optional): ZeroMQ endpoint for 'zmq' mode. Defaults to "tcp://127.0.0.1:5555".
+- `zmq_topic` (str, optional): ZeroMQ topic for 'zmq' mode. Defaults to "".
+- `auto_start_consumer` (bool, optional): Whether to automatically start the ZeroMQ consumer. Defaults to True.
 
 ## 🚀 Getting Started
 

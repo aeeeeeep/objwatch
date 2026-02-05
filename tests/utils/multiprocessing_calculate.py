@@ -11,6 +11,7 @@ def calculate(pid, queue):
 
 
 def worker():
+    multiprocessing.set_start_method('spawn', force=True)
     result_queue = multiprocessing.Queue()
     processes = []
 

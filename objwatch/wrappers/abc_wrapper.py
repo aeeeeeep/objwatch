@@ -2,11 +2,15 @@
 # Copyright (c) 2025 aeeeeeep
 
 from types import FrameType
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, Optional
 from abc import ABC, abstractmethod
 
 from ..constants import Constants
-from ..event_handls import EventHandls
+from ..events.formatters.log_formatter import LogEventFormatter
+
+
+# Re-export Optional for backwards compatibility
+Optional = Optional
 
 
 class ABCWrapper(ABC):
@@ -18,6 +22,8 @@ class ABCWrapper(ABC):
         # Class attribute to specify the function for processing sequence elements
         # Subclasses can override this to provide custom sequence processing
         self.format_sequence_func = None
+        # Use the new LogEventFormatter for value formatting
+        self._formatter = LogEventFormatter()
 
     @abstractmethod
     def wrap_call(self, func_name: str, frame: FrameType) -> str:
@@ -110,24 +116,23 @@ class ABCWrapper(ABC):
         Returns:
             str: Formatted value string.
         """
+        # Handle sequence types with optional custom processing function
         if isinstance(value, Constants.LOG_ELEMENT_TYPES):
             formatted = f"{value}"
         elif isinstance(value, Constants.LOG_SEQUENCE_TYPES):
-            formatted_sequence = EventHandls.format_sequence(value, func=self.format_sequence_func)
-            if formatted_sequence:
-                formatted = f"{formatted_sequence}"
-            else:
-                formatted = f"(type){type(value).__name__}"
+            # Use format_sequence_func if set for custom element processing
+            func = getattr(self, 'format_sequence_func', None)
+            formatted = self._formatter.format_sequence(value, func=func)
+            if formatted is None:
+                formatted = f"({type(value).__name__})[{len(value)} elements]"
         else:
             try:
-                formatted = f"(type){value.__name__}"  # type: ignore
+                formatted = f"(type){value.__name__}"
             except Exception:
                 formatted = f"(type){type(value).__name__}"
 
-        if is_return:
-            if isinstance(value, Constants.LOG_SEQUENCE_TYPES) and formatted:
-                return f"[{formatted}]"
-            return f"{formatted}"
+        if is_return and isinstance(value, Constants.LOG_SEQUENCE_TYPES):
+            return f"[{formatted}]"
         return formatted
 
     def _format_return(self, result: Any) -> str:
@@ -142,3 +147,17 @@ class ABCWrapper(ABC):
         """
         return_msg = self._format_value(result, is_return=True)
         return return_msg
+
+    def format_sequence(self, seq: Any, func: Optional[Any] = None) -> Optional[str]:
+        """
+        Format a sequence for display.
+
+        Args:
+            seq: The sequence to format
+            func: Optional function to process elements
+
+        Returns:
+            Optional[str]: Formatted sequence string, or None if the sequence
+                          cannot be formatted with the given function.
+        """
+        return self._formatter.format_sequence(seq, func=func)

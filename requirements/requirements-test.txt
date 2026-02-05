@@ -1,3 +1,6 @@
 psutil
+pyzmq
+msgpack
 pytest
+pytest-timeout
 mypy

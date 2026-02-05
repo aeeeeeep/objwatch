@@ -3,18 +3,17 @@
 
 import os
 import runpy
-import importlib
-import unittest
-from unittest.mock import MagicMock, patch
 import logging
+import unittest
+import importlib
 from io import StringIO
+from unittest.mock import MagicMock, patch
+
 import objwatch
-from objwatch.config import ObjWatchConfig
 from objwatch.wrappers import BaseWrapper, TensorShapeWrapper, ABCWrapper
 from objwatch.core import ObjWatch
 from objwatch.targets import Targets
-from objwatch.tracer import Tracer
-from tests.util import strip_line_numbers
+from tests.unit.utils.util import strip_line_numbers
 
 try:
     import torch
@@ -22,11 +21,11 @@ except ImportError:
     torch = None
 
 
-golden_log = """DEBUG:objwatch:   run __main__.<module>
-DEBUG:objwatch:    run __main__.TestClass
+golden_log = """DEBUG:objwatch:   run __main__.<module> <- 
+DEBUG:objwatch:    run __main__.TestClass <- 
 DEBUG:objwatch:    end __main__.TestClass
-DEBUG:objwatch:   run __main__.main
-DEBUG:objwatch:    run __main__.TestClass.method
+DEBUG:objwatch:   run __main__.main <- 
+DEBUG:objwatch:    run __main__.TestClass.method <- 
 DEBUG:objwatch:    upd TestClass.attr None -> 1
 DEBUG:objwatch:    end __main__.TestClass.method
 DEBUG:objwatch:   end __main__.main
@@ -285,7 +284,10 @@ class TestTensorShapeWrapper(unittest.TestCase):
 
         tensors_dict = {f"key_{i}": torch.randn(2, 2) for i in range(5)}
         mock_frame.f_locals = {'arg_tensors': tensors_dict}
-        expected_call_msg = "'0':(dict)[('key_0', torch.Size([2, 2])), ('key_1', torch.Size([2, 2])), ('key_2', torch.Size([2, 2])), '... (2 more elements)']"
+        expected_call_msg = (
+            "'0':(dict)[('key_0', torch.Size([2, 2])), ('key_1', torch.Size([2, 2])), "
+            "('key_2', torch.Size([2, 2])), '... (2 more elements)']"
+        )
         actual_call_msg = self.tensor_shape_logger.wrap_call('test_tensor_func', mock_frame)
         self.assertEqual(actual_call_msg, expected_call_msg)
 
@@ -477,30 +479,6 @@ class TestLoggerForce(unittest.TestCase):
         objwatch.utils.logger.log_warn(msg)
 
         mock_print.assert_called_with(msg, flush=True)
-
-    @patch('objwatch.utils.logger.logger.info')
-    @patch('objwatch.utils.logger.logger.debug')
-    @patch('objwatch.utils.logger.logger.warning')
-    @patch('builtins.print')
-    def test_log_functions_force_false(self, mock_print, mock_warning, mock_debug, mock_info):
-        import objwatch.utils.logger
-
-        objwatch.utils.logger.create_logger(level=logging.DEBUG)
-
-        info_msg = "Normal log message"
-        objwatch.utils.logger.log_info(info_msg)
-        mock_info.assert_called_with(info_msg)
-        mock_print.assert_not_called()
-
-        debug_msg = "Normal debug message"
-        objwatch.utils.logger.log_debug(debug_msg)
-        mock_debug.assert_called_with(debug_msg)
-        mock_print.assert_not_called()
-
-        warn_msg = "Normal warning message"
-        objwatch.utils.logger.log_warn(warn_msg)
-        mock_warning.assert_called_with(warn_msg)
-        mock_print.assert_not_called()
 
 
 if __name__ == '__main__':

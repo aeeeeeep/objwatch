@@ -4,8 +4,6 @@
 from types import FrameType
 from typing import Any, List, Optional, Tuple
 
-from ..constants import Constants
-from ..event_handls import EventHandls
 from .abc_wrapper import ABCWrapper
 
 try:
@@ -36,6 +34,7 @@ class TensorShapeWrapper(ABCWrapper):
     """
 
     def __init__(self):
+        super().__init__()
         self.format_sequence_func = process_tensor_item
 
     def wrap_call(self, func_name: str, frame: FrameType) -> str:
@@ -93,26 +92,12 @@ class TensorShapeWrapper(ABCWrapper):
         Returns:
             str: Formatted value string.
         """
+        # Handle torch.Tensor specifically for shape logging
         if torch is not None and isinstance(value, torch.Tensor):
             formatted = f"{value.shape}"
-        elif isinstance(value, Constants.LOG_ELEMENT_TYPES):
-            formatted = f"{value}"
-        elif isinstance(value, Constants.LOG_SEQUENCE_TYPES):
-            formatted_sequence = EventHandls.format_sequence(value, func=self.format_sequence_func)
-            if formatted_sequence:
-                formatted = f"{formatted_sequence}"
-            else:
-                formatted = f"(type){type(value).__name__}"
-        else:
-            try:
-                formatted = f"(type){value.__name__}"
-            except Exception:
-                formatted = f"(type){type(value).__name__}"
+            if is_return:
+                return formatted
+            return formatted
 
-        if is_return:
-            if isinstance(value, torch.Tensor):
-                return f"{value.shape}"
-            elif isinstance(value, Constants.LOG_SEQUENCE_TYPES) and formatted:
-                return f"[{formatted}]"
-            return f"{formatted}"
-        return formatted
+        # Delegate to base class for all other types
+        return super()._format_value(value, is_return=is_return)

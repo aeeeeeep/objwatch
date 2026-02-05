@@ -18,8 +18,6 @@ Submodules
    objwatch.config
    objwatch.constants
    objwatch.core
-   objwatch.event_handls
-   objwatch.events
    objwatch.mp_handls
    objwatch.runtime_info
    objwatch.targets
@@ -31,5 +29,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   objwatch.events
+   objwatch.sinks
    objwatch.utils
    objwatch.wrappers

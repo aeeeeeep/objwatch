@@ -2,6 +2,7 @@
 # Copyright (c) 2025 aeeeeeep
 
 import sys
+import time
 from functools import lru_cache
 from types import FrameType
 from typing import Optional, Any, Dict, Set
@@ -10,8 +11,7 @@ from .constants import Constants
 from .config import ObjWatchConfig
 from .targets import Targets
 from .wrappers import ABCWrapper
-from .events import EventType
-from .event_handls import EventHandls
+from .events import EventType, EventDispatcher, FunctionEvent, VariableEvent, CollectionEvent
 from .mp_handls import MPHandls
 from .utils.weak import WeakIdKeyDictionary
 from .utils.logger import log_info, log_error
@@ -78,8 +78,8 @@ class Tracer:
         """
         Initialize all tracking state including dictionaries, handlers, and counters.
         """
-        # Initialize event handlers with optional JSON output
-        self.event_handlers: EventHandls = EventHandls(config=self.config)
+        # Initialize event dispatcher with configuration
+        self.event_dispatcher: EventDispatcher = EventDispatcher(config=self.config)
 
         # Initialize tracking dictionaries for objects
         self.tracked_objects: WeakIdKeyDictionary = WeakIdKeyDictionary()
@@ -469,6 +469,99 @@ class Tracer:
         )
         return func_info
 
+    def _determine_change_type(self, old_value_len: int, current_value_len: int) -> Optional[EventType]:
+        """
+        Determine the type of change based on the difference in lengths.
+
+        Args:
+            old_value_len (int): Previous length of the data structure.
+            current_value_len (int): New length of the data structure.
+
+        Returns:
+            EventType: The determined event type (APD or POP), or None if no change.
+        """
+        diff = current_value_len - old_value_len
+        if diff > 0:
+            return EventType.APD
+        elif diff < 0:
+            return EventType.POP
+        return None
+
+    def _dispatch_collection_event(
+        self,
+        lineno: int,
+        class_name: str,
+        key: str,
+        value_type: type,
+        old_value_len: int,
+        current_value_len: int,
+        event_type: EventType,
+    ) -> None:
+        """
+        Create and dispatch a collection change event.
+
+        Args:
+            lineno: Line number where the change occurred
+            class_name: Name of the class containing the collection
+            key: Name of the collection attribute
+            value_type: Type of elements in the collection
+            old_value_len: Previous length
+            current_value_len: Current length
+            event_type: Type of change (APD or POP)
+        """
+        event = CollectionEvent(
+            timestamp=time.time(),
+            event_type=event_type,
+            lineno=lineno,
+            call_depth=self.call_depth,
+            index_info=self.index_info,
+            process_id=None,
+            class_name=class_name,
+            key=key,
+            value_type=value_type,
+            old_value_len=old_value_len,
+            current_value_len=current_value_len,
+        )
+        self.event_dispatcher.dispatch(event)
+
+    def _dispatch_variable_event(
+        self,
+        lineno: int,
+        class_name: str,
+        key: str,
+        old_value: Any,
+        current_value: Any,
+        old_msg: str = "",
+        current_msg: str = "",
+    ) -> None:
+        """
+        Create and dispatch a variable update event.
+
+        Args:
+            lineno: Line number where the change occurred
+            class_name: Name of the class or symbol (e.g., "@" for globals, "_" for locals)
+            key: Variable name
+            old_value: Previous value
+            current_value: Current value
+            old_msg: Formatted old value (optional, from wrapper)
+            current_msg: Formatted current value (optional, from wrapper)
+        """
+        event = VariableEvent(
+            timestamp=time.time(),
+            event_type=EventType.UPD,
+            lineno=lineno,
+            call_depth=self.call_depth,
+            index_info=self.index_info,
+            process_id=None,
+            class_name=class_name,
+            key=key,
+            old_value=old_value,
+            current_value=current_value,
+            old_msg=old_msg,
+            current_msg=current_msg,
+        )
+        self.event_dispatcher.dispatch(event)
+
     def _handle_change_type(
         self,
         lineno: int,
@@ -493,7 +586,7 @@ class Tracer:
         """
         if old_value_len is not None and current_value_len is not None:
             change_type: Optional[EventType] = (
-                self.event_handlers.determine_change_type(old_value_len, current_value_len)
+                self._determine_change_type(old_value_len, current_value_len)
                 if old_value_len is not None
                 else EventType.UPD
             )
@@ -501,38 +594,33 @@ class Tracer:
             change_type = EventType.UPD
 
         if id(old_value) == id(current_value):
-            if change_type == EventType.APD:
-                self.event_handlers.handle_apd(
+            if change_type in (EventType.APD, EventType.POP):
+                self._dispatch_collection_event(
                     lineno,
                     class_name,
                     key,
                     type(current_value),
-                    old_value_len,
-                    current_value_len,
-                    self.call_depth,
-                    self.index_info,
-                )
-            elif change_type == EventType.POP:
-                self.event_handlers.handle_pop(
-                    lineno,
-                    class_name,
-                    key,
-                    type(current_value),
-                    old_value_len,
-                    current_value_len,
-                    self.call_depth,
-                    self.index_info,
+                    old_value_len or 0,
+                    current_value_len or 0,
+                    change_type,
                 )
         elif change_type == EventType.UPD:
-            self.event_handlers.handle_upd(
+            # Get formatted messages from wrapper if available
+            old_msg = ""
+            current_msg = ""
+            if self.abc_wrapper:
+                upd_msg = self.abc_wrapper.wrap_upd(old_value, current_value)
+                if upd_msg is not None:
+                    old_msg, current_msg = upd_msg
+
+            self._dispatch_variable_event(
                 lineno,
                 class_name,
                 key,
                 old_value,
                 current_value,
-                self.call_depth,
-                self.index_info,
-                self.abc_wrapper,
+                old_msg,
+                current_msg,
             )
 
     def _track_object_change(self, frame: FrameType, lineno: int):
@@ -598,15 +686,22 @@ class Tracer:
         for var in added_vars:
             current_local = current_locals[var]
 
-            self.event_handlers.handle_upd(
+            # Get formatted messages from wrapper if available
+            old_msg = ""
+            current_msg = ""
+            if self.abc_wrapper:
+                upd_msg = self.abc_wrapper.wrap_upd(None, current_local)
+                if upd_msg is not None:
+                    old_msg, current_msg = upd_msg
+
+            self._dispatch_variable_event(
                 lineno,
-                class_name=Constants.HANDLE_LOCALS_SYMBOL,
-                key=var,
-                old_value=None,
-                current_value=current_local,
-                call_depth=self.call_depth,
-                index_info=self.index_info,
-                abc_wrapper=self.abc_wrapper,
+                Constants.HANDLE_LOCALS_SYMBOL,
+                var,
+                None,
+                current_local,
+                old_msg,
+                current_msg,
             )
 
             if isinstance(current_local, Constants.LOG_SEQUENCE_TYPES):
@@ -666,6 +761,46 @@ class Tracer:
             if is_current_seq:
                 self.tracked_globals_lens[module_name][key] = len(current_value)
 
+    def _dispatch_function_event(
+        self,
+        lineno: int,
+        func_info: dict,
+        event_type: EventType,
+        result: Any = None,
+    ) -> None:
+        """
+        Create and dispatch a function event (run or end).
+
+        Args:
+            lineno: Line number where the event occurred
+            func_info: Dictionary containing function information
+            event_type: Type of event (RUN or END)
+            result: Return value (for END events)
+        """
+        call_msg = ""
+        return_msg = ""
+
+        if event_type == EventType.RUN and self.abc_wrapper:
+            frame = func_info.get('frame')
+            if frame:
+                call_msg = self.abc_wrapper.wrap_call(func_info['symbol'], frame)
+        elif event_type == EventType.END and self.abc_wrapper:
+            return_msg = self.abc_wrapper.wrap_return(func_info['symbol'], result)
+
+        event = FunctionEvent(
+            timestamp=time.time(),
+            event_type=event_type,
+            lineno=lineno,
+            call_depth=self.call_depth,
+            index_info=self.index_info,
+            process_id=None,
+            func_info=func_info,
+            result=result,
+            call_msg=call_msg,
+            return_msg=return_msg,
+        )
+        self.event_dispatcher.dispatch(event)
+
     def trace_factory(self):  # noqa: C901
         """
         Create the tracing function to be used with sys.settrace.
@@ -706,7 +841,7 @@ class Tracer:
                 lineno = frame.f_back.f_lineno if frame.f_back else frame.f_lineno
                 func_info = self._get_function_info(frame)
                 self._update_objects_lens(frame)
-                self.event_handlers.handle_run(lineno, func_info, self.abc_wrapper, self.call_depth, self.index_info)
+                self._dispatch_function_event(lineno, func_info, EventType.RUN)
                 self.call_depth += 1
 
                 # Track local variables if needed
@@ -726,9 +861,7 @@ class Tracer:
                 self.call_depth -= 1
                 func_info = self._get_function_info(frame)
                 self._update_objects_lens(frame)
-                self.event_handlers.handle_end(
-                    lineno, func_info, self.abc_wrapper, self.call_depth, self.index_info, arg
-                )
+                self._dispatch_function_event(lineno, func_info, EventType.END, arg)
 
                 # Clean up local tracking after function return
                 if self.config.with_locals and frame in self.tracked_locals:
@@ -762,7 +895,7 @@ class Tracer:
 
         return trace_func
 
-    def log_metainfo_with_format(self) -> None:
+    def _log_metainfo_with_format(self) -> None:
         """Log metainfo in formatted view."""
 
         # Table header with version information
@@ -825,7 +958,7 @@ class Tracer:
         Start the tracing process by setting the trace function.
         """
         # Format and logging all metainfo
-        self.log_metainfo_with_format()
+        self._log_metainfo_with_format()
 
         # Initialize tracking dictionaries
         self._initialize_tracking_state()
@@ -838,4 +971,4 @@ class Tracer:
         Stop the tracing process by removing the trace function and saving JSON logs.
         """
         sys.settrace(None)
-        self.event_handlers.save_json()
+        self.event_dispatcher.stop()
