@@ -48,10 +48,12 @@ class StandardSink(BaseSink):
         except (ValueError, TypeError):
             self.logger.setLevel(logging.DEBUG)
 
-        # Stream Handler
-        stream_handler = logging.StreamHandler(sys.stdout)
-        stream_handler.setFormatter(formatter)
-        self.logger.addHandler(stream_handler)
+        # Stream Handler - only add if level is DEBUG or INFO
+        # For WARNING and above, only log to file to reduce console noise
+        if self.level in (logging.DEBUG, logging.INFO, "DEBUG", "INFO"):
+            stream_handler = logging.StreamHandler(sys.stdout)
+            stream_handler.setFormatter(formatter)
+            self.logger.addHandler(stream_handler)
 
         # File Handler
         if self.output_path:

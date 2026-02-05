@@ -21,7 +21,12 @@ class TestZeroMQE2E(unittest.TestCase):
         Set up test environment.
         """
         # Use a unique port for each test to avoid conflicts
-        self.endpoint = "tcp://127.0.0.1:5555"
+        import socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.bind(('', 0))
+        port = sock.getsockname()[1]
+        sock.close()
+        self.endpoint = f"tcp://127.0.0.1:{port}"
         self.topic = "test_topic"
         self.consumer_output = tempfile.NamedTemporaryFile(suffix=".log", delete=False).name
 

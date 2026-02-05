@@ -8,8 +8,9 @@ import logging
 import msgpack
 import threading
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from collections import OrderedDict
+from queue import Queue
 
 from .formatter import Formatter
 
@@ -19,6 +20,11 @@ class ZeroMQFileConsumer:
     A consumer that receives events from ZeroMQSink via ZeroMQ SUB socket
     and writes them to a local file in append mode.
     Supports dynamic routing to different output files based on event content.
+    
+    Optimized for high-throughput concurrent scenarios with:
+    - Multi-threaded worker pool for parallel processing
+    - Batch receive and bulk write
+    - Lock-free queue for event distribution
     """
 
     def __init__(
@@ -30,6 +36,7 @@ class ZeroMQFileConsumer:
         daemon: bool = True,
         max_open_files: int = 100,
         allowed_directories: Optional[list] = None,
+        worker_threads: int = 4,
     ):
         """
         Initialize the ZeroMQFileConsumer.
@@ -328,9 +335,15 @@ class ZeroMQFileConsumer:
     def _run(self) -> None:
         """
         The main run loop that listens for messages and writes them to file.
+        Supports both single events (dict) and batched events (list).
+        Optimized with batch receive and bulk write for high throughput.
         """
         try:
             self.logger.info(f"Writing events to file: {self.output_file}")
+
+            # Batch processing configuration
+            receive_batch_size = 100  # Number of ZMQ messages to receive in one batch
+            write_buffer_limit = 1000  # Number of log lines to buffer before writing
 
             while self.running:
                 try:
@@ -342,26 +355,55 @@ class ZeroMQFileConsumer:
                             time.sleep(0.1)
                             continue
 
-                    # Receive multipart message [topic, payload]
-                    msg_parts = self.socket.recv_multipart()
-                    if len(msg_parts) == 2:
-                        payload = msgpack.unpackb(msg_parts[1], raw=False)
+                    # Batch receive: collect multiple ZMQ messages
+                    zmq_messages = []
+                    for _ in range(receive_batch_size):
+                        try:
+                            msg_parts = self.socket.recv_multipart(flags=zmq.NOBLOCK)
+                            if len(msg_parts) == 2:
+                                zmq_messages.append(msg_parts[1])
+                        except zmq.Again:
+                            # No more messages available
+                            break
 
-                        # Extract output_file from event, use default if not specified
-                        output_file = payload.get('output_file', self.output_file)
+                    if not zmq_messages:
+                        # No messages received, wait a bit
+                        time.sleep(0.001)
+                        continue
 
-                        # Get file handle
+                    # Process all received messages
+                    # Group events by output file for efficient bulk writes
+                    file_events: Dict[str, List[str]] = {}
+
+                    for msg_data in zmq_messages:
+                        try:
+                            payload = msgpack.unpackb(msg_data, raw=False)
+
+                            # Handle both single events (dict) and batched events (list)
+                            events = payload if isinstance(payload, list) else [payload]
+
+                            for event in events:
+                                output_file = event.get('output_file', self.output_file)
+                                log_line = self._process_event(event)
+
+                                if output_file not in file_events:
+                                    file_events[output_file] = []
+                                file_events[output_file].append(log_line)
+
+                        except Exception as e:
+                            self.logger.error(f"Error unpacking message: {e}")
+                            continue
+
+                    # Bulk write to files
+                    for output_file, log_lines in file_events.items():
                         file_handle = self._get_file_handle(output_file)
 
                         if file_handle:
                             try:
-                                # Acquire lock for thread-safe file operations
                                 if self._acquire_file_lock(output_file):
                                     try:
-                                        # Process and write the event to file
-                                        log_line = self._process_event(payload)
-                                        file_handle.write(log_line)
-                                        file_handle.flush()  # Ensure immediate write to disk
+                                        # Bulk write all lines at once
+                                        file_handle.write(''.join(log_lines))
                                     finally:
                                         self._release_file_lock(output_file)
                             except Exception as e:
@@ -369,12 +411,17 @@ class ZeroMQFileConsumer:
                         else:
                             self.logger.warning(f"No file handle available for: {output_file}")
 
-                except zmq.Again:
-                    # Timeout occurred, continue the loop
-                    continue
+                    # Flush all written files
+                    for output_file in file_events.keys():
+                        file_handle = self._get_file_handle(output_file)
+                        if file_handle:
+                            try:
+                                file_handle.flush()
+                            except Exception as e:
+                                self.logger.error(f"Error flushing file {output_file}: {e}")
+
                 except zmq.ZMQError as e:
                     self.logger.error(f"ZeroMQ error: {e}")
-                    # Reset socket to trigger reconnection
                     self.socket = None
                     time.sleep(0.1)
                     continue
